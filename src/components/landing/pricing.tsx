@@ -13,31 +13,31 @@ import { cn } from "@/lib/utils";
 
 const tiers = [
   {
-    name: "Free",
+    name: "Starter",
     price: "$0",
-    description: "For side projects and experiments.",
+    description: "For small builders getting started.",
     features: [
-      "Up to 100 users",
       "1 project",
-      "Community support",
-      "Basic analytics",
+      "Up to 5 team members",
+      "Basic document storage",
+      "Project tracking",
     ],
     cta: "Get Started",
     href: "/signup",
     highlighted: false,
   },
   {
-    name: "Pro",
-    price: "$29",
+    name: "Professional",
+    price: "$49",
     period: "/mo",
-    description: "For growing products and small teams.",
+    description: "For growing construction businesses.",
     features: [
-      "Unlimited users",
-      "10 projects",
+      "Up to 10 projects",
+      "Unlimited team members",
+      "Document control",
+      "Budget management",
+      "Defect tracking",
       "Priority support",
-      "Advanced analytics",
-      "Custom domain",
-      "Team members",
     ],
     cta: "Start Free Trial",
     href: "/signup",
@@ -46,12 +46,12 @@ const tiers = [
   {
     name: "Enterprise",
     price: "Custom",
-    description: "For large organizations with specific needs.",
+    description: "For large organisations with complex needs.",
     features: [
-      "Everything in Pro",
       "Unlimited projects",
-      "Dedicated support",
-      "SLA guarantee",
+      "Everything in Professional",
+      "Custom integrations",
+      "Dedicated account manager",
       "SSO / SAML",
       "Audit logs",
     ],
@@ -70,7 +70,7 @@ export function Pricing() {
             Simple, transparent pricing
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Start free and scale as you grow. No hidden fees.
+            Start free and scale as your business grows. No hidden fees.
           </p>
         </div>
 

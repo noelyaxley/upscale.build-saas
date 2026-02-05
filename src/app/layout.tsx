@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Upscale - Ship Your SaaS Faster",
+  title: "Upscale.Build - Construction Project Management",
   description:
-    "Everything you need to build, launch, and scale your SaaS product. Authentication, payments, dashboards — all wired up and ready to go.",
+    "Manage construction projects with confidence. Track progress, control documents, manage budgets, and coordinate teams — all in one platform.",
 };
 
 export default function RootLayout({

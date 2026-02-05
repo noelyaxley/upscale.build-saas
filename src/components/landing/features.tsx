@@ -1,49 +1,49 @@
 import {
-  Shield,
-  CreditCard,
-  BarChart3,
+  ClipboardList,
+  FileText,
+  DollarSign,
   Users,
-  Zap,
-  Globe,
+  AlertTriangle,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const features = [
   {
-    icon: Shield,
-    title: "Authentication",
+    icon: ClipboardList,
+    title: "Project Tracking",
     description:
-      "Email/password, magic links, and OAuth providers. Fully integrated with Supabase Auth.",
+      "Monitor project stages from preconstruction through to completion. Track status, milestones, and deliverables in real time.",
   },
   {
-    icon: CreditCard,
-    title: "Payments",
+    icon: FileText,
+    title: "Document Control",
     description:
-      "Stripe integration with subscription management, invoices, and customer portal.",
+      "Centralise drawings, specs, RFIs, and submittals. Version control and approvals built in.",
   },
   {
-    icon: BarChart3,
-    title: "Analytics Dashboard",
+    icon: DollarSign,
+    title: "Budget Management",
     description:
-      "Real-time metrics, charts, and insights to track your product growth.",
+      "Track budgets, variations, and cost-to-complete across all your projects with real-time financial visibility.",
   },
   {
     icon: Users,
-    title: "Team Management",
+    title: "Team Collaboration",
     description:
-      "Invite team members, manage roles and permissions with granular access control.",
+      "Assign roles, manage permissions, and keep your entire project team aligned with shared workflows.",
   },
   {
-    icon: Zap,
-    title: "API Ready",
+    icon: AlertTriangle,
+    title: "Defect Management",
     description:
-      "RESTful API endpoints with rate limiting, versioning, and auto-generated docs.",
+      "Log, assign, and close out defects efficiently. Photo capture, status tracking, and reporting included.",
   },
   {
-    icon: Globe,
-    title: "Multi-tenant",
+    icon: BarChart3,
+    title: "Reporting",
     description:
-      "Built-in multi-tenancy with isolated data, custom domains, and white-labeling.",
+      "Generate project reports, financial summaries, and progress dashboards for stakeholders and clients.",
   },
 ];
 
@@ -53,11 +53,11 @@ export function Features() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-16 max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything you need to launch
+            Everything you need to deliver projects
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Stop reinventing the wheel. Get a production-ready foundation with
-            all the essentials built in.
+            Purpose-built tools for construction project management. No
+            workarounds, no spreadsheets.
           </p>
         </div>
 
