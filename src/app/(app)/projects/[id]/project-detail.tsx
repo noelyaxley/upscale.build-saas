@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  AlertTriangle,
   ArrowLeft,
   Building2,
   Calendar,
@@ -252,6 +253,23 @@ export function ProjectDetail({ project, clientCompany, members }: ProjectDetail
                   <p className="font-medium">RFIs</p>
                   <p className="text-xs text-muted-foreground">
                     Requests for Information
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/defects`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                  <AlertTriangle className="size-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Defects</p>
+                  <p className="text-xs text-muted-foreground">
+                    Track and manage defects
                   </p>
                 </div>
               </div>

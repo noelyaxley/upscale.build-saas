@@ -59,6 +59,92 @@ export type Database = {
           },
         ]
       }
+      defects: {
+        Row: {
+          assigned_to_company_id: string | null
+          contractor_comment: string | null
+          created_at: string
+          date_closed: string | null
+          date_contractor_complete: string | null
+          defect_number: number
+          description: string | null
+          id: string
+          location: string | null
+          name: string
+          org_id: string
+          photo_url: string | null
+          project_id: string
+          reported_by_user_id: string | null
+          status: Database["public"]["Enums"]["defect_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_company_id?: string | null
+          contractor_comment?: string | null
+          created_at?: string
+          date_closed?: string | null
+          date_contractor_complete?: string | null
+          defect_number?: number
+          description?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          org_id: string
+          photo_url?: string | null
+          project_id: string
+          reported_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["defect_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_company_id?: string | null
+          contractor_comment?: string | null
+          created_at?: string
+          date_closed?: string | null
+          date_contractor_complete?: string | null
+          defect_number?: number
+          description?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          org_id?: string
+          photo_url?: string | null
+          project_id?: string
+          reported_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["defect_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defects_assigned_to_company_id_fkey"
+            columns: ["assigned_to_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_reported_by_user_id_fkey"
+            columns: ["reported_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_folders: {
         Row: {
           created_at: string
@@ -498,6 +584,7 @@ export type Database = {
       get_user_org_id: { Args: Record<string, never>; Returns: string }
     }
     Enums: {
+      defect_status: "open" | "contractor_complete" | "closed"
       rfi_status: "draft" | "open" | "closed"
     }
     CompositeTypes: {
@@ -626,6 +713,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      defect_status: ["open", "contractor_complete", "closed"],
       rfi_status: ["draft", "open", "closed"],
     },
   },
