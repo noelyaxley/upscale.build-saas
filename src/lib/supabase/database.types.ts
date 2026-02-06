@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
@@ -376,15 +374,131 @@ export type Database = {
           },
         ]
       }
+      rfi_messages: {
+        Row: {
+          author_user_id: string
+          body: string
+          created_at: string
+          id: string
+          rfi_id: string
+        }
+        Insert: {
+          author_user_id: string
+          body: string
+          created_at?: string
+          id?: string
+          rfi_id: string
+        }
+        Update: {
+          author_user_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          rfi_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfi_messages_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfi_messages_rfi_id_fkey"
+            columns: ["rfi_id"]
+            isOneToOne: false
+            referencedRelation: "rfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rfis: {
+        Row: {
+          assignee_user_id: string | null
+          closed_at: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          number: number
+          org_id: string
+          originator_user_id: string
+          project_id: string
+          question: string
+          status: Database["public"]["Enums"]["rfi_status"]
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_user_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          number?: number
+          org_id: string
+          originator_user_id: string
+          project_id: string
+          question: string
+          status?: Database["public"]["Enums"]["rfi_status"]
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_user_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          number?: number
+          org_id?: string
+          originator_user_id?: string
+          project_id?: string
+          question?: string
+          status?: Database["public"]["Enums"]["rfi_status"]
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfis_assignee_user_id_fkey"
+            columns: ["assignee_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfis_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfis_originator_user_id_fkey"
+            columns: ["originator_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfis_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_org_id: { Args: never; Returns: string }
+      get_user_org_id: { Args: Record<string, never>; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      rfi_status: "draft" | "open" | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -511,6 +625,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      rfi_status: ["draft", "open", "closed"],
+    },
   },
 } as const

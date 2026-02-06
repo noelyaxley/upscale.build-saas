@@ -9,6 +9,7 @@ import {
   DollarSign,
   FileText,
   MapPin,
+  MessageSquarePlus,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -234,6 +235,23 @@ export function ProjectDetail({ project, clientCompany, members }: ProjectDetail
                   <p className="font-medium">Documents</p>
                   <p className="text-xs text-muted-foreground">
                     Drawings, specs, and project files
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/rfis`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <MessageSquarePlus className="size-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="font-medium">RFIs</p>
+                  <p className="text-xs text-muted-foreground">
+                    Requests for Information
                   </p>
                 </div>
               </div>
