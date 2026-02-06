@@ -135,9 +135,10 @@ export function UploadDocumentDialog({
     }
   };
 
-  const handleClose = () => {
-    if (!loading) {
-      setOpen(false);
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && loading) return;
+    setOpen(newOpen);
+    if (!newOpen) {
       setSelectedFile(null);
       setError(null);
       setProgress(0);
@@ -145,7 +146,7 @@ export function UploadDocumentDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
@@ -277,7 +278,7 @@ export function UploadDocumentDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={handleClose}
+              onClick={() => handleOpenChange(false)}
               disabled={loading}
             >
               Cancel
