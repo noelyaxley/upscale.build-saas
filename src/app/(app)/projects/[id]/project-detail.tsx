@@ -19,6 +19,7 @@ import {
   Shield,
   Trash2,
   Users,
+  Gavel,
 } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
@@ -404,6 +405,23 @@ export function ProjectDetail({
                   <p className="font-medium">Consultants</p>
                   <p className="text-xs text-muted-foreground">
                     Professional services & procurement
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/tenders`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                  <Gavel className="size-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Tenders</p>
+                  <p className="text-xs text-muted-foreground">
+                    Contractor tender management
                   </p>
                 </div>
               </div>

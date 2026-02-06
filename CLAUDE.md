@@ -103,7 +103,14 @@ All tables have RLS enabled, scoped by `org_id` via `get_user_org_id()`.
 | `consultants` | Professional service providers per project with budget/contract tracking, status workflow (draft→engaged→completed/terminated) |
 | `consultant_phases` | Contract phases (e.g. Schematic Design) with fee, variations, disbursements, paid amounts (RLS via parent consultant) |
 
-**Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`, `consultant_status`, `phase_status`
+**Contractor Tenders:**
+
+| Table | Purpose |
+|-------|---------|
+| `tenders` | Tender packages per project with trade, estimated/awarded values, status workflow (draft→open→evaluation→awarded/cancelled) |
+| `tender_submissions` | Contractor bids per tender with amount, company, award tracking (RLS via parent tender) |
+
+**Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`, `consultant_status`, `phase_status`, `tender_status`
 
 Helper function: `get_user_org_id()` — used in RLS policies for efficient org scoping.
 Auto-profile trigger: Creates profile row on auth.users insert.

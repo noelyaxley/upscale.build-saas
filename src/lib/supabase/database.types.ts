@@ -1503,6 +1503,143 @@ export type Database = {
           },
         ]
       }
+      tender_submissions: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          id: string
+          is_awarded: boolean
+          notes: string | null
+          submitted_at: string | null
+          tender_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          company_id: string
+          created_at?: string
+          id?: string
+          is_awarded?: boolean
+          notes?: string | null
+          submitted_at?: string | null
+          tender_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_awarded?: boolean
+          notes?: string | null
+          submitted_at?: string | null
+          tender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_submissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tender_submissions_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenders: {
+        Row: {
+          awarded_amount: number | null
+          awarded_company_id: string | null
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          due_date: string | null
+          estimated_value: number | null
+          id: string
+          notes: string | null
+          org_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["tender_status"]
+          tender_number: number
+          title: string
+          trade: string
+          updated_at: string
+        }
+        Insert: {
+          awarded_amount?: number | null
+          awarded_company_id?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_value?: number | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["tender_status"]
+          tender_number: number
+          title: string
+          trade: string
+          updated_at?: string
+        }
+        Update: {
+          awarded_amount?: number | null
+          awarded_company_id?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_value?: number | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["tender_status"]
+          tender_number?: number
+          title?: string
+          trade?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenders_awarded_company_id_fkey"
+            columns: ["awarded_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenders_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenders_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       variations: {
         Row: {
           approved_at: string | null
@@ -1627,6 +1764,7 @@ export type Database = {
       risk_level: "low" | "medium" | "high"
       risk_status: "open" | "mitigated" | "closed"
       risk_type: "risk" | "opportunity"
+      tender_status: "draft" | "open" | "evaluation" | "awarded" | "cancelled"
       update_type: "milestone" | "progress" | "issue" | "general"
       update_visibility: "internal" | "client"
       variation_status:
@@ -1794,6 +1932,7 @@ export const Constants = {
       risk_level: ["low", "medium", "high"],
       risk_status: ["open", "mitigated", "closed"],
       risk_type: ["risk", "opportunity"],
+      tender_status: ["draft", "open", "evaluation", "awarded", "cancelled"],
       update_type: ["milestone", "progress", "issue", "general"],
       update_visibility: ["internal", "client"],
       variation_status: [
