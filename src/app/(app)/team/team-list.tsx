@@ -1,11 +1,11 @@
 "use client";
 
-import { Crown, Mail, Shield, User, UserPlus } from "lucide-react";
+import { useState } from "react";
+import { Crown, Shield, User } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,6 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { InviteMemberDialog } from "@/components/invite-member-dialog";
+import { EditMemberDialog } from "@/components/edit-member-dialog";
 
 type Profile = Tables<"profiles">;
 
@@ -45,9 +47,13 @@ interface TeamListProps {
 
 export function TeamList({ members }: TeamListProps) {
   const { isAdmin, profile } = useOrganisation();
+  const [editingMember, setEditingMember] = useState<Profile | null>(null);
 
   const admins = members.filter((m) => m.role === "admin");
   const users = members.filter((m) => m.role === "user");
+
+  const canEditMember = (member: Profile) =>
+    isAdmin || member.id === profile.id;
 
   return (
     <div className="space-y-6">
@@ -58,29 +64,8 @@ export function TeamList({ members }: TeamListProps) {
             Manage your organisation members
           </p>
         </div>
-        {isAdmin && (
-          <Button disabled>
-            <UserPlus className="mr-2 size-4" />
-            Invite Member
-          </Button>
-        )}
+        <InviteMemberDialog />
       </div>
-
-      {isAdmin && (
-        <Card className="border-dashed">
-          <CardContent className="flex items-center gap-4 py-4">
-            <div className="flex size-10 items-center justify-center rounded-full bg-muted">
-              <Mail className="size-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">Team invitations coming soon</p>
-              <p className="text-sm text-muted-foreground">
-                You&apos;ll be able to invite team members via email
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="space-y-4">
         <div className="flex items-center gap-2">
@@ -95,6 +80,11 @@ export function TeamList({ members }: TeamListProps) {
               key={member.id}
               member={member}
               isCurrentUser={member.id === profile.id}
+              onClick={
+                canEditMember(member)
+                  ? () => setEditingMember(member)
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -112,6 +102,11 @@ export function TeamList({ members }: TeamListProps) {
                 key={member.id}
                 member={member}
                 isCurrentUser={member.id === profile.id}
+                onClick={
+                  canEditMember(member)
+                    ? () => setEditingMember(member)
+                    : undefined
+                }
               />
             ))}
           </div>
@@ -128,6 +123,16 @@ export function TeamList({ members }: TeamListProps) {
           </CardHeader>
         </Card>
       )}
+
+      {editingMember && (
+        <EditMemberDialog
+          member={editingMember}
+          open={!!editingMember}
+          onOpenChange={(open) => {
+            if (!open) setEditingMember(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -135,14 +140,18 @@ export function TeamList({ members }: TeamListProps) {
 interface MemberCardProps {
   member: Profile;
   isCurrentUser: boolean;
+  onClick?: () => void;
 }
 
-function MemberCard({ member, isCurrentUser }: MemberCardProps) {
+function MemberCard({ member, isCurrentUser, onClick }: MemberCardProps) {
   const config = roleConfig[member.role] ?? roleConfig.user;
   const Icon = config.icon;
 
   return (
-    <Card>
+    <Card
+      className={onClick ? "cursor-pointer transition-colors hover:bg-muted/50" : undefined}
+      onClick={onClick}
+    >
       <CardContent className="flex items-center gap-4 py-4">
         <Avatar className="size-12">
           <AvatarImage src={member.avatar_url ?? undefined} />
