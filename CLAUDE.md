@@ -52,6 +52,7 @@ src/
 │   │   ├── client.ts             # Browser Supabase client
 │   │   ├── server.ts             # Server Supabase client
 │   │   ├── proxy.ts              # Middleware: session refresh + route protection
+│   │   ├── service.ts            # Service role client (bypasses RLS, server-only)
 │   │   └── database.types.ts     # Generated TypeScript types
 │   └── utils.ts                  # cn() utility
 ├── hooks/
@@ -138,6 +139,12 @@ All tables have RLS enabled, scoped by `org_id` via `get_user_org_id()`.
 |-------|---------|
 | `feasibility_scenarios` | Development appraisal scenarios per project with site analysis, revenue, costs, profit calculations |
 
+**Client Portal:**
+
+| Table | Purpose |
+|-------|---------|
+| `client_portal_links` | Shareable token links for external clients — UUID token, name, is_active, optional expires_at. RLS org-scoped (internal users manage); portal pages use service role client to bypass RLS |
+
 **Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`, `consultant_status`, `phase_status`, `tender_status`, `submittal_status`, `lot_status`
 
 Helper function: `get_user_org_id()` — used in RLS policies for efficient org scoping.
@@ -148,7 +155,7 @@ Updated_at triggers: Use `extensions.moddatetime()` on all tables with `updated_
 ### Key Patterns
 
 - **Path alias:** `@/*` maps to `./src/*`
-- **Route groups:** `(app)` for authenticated routes with sidebar
+- **Route groups:** `(app)` for authenticated routes with sidebar; `(client-portal)` for public token-based portal (no auth, no sidebar)
 - **Component style:** shadcn/ui "new-york" style; add via `npx shadcn@latest add <name>`
 - **Client components:** Only use `"use client"` where interactivity is needed
 - **Theming:** CSS variables using oklch color space; orange primary (`oklch(0.65 0.19 45)`)

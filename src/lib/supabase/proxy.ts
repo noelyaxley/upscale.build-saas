@@ -46,6 +46,11 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  // Client portal routes are public — skip auth check
+  if (pathname.startsWith("/client-portal")) {
+    return supabaseResponse;
+  }
+
   // Redirect unauthenticated users away from protected routes
   const isAuthenticated = data?.claims?.sub;
   if (isProtectedRoute(pathname) && !isAuthenticated) {

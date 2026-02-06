@@ -19,11 +19,13 @@ import {
   Shield,
   Trash2,
   Users,
+  BarChart3,
   Calculator,
   ClipboardCheck,
   GanttChart,
   Gavel,
   Home,
+  Share2,
   UserCheck,
 } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -39,6 +41,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditProjectDialog } from "@/components/edit-project-dialog";
+import { SharePortalDialog } from "@/components/share-portal-dialog";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { ProjectMembersList } from "@/components/project-members-list";
 import { ProjectActivityFeed } from "@/components/project-activity-feed";
@@ -152,6 +155,12 @@ export function ProjectDetail({
         </div>
         {isAdmin && (
           <div className="flex items-center gap-2">
+            <SharePortalDialog projectId={project.id}>
+              <Button variant="outline" size="sm">
+                <Share2 className="mr-2 size-4" />
+                Share
+              </Button>
+            </SharePortalDialog>
             <EditProjectDialog project={project}>
               <Button variant="outline" size="sm">
                 <Pencil className="mr-2 size-4" />
@@ -512,6 +521,23 @@ export function ProjectDetail({
                   <p className="font-medium">Feasibility</p>
                   <p className="text-xs text-muted-foreground">
                     Development appraisal tool
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/reports`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/30">
+                  <BarChart3 className="size-5 text-fuchsia-600 dark:text-fuchsia-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Reports</p>
+                  <p className="text-xs text-muted-foreground">
+                    Project reporting dashboard
                   </p>
                 </div>
               </div>
