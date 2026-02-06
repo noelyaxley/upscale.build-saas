@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  Building2,
   Calendar,
   DollarSign,
   MapPin,
@@ -23,8 +24,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { EditProjectDialog } from "@/components/edit-project-dialog";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
+import { ProjectMembersList } from "@/components/project-members-list";
 
 type Project = Tables<"projects">;
+type Company = Tables<"companies">;
+type Profile = Tables<"profiles">;
+type ProjectMember = Tables<"project_members">;
+
+interface MemberWithProfile extends ProjectMember {
+  profiles: Profile;
+}
 
 const stageColors: Record<string, string> = {
   preconstruction: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -70,9 +79,11 @@ function formatDate(date: string | null): string {
 
 interface ProjectDetailProps {
   project: Project;
+  clientCompany: Company | null;
+  members: MemberWithProfile[];
 }
 
-export function ProjectDetail({ project }: ProjectDetailProps) {
+export function ProjectDetail({ project, clientCompany, members }: ProjectDetailProps) {
   const { isAdmin } = useOrganisation();
 
   return (
@@ -115,7 +126,28 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Building2 className="size-4 text-muted-foreground" />
+              Client
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {clientCompany ? (
+              <Link
+                href={`/companies/${clientCompany.id}`}
+                className="text-sm font-medium hover:underline"
+              >
+                {clientCompany.name}
+              </Link>
+            ) : (
+              <p className="text-sm text-muted-foreground">No client assigned</p>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -177,20 +209,24 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
 
       <Separator />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Project Activity</CardTitle>
-          <CardDescription>
-            Recent updates and activity for this project
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No activity yet. Project modules like documents, defects, and RFIs
-            will appear here in future updates.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 md:grid-cols-2">
+        <ProjectMembersList projectId={project.id} members={members} />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Project Activity</CardTitle>
+            <CardDescription>
+              Recent updates and activity for this project
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              No activity yet. Project modules like documents, defects, and RFIs
+              will appear here in future updates.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

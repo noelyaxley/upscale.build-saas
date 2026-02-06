@@ -20,5 +20,11 @@ export default async function CompanyPage({ params }: CompanyPageProps) {
     notFound();
   }
 
-  return <CompanyDetail company={company} />;
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("client_company_id", id)
+    .order("name");
+
+  return <CompanyDetail company={company} projects={projects ?? []} />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 
 type Project = Tables<"projects">;
+type Company = Tables<"companies">;
 
 const stages = [
   { value: "preconstruction", label: "Preconstruction" },
@@ -51,6 +52,7 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const router = useRouter();
   const supabase = createClient();
 
@@ -64,7 +66,20 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
     budget: project.budget ? (project.budget / 100).toString() : "",
     start_date: project.start_date || "",
     end_date: project.end_date || "",
+    client_company_id: project.client_company_id || "",
   });
+
+  useEffect(() => {
+    if (open) {
+      supabase
+        .from("companies")
+        .select("*")
+        .order("name")
+        .then(({ data }) => {
+          if (data) setCompanies(data);
+        });
+    }
+  }, [open, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +103,7 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
           budget: budgetCents,
           start_date: formData.start_date || null,
           end_date: formData.end_date || null,
+          client_company_id: formData.client_company_id || null,
         })
         .eq("id", project.id);
 
@@ -118,7 +134,7 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
               Update the project details below
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-code" className="text-right">
                 Code
@@ -147,6 +163,29 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
                 }
                 required
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-client" className="text-right">
+                Client
+              </Label>
+              <Select
+                value={formData.client_company_id || "none"}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, client_company_id: value === "none" ? "" : value })
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select client company" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No client</SelectItem>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-stage" className="text-right">

@@ -166,6 +166,7 @@ export type Database = {
         Row: {
           address: string | null
           budget: number | null
+          client_company_id: string | null
           code: string
           created_at: string
           description: string | null
@@ -181,6 +182,7 @@ export type Database = {
         Insert: {
           address?: string | null
           budget?: number | null
+          client_company_id?: string | null
           code: string
           created_at?: string
           description?: string | null
@@ -196,6 +198,7 @@ export type Database = {
         Update: {
           address?: string | null
           budget?: number | null
+          client_company_id?: string | null
           code?: string
           created_at?: string
           description?: string | null
@@ -209,6 +212,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "projects_client_company_id_fkey"
+            columns: ["client_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projects_org_id_fkey"
             columns: ["org_id"]

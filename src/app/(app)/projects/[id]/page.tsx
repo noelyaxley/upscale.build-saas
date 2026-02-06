@@ -12,7 +12,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   const { data: project, error } = await supabase
     .from("projects")
-    .select("*")
+    .select("*, client_company:companies(*)")
     .eq("id", id)
     .single();
 
@@ -20,5 +20,18 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     notFound();
   }
 
-  return <ProjectDetail project={project} />;
+  const { data: members } = await supabase
+    .from("project_members")
+    .select("*, profiles(*)")
+    .eq("project_id", id)
+    .order("role")
+    .order("created_at");
+
+  return (
+    <ProjectDetail
+      project={project}
+      clientCompany={project.client_company}
+      members={members ?? []}
+    />
+  );
 }

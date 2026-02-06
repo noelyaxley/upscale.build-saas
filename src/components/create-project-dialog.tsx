@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useOrganisation } from "@/lib/context/organisation";
+import type { Tables } from "@/lib/supabase/database.types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+type Company = Tables<"companies">;
+
 const stages = [
   { value: "preconstruction", label: "Preconstruction" },
   { value: "construction", label: "Construction" },
@@ -37,6 +40,7 @@ export function CreateProjectDialog() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const router = useRouter();
   const { organisation, isAdmin } = useOrganisation();
   const supabase = createClient();
@@ -48,7 +52,20 @@ export function CreateProjectDialog() {
     stage: "preconstruction",
     address: "",
     budget: "",
+    client_company_id: "",
   });
+
+  useEffect(() => {
+    if (open) {
+      supabase
+        .from("companies")
+        .select("*")
+        .order("name")
+        .then(({ data }) => {
+          if (data) setCompanies(data);
+        });
+    }
+  }, [open, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +85,7 @@ export function CreateProjectDialog() {
         stage: formData.stage,
         address: formData.address || null,
         budget: budgetCents,
+        client_company_id: formData.client_company_id || null,
       });
 
       if (insertError) {
@@ -85,6 +103,7 @@ export function CreateProjectDialog() {
         stage: "preconstruction",
         address: "",
         budget: "",
+        client_company_id: "",
       });
       router.refresh();
     } catch (err) {
@@ -145,6 +164,29 @@ export function CreateProjectDialog() {
                 }
                 required
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="client" className="text-right">
+                Client
+              </Label>
+              <Select
+                value={formData.client_company_id}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, client_company_id: value === "none" ? "" : value })
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select client company" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No client</SelectItem>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="stage" className="text-right">
