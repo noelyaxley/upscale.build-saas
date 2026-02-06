@@ -61,6 +61,154 @@ export type Database = {
           },
         ]
       }
+      document_folders: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          name: string
+          org_id: string
+          parent_folder_id: string | null
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          name: string
+          org_id: string
+          parent_folder_id?: string | null
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          parent_folder_id?: string | null
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_folders_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_folders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_folders_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          current_revision: string | null
+          discipline: string | null
+          document_number: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          folder_id: string | null
+          id: string
+          org_id: string
+          project_id: string
+          title: string
+          updated_at: string
+          uploaded_at: string
+          uploaded_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_revision?: string | null
+          discipline?: string | null
+          document_number: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          folder_id?: string | null
+          id?: string
+          org_id: string
+          project_id: string
+          title: string
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_revision?: string | null
+          discipline?: string | null
+          document_number?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          folder_id?: string | null
+          id?: string
+          org_id?: string
+          project_id?: string
+          title?: string
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_user_id_fkey"
+            columns: ["uploaded_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisations: {
         Row: {
           created_at: string

@@ -5,7 +5,9 @@ import {
   ArrowLeft,
   Building2,
   Calendar,
+  ChevronRight,
   DollarSign,
+  FileText,
   MapPin,
   Pencil,
   Trash2,
@@ -214,16 +216,29 @@ export function ProjectDetail({ project, clientCompany, members }: ProjectDetail
 
         <Card>
           <CardHeader>
-            <CardTitle>Project Activity</CardTitle>
+            <CardTitle>Project Modules</CardTitle>
             <CardDescription>
-              Recent updates and activity for this project
+              Access project features and tools
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No activity yet. Project modules like documents, defects, and RFIs
-              will appear here in future updates.
-            </p>
+          <CardContent className="grid gap-2">
+            <Link
+              href={`/projects/${project.id}/documents`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <FileText className="size-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Documents</p>
+                  <p className="text-xs text-muted-foreground">
+                    Drawings, specs, and project files
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
           </CardContent>
         </Card>
       </div>
