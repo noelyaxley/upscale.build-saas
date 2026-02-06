@@ -871,6 +871,206 @@ export type Database = {
           },
         ]
       }
+      feasibility_scenarios: {
+        Row: {
+          construction_cost: number | null
+          contingency: number | null
+          created_at: string
+          created_by_user_id: string | null
+          efficiency: number | null
+          finance_costs: number | null
+          fsr: number | null
+          gfa: number | null
+          id: string
+          marketing_costs: number | null
+          max_height: number | null
+          name: string
+          notes: string | null
+          nsa: number | null
+          org_id: string
+          professional_fees: number | null
+          profit: number | null
+          profit_on_cost: number | null
+          project_id: string
+          sale_rate: number | null
+          site_area: number | null
+          site_cost: number | null
+          statutory_fees: number | null
+          total_costs: number | null
+          total_revenue: number | null
+          updated_at: string
+          zoning: string | null
+        }
+        Insert: {
+          construction_cost?: number | null
+          contingency?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          efficiency?: number | null
+          finance_costs?: number | null
+          fsr?: number | null
+          gfa?: number | null
+          id?: string
+          marketing_costs?: number | null
+          max_height?: number | null
+          name: string
+          notes?: string | null
+          nsa?: number | null
+          org_id: string
+          professional_fees?: number | null
+          profit?: number | null
+          profit_on_cost?: number | null
+          project_id: string
+          sale_rate?: number | null
+          site_area?: number | null
+          site_cost?: number | null
+          statutory_fees?: number | null
+          total_costs?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          zoning?: string | null
+        }
+        Update: {
+          construction_cost?: number | null
+          contingency?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          efficiency?: number | null
+          finance_costs?: number | null
+          fsr?: number | null
+          gfa?: number | null
+          id?: string
+          marketing_costs?: number | null
+          max_height?: number | null
+          name?: string
+          notes?: string | null
+          nsa?: number | null
+          org_id?: string
+          professional_fees?: number | null
+          profit?: number | null
+          profit_on_cost?: number | null
+          project_id?: string
+          sale_rate?: number | null
+          site_area?: number | null
+          site_cost?: number | null
+          statutory_fees?: number | null
+          total_costs?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          zoning?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasibility_scenarios_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feasibility_scenarios_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feasibility_scenarios_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lots: {
+        Row: {
+          aspect: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          car_spaces: number | null
+          created_at: string
+          created_by_user_id: string | null
+          external_area: number | null
+          id: string
+          internal_area: number | null
+          level: number | null
+          list_price: number | null
+          lot_number: string
+          notes: string | null
+          org_id: string
+          project_id: string
+          sold_price: number | null
+          status: Database["public"]["Enums"]["lot_status"]
+          total_area: number | null
+          updated_at: string
+        }
+        Insert: {
+          aspect?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          car_spaces?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          external_area?: number | null
+          id?: string
+          internal_area?: number | null
+          level?: number | null
+          list_price?: number | null
+          lot_number: string
+          notes?: string | null
+          org_id: string
+          project_id: string
+          sold_price?: number | null
+          status?: Database["public"]["Enums"]["lot_status"]
+          total_area?: number | null
+          updated_at?: string
+        }
+        Update: {
+          aspect?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          car_spaces?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          external_area?: number | null
+          id?: string
+          internal_area?: number | null
+          level?: number | null
+          list_price?: number | null
+          lot_number?: string
+          notes?: string | null
+          org_id?: string
+          project_id?: string
+          sold_price?: number | null
+          status?: Database["public"]["Enums"]["lot_status"]
+          total_area?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lots_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lots_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lots_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisations: {
         Row: {
           created_at: string
@@ -1506,6 +1706,155 @@ export type Database = {
           },
         ]
       }
+      sale_transactions: {
+        Row: {
+          agent_id: string | null
+          buyer_email: string | null
+          buyer_name: string
+          buyer_phone: string | null
+          commission_amount: number | null
+          contract_date: string | null
+          created_at: string
+          created_by_user_id: string | null
+          deposit_amount: number | null
+          deposit_date: string | null
+          id: string
+          lot_id: string
+          notes: string | null
+          sale_price: number
+          settlement_date: string | null
+          unconditional_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          buyer_email?: string | null
+          buyer_name: string
+          buyer_phone?: string | null
+          commission_amount?: number | null
+          contract_date?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          deposit_amount?: number | null
+          deposit_date?: string | null
+          id?: string
+          lot_id: string
+          notes?: string | null
+          sale_price?: number
+          settlement_date?: string | null
+          unconditional_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          buyer_email?: string | null
+          buyer_name?: string
+          buyer_phone?: string | null
+          commission_amount?: number | null
+          contract_date?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          deposit_amount?: number | null
+          deposit_date?: string | null
+          id?: string
+          lot_id?: string
+          notes?: string | null
+          sale_price?: number
+          settlement_date?: string | null
+          unconditional_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "sales_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_transactions_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_transactions_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_agents: {
+        Row: {
+          commission_rate: number | null
+          company: string | null
+          created_at: string
+          created_by_user_id: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          phone: string | null
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number | null
+          company?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org_id: string
+          phone?: string | null
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number | null
+          company?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          phone?: string | null
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_agents_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_agents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_agents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_diary_entries: {
         Row: {
           created_at: string
@@ -1994,6 +2343,13 @@ export type Database = {
         | "approved"
         | "rejected"
         | "withdrawn"
+      lot_status:
+        | "available"
+        | "hold"
+        | "deposit_paid"
+        | "unconditional"
+        | "settled"
+        | "withdrawn"
       phase_status: "pending" | "in_progress" | "completed"
       rfi_status: "draft" | "open" | "closed"
       risk_level: "low" | "medium" | "high"
@@ -2165,6 +2521,14 @@ export const Constants = {
         "under_review",
         "approved",
         "rejected",
+        "withdrawn",
+      ],
+      lot_status: [
+        "available",
+        "hold",
+        "deposit_paid",
+        "unconditional",
+        "settled",
         "withdrawn",
       ],
       phase_status: ["pending", "in_progress", "completed"],

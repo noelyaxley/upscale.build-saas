@@ -19,9 +19,12 @@ import {
   Shield,
   Trash2,
   Users,
+  Calculator,
   ClipboardCheck,
   GanttChart,
   Gavel,
+  Home,
+  UserCheck,
 } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
@@ -458,6 +461,57 @@ export function ProjectDetail({
                   <p className="font-medium">Submittals</p>
                   <p className="text-xs text-muted-foreground">
                     Shop drawings & material approvals
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/lot-sales`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-rose-100 dark:bg-rose-900/30">
+                  <Home className="size-5 text-rose-600 dark:text-rose-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Lot Sales</p>
+                  <p className="text-xs text-muted-foreground">
+                    Unit inventory & sales tracking
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/sales-agents`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-pink-100 dark:bg-pink-900/30">
+                  <UserCheck className="size-5 text-pink-600 dark:text-pink-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Sales Agents</p>
+                  <p className="text-xs text-muted-foreground">
+                    Agent management & commissions
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/feasibility`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-lime-100 dark:bg-lime-900/30">
+                  <Calculator className="size-5 text-lime-600 dark:text-lime-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Feasibility</p>
+                  <p className="text-xs text-muted-foreground">
+                    Development appraisal tool
                   </p>
                 </div>
               </div>

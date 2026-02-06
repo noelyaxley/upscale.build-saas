@@ -124,7 +124,21 @@ All tables have RLS enabled, scoped by `org_id` via `get_user_org_id()`.
 | `submittals` | Contractor document submissions (shop drawings, product data, samples) with review workflow (draft→submitted→under_review→approved/approved_as_noted/revise_resubmit/rejected) |
 | `submittal_comments` | Discussion thread per submittal (RLS via parent submittal) |
 
-**Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`, `consultant_status`, `phase_status`, `tender_status`, `submittal_status`
+**Lot Sales & Sales Agents:**
+
+| Table | Purpose |
+|-------|---------|
+| `lots` | Property units per project with bedrooms, bathrooms, cars, areas, aspect, pricing, status workflow (available→hold→deposit_paid→unconditional→settled, +withdrawn) |
+| `sales_agents` | Sales agents per project with commission rate tracking |
+| `sale_transactions` | Sale records per lot with buyer info, pricing, commission, dates (RLS via parent lot) |
+
+**Feasibility:**
+
+| Table | Purpose |
+|-------|---------|
+| `feasibility_scenarios` | Development appraisal scenarios per project with site analysis, revenue, costs, profit calculations |
+
+**Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`, `consultant_status`, `phase_status`, `tender_status`, `submittal_status`, `lot_status`
 
 Helper function: `get_user_org_id()` — used in RLS policies for efficient org scoping.
 Auto-profile trigger: Creates profile row on auth.users insert.
