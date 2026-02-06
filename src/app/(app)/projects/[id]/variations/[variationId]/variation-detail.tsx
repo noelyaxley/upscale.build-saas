@@ -346,15 +346,15 @@ export function VariationDetail({ project, variation }: VariationDetailProps) {
                   <p className="text-xs text-muted-foreground">Cost Impact</p>
                   <p
                     className={`text-lg font-bold ${
-                      variation.cost_impact > 0
+                      (variation.cost_impact ?? 0) > 0
                         ? "text-red-600"
-                        : variation.cost_impact < 0
+                        : (variation.cost_impact ?? 0) < 0
                         ? "text-green-600"
                         : ""
                     }`}
                   >
-                    {variation.cost_impact > 0 ? "+" : ""}
-                    {formatCurrency(variation.cost_impact)}
+                    {(variation.cost_impact ?? 0) > 0 ? "+" : ""}
+                    {formatCurrency(variation.cost_impact ?? 0)}
                   </p>
                 </div>
               </div>
@@ -364,15 +364,15 @@ export function VariationDetail({ project, variation }: VariationDetailProps) {
                   <p className="text-xs text-muted-foreground">Time Impact</p>
                   <p
                     className={`text-lg font-bold ${
-                      variation.time_impact > 0
+                      (variation.time_impact ?? 0) > 0
                         ? "text-red-600"
-                        : variation.time_impact < 0
+                        : (variation.time_impact ?? 0) < 0
                         ? "text-green-600"
                         : ""
                     }`}
                   >
-                    {variation.time_impact > 0 ? "+" : ""}
-                    {variation.time_impact} days
+                    {(variation.time_impact ?? 0) > 0 ? "+" : ""}
+                    {variation.time_impact ?? 0} days
                   </p>
                 </div>
               </div>

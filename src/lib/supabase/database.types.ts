@@ -1,4 +1,3 @@
-Initialising login role...
 export type Json =
   | string
   | number
@@ -201,6 +200,139 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultant_phases: {
+        Row: {
+          amount_paid: number
+          consultant_id: string
+          created_at: string
+          disbursements: number
+          fee: number
+          id: string
+          notes: string | null
+          phase_name: string
+          sort_order: number | null
+          status: Database["public"]["Enums"]["phase_status"]
+          updated_at: string
+          variations: number
+        }
+        Insert: {
+          amount_paid?: number
+          consultant_id: string
+          created_at?: string
+          disbursements?: number
+          fee?: number
+          id?: string
+          notes?: string | null
+          phase_name: string
+          sort_order?: number | null
+          status?: Database["public"]["Enums"]["phase_status"]
+          updated_at?: string
+          variations?: number
+        }
+        Update: {
+          amount_paid?: number
+          consultant_id?: string
+          created_at?: string
+          disbursements?: number
+          fee?: number
+          id?: string
+          notes?: string | null
+          phase_name?: string
+          sort_order?: number | null
+          status?: Database["public"]["Enums"]["phase_status"]
+          updated_at?: string
+          variations?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_phases_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultants: {
+        Row: {
+          budget: number | null
+          company_id: string | null
+          consultant_number: number
+          contract_ref: string | null
+          contract_value: number | null
+          created_at: string
+          created_by_user_id: string | null
+          discipline: string
+          id: string
+          notes: string | null
+          org_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["consultant_status"]
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          company_id?: string | null
+          consultant_number: number
+          contract_ref?: string | null
+          contract_value?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          discipline: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["consultant_status"]
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          company_id?: string | null
+          consultant_number?: number
+          contract_ref?: string | null
+          contract_value?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          discipline?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["consultant_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultants_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultants_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultants_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -1480,6 +1612,7 @@ export type Database = {
     Enums: {
       action_status: "pending" | "completed"
       claim_status: "draft" | "submitted" | "certified" | "paid" | "disputed"
+      consultant_status: "draft" | "engaged" | "completed" | "terminated"
       decision_status: "pending" | "approved" | "rejected"
       defect_status: "open" | "contractor_complete" | "closed"
       eot_status:
@@ -1489,6 +1622,7 @@ export type Database = {
         | "approved"
         | "rejected"
         | "withdrawn"
+      phase_status: "pending" | "in_progress" | "completed"
       rfi_status: "draft" | "open" | "closed"
       risk_level: "low" | "medium" | "high"
       risk_status: "open" | "mitigated" | "closed"
@@ -1644,6 +1778,7 @@ export const Constants = {
     Enums: {
       action_status: ["pending", "completed"],
       claim_status: ["draft", "submitted", "certified", "paid", "disputed"],
+      consultant_status: ["draft", "engaged", "completed", "terminated"],
       decision_status: ["pending", "approved", "rejected"],
       defect_status: ["open", "contractor_complete", "closed"],
       eot_status: [
@@ -1654,6 +1789,7 @@ export const Constants = {
         "rejected",
         "withdrawn",
       ],
+      phase_status: ["pending", "in_progress", "completed"],
       rfi_status: ["draft", "open", "closed"],
       risk_level: ["low", "medium", "high"],
       risk_status: ["open", "mitigated", "closed"],

@@ -118,7 +118,7 @@ export function SiteDiaryView({
     return sum + e.diary_labor_entries.length;
   }, 0);
 
-  const totalIncidents = entries.reduce((sum, e) => sum + e.safety_incidents, 0);
+  const totalIncidents = entries.reduce((sum, e) => sum + (e.safety_incidents ?? 0), 0);
 
   const totalDelayHours = entries.reduce(
     (sum, e) => sum + Number(e.delays_hours || 0),
@@ -293,7 +293,7 @@ export function SiteDiaryView({
                                 {entry.diary_visitors.length}
                               </span>
                             )}
-                            {entry.safety_incidents > 0 && (
+                            {(entry.safety_incidents ?? 0) > 0 && (
                               <Badge variant="destructive" className="text-xs">
                                 {entry.safety_incidents} incident
                                 {entry.safety_incidents !== 1 ? "s" : ""}

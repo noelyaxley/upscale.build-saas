@@ -363,7 +363,7 @@ export function DiaryEntryDetail({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {entry.safety_incidents > 0 ? (
+            {(entry.safety_incidents ?? 0) > 0 ? (
               <Badge variant="destructive" className="text-lg">
                 {entry.safety_incidents} incident
                 {entry.safety_incidents !== 1 ? "s" : ""}

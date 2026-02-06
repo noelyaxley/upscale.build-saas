@@ -75,7 +75,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Budget</span>
-            <span className="font-medium">{formatCurrency(project.budget)}</span>
+            <span className="font-medium">{formatCurrency(project.budget ?? 0)}</span>
           </div>
           {project.address && (
             <div className="flex items-start gap-1 text-sm text-muted-foreground">

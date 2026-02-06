@@ -123,10 +123,10 @@ export function VariationsView({
   const approvedCount = variations.filter((v) => v.status === "approved").length;
   const totalApprovedCost = variations
     .filter((v) => v.status === "approved")
-    .reduce((sum, v) => sum + v.cost_impact, 0);
+    .reduce((sum, v) => sum + (v.cost_impact ?? 0), 0);
   const totalApprovedDays = variations
     .filter((v) => v.status === "approved")
-    .reduce((sum, v) => sum + v.time_impact, 0);
+    .reduce((sum, v) => sum + (v.time_impact ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -278,38 +278,38 @@ export function VariationsView({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {variation.cost_impact > 0 ? (
+                        {(variation.cost_impact ?? 0) > 0 ? (
                           <ArrowUpRight className="size-4 text-red-500" />
-                        ) : variation.cost_impact < 0 ? (
+                        ) : (variation.cost_impact ?? 0) < 0 ? (
                           <ArrowDownRight className="size-4 text-green-500" />
                         ) : null}
                         <span
                           className={
-                            variation.cost_impact > 0
+                            (variation.cost_impact ?? 0) > 0
                               ? "text-red-600"
-                              : variation.cost_impact < 0
+                              : (variation.cost_impact ?? 0) < 0
                               ? "text-green-600"
                               : ""
                           }
                         >
-                          {formatCurrency(Math.abs(variation.cost_impact))}
+                          {formatCurrency(Math.abs(variation.cost_impact ?? 0))}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {variation.time_impact !== 0 && (
+                      {(variation.time_impact ?? 0) !== 0 && (
                         <span
                           className={
-                            variation.time_impact > 0
+                            (variation.time_impact ?? 0) > 0
                               ? "text-red-600"
                               : "text-green-600"
                           }
                         >
-                          {variation.time_impact > 0 ? "+" : ""}
-                          {variation.time_impact} days
+                          {(variation.time_impact ?? 0) > 0 ? "+" : ""}
+                          {variation.time_impact ?? 0} days
                         </span>
                       )}
-                      {variation.time_impact === 0 && "-"}
+                      {(variation.time_impact ?? 0) === 0 && "-"}
                     </TableCell>
                     <TableCell>
                       {variation.submitted_by_company?.name || "-"}
