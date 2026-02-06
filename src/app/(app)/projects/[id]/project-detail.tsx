@@ -7,11 +7,16 @@ import {
   Building2,
   Calendar,
   ChevronRight,
+  ClipboardList,
+  Clock,
   DollarSign,
+  FileEdit,
   FileText,
   MapPin,
   MessageSquarePlus,
   Pencil,
+  Receipt,
+  Shield,
   Trash2,
 } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -29,6 +34,8 @@ import { Separator } from "@/components/ui/separator";
 import { EditProjectDialog } from "@/components/edit-project-dialog";
 import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { ProjectMembersList } from "@/components/project-members-list";
+import { ProjectActivityFeed } from "@/components/project-activity-feed";
+import { ProjectActionItems } from "@/components/project-action-items";
 
 type Project = Tables<"projects">;
 type Company = Tables<"companies">;
@@ -38,6 +45,20 @@ type ProjectMember = Tables<"project_members">;
 interface MemberWithProfile extends ProjectMember {
   profiles: Profile;
 }
+
+type ProjectUpdate = Tables<"project_updates"> & {
+  created_by: { id: string; full_name: string | null } | null;
+};
+
+type ActionItem = Tables<"action_items"> & {
+  assigned_to: { id: string; full_name: string | null } | null;
+  created_by: { id: string; full_name: string | null } | null;
+};
+
+type TeamMember = {
+  id: string;
+  full_name: string | null;
+};
 
 const stageColors: Record<string, string> = {
   preconstruction: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -85,9 +106,19 @@ interface ProjectDetailProps {
   project: Project;
   clientCompany: Company | null;
   members: MemberWithProfile[];
+  updates: ProjectUpdate[];
+  actionItems: ActionItem[];
+  teamMembers: TeamMember[];
 }
 
-export function ProjectDetail({ project, clientCompany, members }: ProjectDetailProps) {
+export function ProjectDetail({
+  project,
+  clientCompany,
+  members,
+  updates,
+  actionItems,
+  teamMembers,
+}: ProjectDetailProps) {
   const { isAdmin } = useOrganisation();
 
   return (
@@ -275,8 +306,105 @@ export function ProjectDetail({ project, clientCompany, members }: ProjectDetail
               </div>
               <ChevronRight className="size-5 text-muted-foreground" />
             </Link>
+            <Link
+              href={`/projects/${project.id}/risks`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                  <Shield className="size-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Risks & Opportunities</p>
+                  <p className="text-xs text-muted-foreground">
+                    Monitor project risks
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/variations`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                  <FileEdit className="size-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Variations</p>
+                  <p className="text-xs text-muted-foreground">
+                    Contract change orders
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/eot`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                  <Clock className="size-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Extension of Time</p>
+                  <p className="text-xs text-muted-foreground">
+                    Time extension claims
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/claims`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                  <Receipt className="size-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Progress Claims</p>
+                  <p className="text-xs text-muted-foreground">
+                    Payment submissions
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/site-diary`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
+                  <ClipboardList className="size-5 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Site Diary</p>
+                  <p className="text-xs text-muted-foreground">
+                    Daily site records
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
           </CardContent>
         </Card>
+      </div>
+
+      <Separator />
+
+      {/* Activity Feed and Action Items */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <ProjectActivityFeed projectId={project.id} updates={updates} />
+        <ProjectActionItems
+          projectId={project.id}
+          actionItems={actionItems}
+          teamMembers={teamMembers}
+        />
       </div>
     </div>
   );

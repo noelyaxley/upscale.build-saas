@@ -61,7 +61,9 @@ src/
 
 ### Database Schema (Supabase)
 
-Five core tables with RLS enabled:
+All tables have RLS enabled, scoped by `org_id` via `get_user_org_id()`.
+
+**Core tables:**
 
 | Table | Purpose |
 |-------|---------|
@@ -71,8 +73,35 @@ Five core tables with RLS enabled:
 | `projects` | Org-scoped projects with code, stage, status, budget |
 | `project_members` | Links users to projects with roles |
 
+**Variations & Claims:**
+
+| Table | Purpose |
+|-------|---------|
+| `variations` | Change orders with cost/time impact, status workflow (draft→submitted→approved/rejected) |
+| `progress_claims` | Payment claims per period with claimed/certified amounts |
+| `claim_line_items` | Breakdown line items for a progress claim (RLS via parent claim) |
+
+**Site Diary:**
+
+| Table | Purpose |
+|-------|---------|
+| `site_diary_entries` | Daily site records — weather, work summary, safety, delays, photos. Unique per project+date |
+| `diary_labor_entries` | Workers on site per trade/company (RLS via parent diary entry) |
+| `diary_equipment_entries` | Equipment usage log (RLS via parent diary entry) |
+| `diary_visitors` | Visitor sign-in/out log (RLS via parent diary entry) |
+
+**Extension of Time:**
+
+| Table | Purpose |
+|-------|---------|
+| `extension_of_time` | EOT claims with days claimed/approved, date impacts, status workflow (draft→submitted→approved/rejected) |
+
+**Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`
+
 Helper function: `get_user_org_id()` — used in RLS policies for efficient org scoping.
 Auto-profile trigger: Creates profile row on auth.users insert.
+Auto-numbering triggers: `variation_number`, `claim_number`, `eot_number` auto-increment per project.
+Updated_at triggers: Use `extensions.moddatetime()` on all tables with `updated_at`.
 
 ### Key Patterns
 

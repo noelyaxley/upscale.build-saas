@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -7,11 +8,156 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      action_items: {
+        Row: {
+          assigned_to_user_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by_user_id: string | null
+          description: string
+          due_date: string | null
+          id: string
+          org_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["action_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description: string
+          due_date?: string | null
+          id?: string
+          org_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["action_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string
+          due_date?: string | null
+          id?: string
+          org_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["action_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_items_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_items_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_items_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_line_items: {
+        Row: {
+          claim_id: string
+          contract_value: number
+          created_at: string
+          description: string
+          id: string
+          percent_complete: number | null
+          previous_claimed: number
+          sort_order: number | null
+          this_claim: number
+          total_claimed: number
+        }
+        Insert: {
+          claim_id: string
+          contract_value?: number
+          created_at?: string
+          description: string
+          id?: string
+          percent_complete?: number | null
+          previous_claimed?: number
+          sort_order?: number | null
+          this_claim?: number
+          total_claimed?: number
+        }
+        Update: {
+          claim_id?: string
+          contract_value?: number
+          created_at?: string
+          description?: string
+          id?: string
+          percent_complete?: number | null
+          previous_claimed?: number
+          sort_order?: number | null
+          this_claim?: number
+          total_claimed?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_line_items_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "progress_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           abn: string | null
@@ -59,6 +205,80 @@ export type Database = {
           },
         ]
       }
+      decisions: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          decided_by_user_id: string | null
+          decision_date: string | null
+          description: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          org_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["decision_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          decided_by_user_id?: string | null
+          decision_date?: string | null
+          description: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["decision_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          decided_by_user_id?: string | null
+          decision_date?: string | null
+          description?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["decision_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisions_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_decided_by_user_id_fkey"
+            columns: ["decided_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       defects: {
         Row: {
           assigned_to_company_id: string | null
@@ -84,7 +304,7 @@ export type Database = {
           created_at?: string
           date_closed?: string | null
           date_contractor_complete?: string | null
-          defect_number?: number
+          defect_number: number
           description?: string | null
           id?: string
           location?: string | null
@@ -141,6 +361,143 @@ export type Database = {
             columns: ["reported_by_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_equipment_entries: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          diary_entry_id: string
+          equipment_name: string
+          hours_used: number | null
+          id: string
+          notes: string | null
+          quantity: number
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          diary_entry_id: string
+          equipment_name: string
+          hours_used?: number | null
+          id?: string
+          notes?: string | null
+          quantity?: number
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          diary_entry_id?: string
+          equipment_name?: string
+          hours_used?: number | null
+          id?: string
+          notes?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_equipment_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_equipment_entries_diary_entry_id_fkey"
+            columns: ["diary_entry_id"]
+            isOneToOne: false
+            referencedRelation: "site_diary_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_labor_entries: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          diary_entry_id: string
+          hours_worked: number
+          id: string
+          notes: string | null
+          trade: string
+          worker_count: number
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          diary_entry_id: string
+          hours_worked?: number
+          id?: string
+          notes?: string | null
+          trade: string
+          worker_count?: number
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          diary_entry_id?: string
+          hours_worked?: number
+          id?: string
+          notes?: string | null
+          trade?: string
+          worker_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_labor_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_labor_entries_diary_entry_id_fkey"
+            columns: ["diary_entry_id"]
+            isOneToOne: false
+            referencedRelation: "site_diary_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_visitors: {
+        Row: {
+          company: string | null
+          created_at: string
+          diary_entry_id: string
+          id: string
+          purpose: string | null
+          time_in: string | null
+          time_out: string | null
+          visitor_name: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          diary_entry_id: string
+          id?: string
+          purpose?: string | null
+          time_in?: string | null
+          time_out?: string | null
+          visitor_name: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          diary_entry_id?: string
+          id?: string
+          purpose?: string | null
+          time_in?: string | null
+          time_out?: string | null
+          visitor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_visitors_diary_entry_id_fkey"
+            columns: ["diary_entry_id"]
+            isOneToOne: false
+            referencedRelation: "site_diary_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -293,6 +650,120 @@ export type Database = {
           },
         ]
       }
+      extension_of_time: {
+        Row: {
+          approved_at: string | null
+          approved_by_user_id: string | null
+          attachments: string[] | null
+          created_at: string
+          created_by_user_id: string | null
+          days_approved: number | null
+          days_claimed: number
+          delay_end_date: string | null
+          delay_start_date: string | null
+          description: string | null
+          eot_number: number
+          id: string
+          new_completion_date: string | null
+          org_id: string
+          original_completion_date: string | null
+          project_id: string
+          reason: string | null
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["eot_status"]
+          submitted_at: string | null
+          submitted_by_company_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          attachments?: string[] | null
+          created_at?: string
+          created_by_user_id?: string | null
+          days_approved?: number | null
+          days_claimed?: number
+          delay_end_date?: string | null
+          delay_start_date?: string | null
+          description?: string | null
+          eot_number?: number
+          id?: string
+          new_completion_date?: string | null
+          org_id: string
+          original_completion_date?: string | null
+          project_id: string
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["eot_status"]
+          submitted_at?: string | null
+          submitted_by_company_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          attachments?: string[] | null
+          created_at?: string
+          created_by_user_id?: string | null
+          days_approved?: number | null
+          days_claimed?: number
+          delay_end_date?: string | null
+          delay_start_date?: string | null
+          description?: string | null
+          eot_number?: number
+          id?: string
+          new_completion_date?: string | null
+          org_id?: string
+          original_completion_date?: string | null
+          project_id?: string
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["eot_status"]
+          submitted_at?: string | null
+          submitted_by_company_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extension_of_time_approved_by_user_id_fkey"
+            columns: ["approved_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extension_of_time_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extension_of_time_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extension_of_time_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extension_of_time_submitted_by_company_id_fkey"
+            columns: ["submitted_by_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisations: {
         Row: {
           created_at: string
@@ -355,6 +826,111 @@ export type Database = {
           },
         ]
       }
+      progress_claims: {
+        Row: {
+          certification_notes: string | null
+          certified_amount: number | null
+          certified_at: string | null
+          certified_by_user_id: string | null
+          claim_number: number
+          claimed_amount: number
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          notes: string | null
+          org_id: string
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          previous_claims_total: number
+          project_id: string
+          status: Database["public"]["Enums"]["claim_status"]
+          submitted_at: string | null
+          submitted_by_company_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          certification_notes?: string | null
+          certified_amount?: number | null
+          certified_at?: string | null
+          certified_by_user_id?: string | null
+          claim_number: number
+          claimed_amount?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          previous_claims_total?: number
+          project_id: string
+          status?: Database["public"]["Enums"]["claim_status"]
+          submitted_at?: string | null
+          submitted_by_company_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          certification_notes?: string | null
+          certified_amount?: number | null
+          certified_at?: string | null
+          certified_by_user_id?: string | null
+          claim_number?: number
+          claimed_amount?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          previous_claims_total?: number
+          project_id?: string
+          status?: Database["public"]["Enums"]["claim_status"]
+          submitted_at?: string | null
+          submitted_by_company_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_claims_certified_by_user_id_fkey"
+            columns: ["certified_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_claims_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_claims_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_claims_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_claims_submitted_by_company_id_fkey"
+            columns: ["submitted_by_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_members: {
         Row: {
           created_at: string
@@ -390,6 +966,70 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_updates: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          org_id: string
+          project_id: string
+          title: string
+          update_type: Database["public"]["Enums"]["update_type"]
+          updated_at: string
+          visibility: Database["public"]["Enums"]["update_visibility"]
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          org_id: string
+          project_id: string
+          title: string
+          update_type?: Database["public"]["Enums"]["update_type"]
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["update_visibility"]
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          org_id?: string
+          project_id?: string
+          title?: string
+          update_type?: Database["public"]["Enums"]["update_type"]
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["update_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_updates_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_updates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_updates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -521,7 +1161,7 @@ export type Database = {
           created_at?: string
           due_date?: string | null
           id?: string
-          number?: number
+          number: number
           org_id: string
           originator_user_id: string
           project_id: string
@@ -576,16 +1216,302 @@ export type Database = {
           },
         ]
       }
+      risks: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          description: string
+          id: string
+          level: Database["public"]["Enums"]["risk_level"]
+          mitigation: string | null
+          org_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["risk_status"]
+          type: Database["public"]["Enums"]["risk_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description: string
+          id?: string
+          level?: Database["public"]["Enums"]["risk_level"]
+          mitigation?: string | null
+          org_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["risk_status"]
+          type?: Database["public"]["Enums"]["risk_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string
+          id?: string
+          level?: Database["public"]["Enums"]["risk_level"]
+          mitigation?: string | null
+          org_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["risk_status"]
+          type?: Database["public"]["Enums"]["risk_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risks_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_diary_entries: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          delay_reason: string | null
+          delays_hours: number | null
+          entry_date: string
+          id: string
+          notes: string | null
+          org_id: string
+          photos: string[] | null
+          project_id: string
+          safety_incidents: number | null
+          safety_notes: string | null
+          temperature_high: number | null
+          temperature_low: number | null
+          updated_at: string
+          weather_condition:
+            | Database["public"]["Enums"]["weather_condition"]
+            | null
+          weather_notes: string | null
+          work_summary: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          delay_reason?: string | null
+          delays_hours?: number | null
+          entry_date: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          photos?: string[] | null
+          project_id: string
+          safety_incidents?: number | null
+          safety_notes?: string | null
+          temperature_high?: number | null
+          temperature_low?: number | null
+          updated_at?: string
+          weather_condition?:
+            | Database["public"]["Enums"]["weather_condition"]
+            | null
+          weather_notes?: string | null
+          work_summary?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          delay_reason?: string | null
+          delays_hours?: number | null
+          entry_date?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          photos?: string[] | null
+          project_id?: string
+          safety_incidents?: number | null
+          safety_notes?: string | null
+          temperature_high?: number | null
+          temperature_low?: number | null
+          updated_at?: string
+          weather_condition?:
+            | Database["public"]["Enums"]["weather_condition"]
+            | null
+          weather_notes?: string | null
+          work_summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_diary_entries_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_diary_entries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_diary_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variations: {
+        Row: {
+          approved_at: string | null
+          approved_by_user_id: string | null
+          cost_impact: number | null
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          org_id: string
+          project_id: string
+          reason: string | null
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["variation_status"]
+          submitted_at: string | null
+          submitted_by_company_id: string | null
+          time_impact: number | null
+          title: string
+          updated_at: string
+          variation_number: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          cost_impact?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          org_id: string
+          project_id: string
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["variation_status"]
+          submitted_at?: string | null
+          submitted_by_company_id?: string | null
+          time_impact?: number | null
+          title: string
+          updated_at?: string
+          variation_number: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          cost_impact?: number | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          org_id?: string
+          project_id?: string
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["variation_status"]
+          submitted_at?: string | null
+          submitted_by_company_id?: string | null
+          time_impact?: number | null
+          title?: string
+          updated_at?: string
+          variation_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variations_approved_by_user_id_fkey"
+            columns: ["approved_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variations_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variations_submitted_by_company_id_fkey"
+            columns: ["submitted_by_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_org_id: { Args: Record<string, never>; Returns: string }
+      get_user_org_id: { Args: never; Returns: string }
     }
     Enums: {
+      action_status: "pending" | "completed"
+      claim_status: "draft" | "submitted" | "certified" | "paid" | "disputed"
+      decision_status: "pending" | "approved" | "rejected"
       defect_status: "open" | "contractor_complete" | "closed"
+      eot_status:
+        | "draft"
+        | "submitted"
+        | "under_review"
+        | "approved"
+        | "rejected"
+        | "withdrawn"
       rfi_status: "draft" | "open" | "closed"
+      risk_level: "low" | "medium" | "high"
+      risk_status: "open" | "mitigated" | "closed"
+      risk_type: "risk" | "opportunity"
+      update_type: "milestone" | "progress" | "issue" | "general"
+      update_visibility: "internal" | "client"
+      variation_status:
+        | "draft"
+        | "submitted"
+        | "under_review"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+      weather_condition:
+        | "sunny"
+        | "partly_cloudy"
+        | "cloudy"
+        | "light_rain"
+        | "heavy_rain"
+        | "storm"
+        | "windy"
+        | "hot"
+        | "cold"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -711,10 +1637,48 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      action_status: ["pending", "completed"],
+      claim_status: ["draft", "submitted", "certified", "paid", "disputed"],
+      decision_status: ["pending", "approved", "rejected"],
       defect_status: ["open", "contractor_complete", "closed"],
+      eot_status: [
+        "draft",
+        "submitted",
+        "under_review",
+        "approved",
+        "rejected",
+        "withdrawn",
+      ],
       rfi_status: ["draft", "open", "closed"],
+      risk_level: ["low", "medium", "high"],
+      risk_status: ["open", "mitigated", "closed"],
+      risk_type: ["risk", "opportunity"],
+      update_type: ["milestone", "progress", "issue", "general"],
+      update_visibility: ["internal", "client"],
+      variation_status: [
+        "draft",
+        "submitted",
+        "under_review",
+        "approved",
+        "rejected",
+        "cancelled",
+      ],
+      weather_condition: [
+        "sunny",
+        "partly_cloudy",
+        "cloudy",
+        "light_rain",
+        "heavy_rain",
+        "storm",
+        "windy",
+        "hot",
+        "cold",
+      ],
     },
   },
 } as const
