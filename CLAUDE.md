@@ -110,7 +110,21 @@ All tables have RLS enabled, scoped by `org_id` via `get_user_org_id()`.
 | `tenders` | Tender packages per project with trade, estimated/awarded values, status workflow (draft→open→evaluation→awarded/cancelled) |
 | `tender_submissions` | Contractor bids per tender with amount, company, award tracking (RLS via parent tender) |
 
-**Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`, `consultant_status`, `phase_status`, `tender_status`
+**Programmes (Gantt):**
+
+| Table | Purpose |
+|-------|---------|
+| `programme_tasks` | Hierarchical schedule tasks per project with dates, progress (0-100), parent/child via self-ref parent_id, sort_order |
+| `programme_dependencies` | Finish-to-start dependencies between programme tasks (predecessor → successor), unique pair constraint |
+
+**Submittals:**
+
+| Table | Purpose |
+|-------|---------|
+| `submittals` | Contractor document submissions (shop drawings, product data, samples) with review workflow (draft→submitted→under_review→approved/approved_as_noted/revise_resubmit/rejected) |
+| `submittal_comments` | Discussion thread per submittal (RLS via parent submittal) |
+
+**Enums:** `variation_status`, `claim_status`, `weather_condition`, `eot_status`, `consultant_status`, `phase_status`, `tender_status`, `submittal_status`
 
 Helper function: `get_user_org_id()` — used in RLS policies for efficient org scoping.
 Auto-profile trigger: Creates profile row on auth.users insert.

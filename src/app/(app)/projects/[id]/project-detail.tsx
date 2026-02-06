@@ -19,6 +19,8 @@ import {
   Shield,
   Trash2,
   Users,
+  ClipboardCheck,
+  GanttChart,
   Gavel,
 } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -422,6 +424,40 @@ export function ProjectDetail({
                   <p className="font-medium">Tenders</p>
                   <p className="text-xs text-muted-foreground">
                     Contractor tender management
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/programmes`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/30">
+                  <GanttChart className="size-5 text-sky-600 dark:text-sky-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Programmes</p>
+                  <p className="text-xs text-muted-foreground">
+                    Programme schedule & timeline
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+            <Link
+              href={`/projects/${project.id}/submittals`}
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                  <ClipboardCheck className="size-5 text-violet-600 dark:text-violet-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Submittals</p>
+                  <p className="text-xs text-muted-foreground">
+                    Shop drawings & material approvals
                   </p>
                 </div>
               </div>

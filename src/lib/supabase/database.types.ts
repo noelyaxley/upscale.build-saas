@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       action_items: {
@@ -958,6 +933,125 @@ export type Database = {
           },
         ]
       }
+      programme_dependencies: {
+        Row: {
+          created_at: string
+          dependency_type: string
+          id: string
+          predecessor_id: string
+          successor_id: string
+        }
+        Insert: {
+          created_at?: string
+          dependency_type?: string
+          id?: string
+          predecessor_id: string
+          successor_id: string
+        }
+        Update: {
+          created_at?: string
+          dependency_type?: string
+          id?: string
+          predecessor_id?: string
+          successor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_dependencies_predecessor_id_fkey"
+            columns: ["predecessor_id"]
+            isOneToOne: false
+            referencedRelation: "programme_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_dependencies_successor_id_fkey"
+            columns: ["successor_id"]
+            isOneToOne: false
+            referencedRelation: "programme_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programme_tasks: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by_user_id: string | null
+          end_date: string
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          parent_id: string | null
+          progress: number
+          project_id: string
+          sort_order: number
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          end_date: string
+          id?: string
+          name: string
+          notes?: string | null
+          org_id: string
+          parent_id?: string | null
+          progress?: number
+          project_id: string
+          sort_order?: number
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          parent_id?: string | null
+          progress?: number
+          project_id?: string
+          sort_order?: number
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_tasks_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_tasks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "programme_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       progress_claims: {
         Row: {
           certification_notes: string | null
@@ -1503,6 +1597,147 @@ export type Database = {
           },
         ]
       }
+      submittal_comments: {
+        Row: {
+          author_user_id: string | null
+          body: string
+          created_at: string
+          id: string
+          submittal_id: string
+        }
+        Insert: {
+          author_user_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          submittal_id: string
+        }
+        Update: {
+          author_user_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          submittal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submittal_comments_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submittal_comments_submittal_id_fkey"
+            columns: ["submittal_id"]
+            isOneToOne: false
+            referencedRelation: "submittals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submittals: {
+        Row: {
+          assigned_reviewer_id: string | null
+          created_at: string
+          created_by_user_id: string | null
+          date_required: string | null
+          date_returned: string | null
+          date_submitted: string | null
+          description: string | null
+          id: string
+          org_id: string
+          project_id: string
+          reviewer_notes: string | null
+          revision: number
+          spec_section: string | null
+          status: Database["public"]["Enums"]["submittal_status"]
+          submittal_number: number
+          submittal_type: string
+          submitted_by_company_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_reviewer_id?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          date_required?: string | null
+          date_returned?: string | null
+          date_submitted?: string | null
+          description?: string | null
+          id?: string
+          org_id: string
+          project_id: string
+          reviewer_notes?: string | null
+          revision?: number
+          spec_section?: string | null
+          status?: Database["public"]["Enums"]["submittal_status"]
+          submittal_number: number
+          submittal_type: string
+          submitted_by_company_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_reviewer_id?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          date_required?: string | null
+          date_returned?: string | null
+          date_submitted?: string | null
+          description?: string | null
+          id?: string
+          org_id?: string
+          project_id?: string
+          reviewer_notes?: string | null
+          revision?: number
+          spec_section?: string | null
+          status?: Database["public"]["Enums"]["submittal_status"]
+          submittal_number?: number
+          submittal_type?: string
+          submitted_by_company_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submittals_assigned_reviewer_id_fkey"
+            columns: ["assigned_reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submittals_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submittals_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submittals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submittals_submitted_by_company_id_fkey"
+            columns: ["submitted_by_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tender_submissions: {
         Row: {
           amount: number
@@ -1764,6 +1999,14 @@ export type Database = {
       risk_level: "low" | "medium" | "high"
       risk_status: "open" | "mitigated" | "closed"
       risk_type: "risk" | "opportunity"
+      submittal_status:
+        | "draft"
+        | "submitted"
+        | "under_review"
+        | "approved"
+        | "approved_as_noted"
+        | "revise_resubmit"
+        | "rejected"
       tender_status: "draft" | "open" | "evaluation" | "awarded" | "cancelled"
       update_type: "milestone" | "progress" | "issue" | "general"
       update_visibility: "internal" | "client"
@@ -1909,9 +2152,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       action_status: ["pending", "completed"],
@@ -1932,6 +2172,15 @@ export const Constants = {
       risk_level: ["low", "medium", "high"],
       risk_status: ["open", "mitigated", "closed"],
       risk_type: ["risk", "opportunity"],
+      submittal_status: [
+        "draft",
+        "submitted",
+        "under_review",
+        "approved",
+        "approved_as_noted",
+        "revise_resubmit",
+        "rejected",
+      ],
       tender_status: ["draft", "open", "evaluation", "awarded", "cancelled"],
       update_type: ["milestone", "progress", "issue", "general"],
       update_visibility: ["internal", "client"],
