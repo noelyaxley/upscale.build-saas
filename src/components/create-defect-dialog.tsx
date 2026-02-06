@@ -2,7 +2,7 @@
 
 import { useState, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, X } from "lucide-react";
+import { Camera, ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useOrganisation } from "@/lib/context/organisation";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ export function CreateDefectDialog({
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { organisation, profile } = useOrganisation();
   const supabase = createClient();
@@ -69,9 +70,8 @@ export function CreateDefectDialog({
   const removeImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,6 +159,14 @@ export function CreateDefectDialog({
                   accept="image/*"
                   onChange={handleImageSelect}
                 />
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageSelect}
+                />
                 {imagePreview ? (
                   <div className="relative inline-block">
                     <img
@@ -177,14 +185,24 @@ export function CreateDefectDialog({
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Camera className="mr-2 size-4" />
-                    Add Photo
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => cameraInputRef.current?.click()}
+                    >
+                      <Camera className="mr-2 size-4" />
+                      Take Photo
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <ImagePlus className="mr-2 size-4" />
+                      Upload Photo
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
