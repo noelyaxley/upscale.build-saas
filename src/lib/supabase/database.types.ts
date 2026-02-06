@@ -451,6 +451,7 @@ export type Database = {
         Row: {
           assigned_to_company_id: string | null
           contractor_comment: string | null
+          contractor_photo_url: string | null
           created_at: string
           date_closed: string | null
           date_contractor_complete: string | null
@@ -469,6 +470,7 @@ export type Database = {
         Insert: {
           assigned_to_company_id?: string | null
           contractor_comment?: string | null
+          contractor_photo_url?: string | null
           created_at?: string
           date_closed?: string | null
           date_contractor_complete?: string | null
@@ -487,6 +489,7 @@ export type Database = {
         Update: {
           assigned_to_company_id?: string | null
           contractor_comment?: string | null
+          contractor_photo_url?: string | null
           created_at?: string
           date_closed?: string | null
           date_contractor_complete?: string | null
