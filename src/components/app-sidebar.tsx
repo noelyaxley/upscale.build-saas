@@ -2,14 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
 import {
+  AlertTriangle,
+  BarChart3,
   Building2,
+  Calculator,
   ChevronRight,
+  ClipboardCheck,
+  ClipboardList,
+  Clock,
+  FileEdit,
+  FileText,
   FolderKanban,
+  GanttChart,
+  Gavel,
   HardHat,
+  Home,
   LayoutDashboard,
   LogOut,
+  MessageSquarePlus,
+  Receipt,
   Settings,
+  Shield,
+  UserCheck,
   Users,
 } from "lucide-react";
 
@@ -43,6 +59,25 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+
+const projectModules: { label: string; slug: string; icon: LucideIcon }[] = [
+  { label: "Documents", slug: "documents", icon: FileText },
+  { label: "RFIs", slug: "rfis", icon: MessageSquarePlus },
+  { label: "Defects", slug: "defects", icon: AlertTriangle },
+  { label: "Risks", slug: "risks", icon: Shield },
+  { label: "Variations", slug: "variations", icon: FileEdit },
+  { label: "Extension of Time", slug: "eot", icon: Clock },
+  { label: "Progress Claims", slug: "claims", icon: Receipt },
+  { label: "Site Diary", slug: "site-diary", icon: ClipboardList },
+  { label: "Consultants", slug: "consultants", icon: Users },
+  { label: "Tenders", slug: "tenders", icon: Gavel },
+  { label: "Programmes", slug: "programmes", icon: GanttChart },
+  { label: "Submittals", slug: "submittals", icon: ClipboardCheck },
+  { label: "Lot Sales", slug: "lot-sales", icon: Home },
+  { label: "Sales Agents", slug: "sales-agents", icon: UserCheck },
+  { label: "Feasibility", slug: "feasibility", icon: Calculator },
+  { label: "Reports", slug: "reports", icon: BarChart3 },
+];
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -114,21 +149,62 @@ export function AppSidebar() {
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ) : (
-                        projects.map((project) => (
-                          <SidebarMenuSubItem key={project.id}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={pathname === `/projects/${project.id}`}
-                            >
-                              <Link href={`/projects/${project.id}`}>
-                                <span className="font-mono text-xs">
-                                  {project.code}
-                                </span>
-                                <span className="truncate">{project.name}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))
+                        projects.map((project) => {
+                          const projectPath = `/projects/${project.id}`;
+                          const isProjectActive = pathname.startsWith(projectPath);
+
+                          return (
+                            <SidebarMenuSubItem key={project.id}>
+                              <Collapsible
+                                defaultOpen={isProjectActive}
+                                className="group/project"
+                              >
+                                <div className="flex items-center">
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={pathname === projectPath}
+                                    className="flex-1"
+                                  >
+                                    <Link href={projectPath}>
+                                      <span className="truncate">
+                                        {project.name}
+                                      </span>
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                  <CollapsibleTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className="flex size-6 shrink-0 items-center justify-center rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                                    >
+                                      <ChevronRight className="size-3 transition-transform duration-200 group-data-[state=open]/project:rotate-90" />
+                                    </button>
+                                  </CollapsibleTrigger>
+                                </div>
+                                <CollapsibleContent>
+                                  <SidebarMenuSub>
+                                    {projectModules.map((mod) => {
+                                      const ModIcon = mod.icon;
+                                      const modPath = `${projectPath}/${mod.slug}`;
+                                      return (
+                                        <SidebarMenuSubItem key={mod.slug}>
+                                          <SidebarMenuSubButton
+                                            asChild
+                                            isActive={pathname.startsWith(modPath)}
+                                          >
+                                            <Link href={modPath}>
+                                              <ModIcon className="size-3.5" />
+                                              <span>{mod.label}</span>
+                                            </Link>
+                                          </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                      );
+                                    })}
+                                  </SidebarMenuSub>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            </SidebarMenuSubItem>
+                          );
+                        })
                       )}
                     </SidebarMenuSub>
                   </CollapsibleContent>
