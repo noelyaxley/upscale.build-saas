@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   type FlatRow,
   type ProgrammeTask,
+  type ProgrammeDependency,
   getDuration,
   formatDate,
 } from "./gantt-utils";
@@ -19,6 +20,7 @@ interface TaskListPanelProps {
   onToggleExpand: (taskId: string) => void;
   onDeleteTask: (task: ProgrammeTask) => void;
   tasks: ProgrammeTask[];
+  dependencies: ProgrammeDependency[];
 }
 
 export function TaskListPanel({
@@ -26,6 +28,7 @@ export function TaskListPanel({
   onToggleExpand,
   onDeleteTask,
   tasks,
+  dependencies,
 }: TaskListPanelProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -34,6 +37,27 @@ export function TaskListPanel({
     field: string;
   } | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [editLag, setEditLag] = useState("0");
+
+  // Build lookup: successor_id → { predecessor task, lag_days, dep id }
+  const predMap = useMemo(() => {
+    const map = new Map<
+      string,
+      { predecessorTask: ProgrammeTask; lagDays: number; depId: string }
+    >();
+    const taskMap = new Map(tasks.map((t) => [t.id, t]));
+    for (const dep of dependencies) {
+      const pred = taskMap.get(dep.predecessor_id);
+      if (pred) {
+        map.set(dep.successor_id, {
+          predecessorTask: pred,
+          lagDays: dep.lag_days,
+          depId: dep.id,
+        });
+      }
+    }
+    return map;
+  }, [tasks, dependencies]);
 
   const startEdit = (taskId: string, field: string, currentValue: string) => {
     setEditingCell({ taskId, field });
@@ -43,6 +67,38 @@ export function TaskListPanel({
   const commitEdit = async () => {
     if (!editingCell) return;
     const { taskId, field } = editingCell;
+
+    if (field === "predecessor") {
+      const existing = predMap.get(taskId);
+      const lagDays = parseInt(editLag) || 0;
+
+      if (!editValue) {
+        // Remove dependency
+        if (existing) {
+          await supabase
+            .from("programme_dependencies")
+            .delete()
+            .eq("id", existing.depId);
+        }
+      } else if (existing) {
+        // Update existing dependency
+        await supabase
+          .from("programme_dependencies")
+          .update({ predecessor_id: editValue, lag_days: lagDays })
+          .eq("id", existing.depId);
+      } else {
+        // Create new dependency
+        await supabase.from("programme_dependencies").insert({
+          predecessor_id: editValue,
+          successor_id: taskId,
+          lag_days: lagDays,
+        });
+      }
+
+      setEditingCell(null);
+      router.refresh();
+      return;
+    }
 
     const updateData: Record<string, string | number> = {};
     if (field === "name") {
@@ -88,7 +144,7 @@ export function TaskListPanel({
   };
 
   return (
-    <div className="min-w-[500px]">
+    <div className="min-w-[640px]">
       {/* Header */}
       <div
         className="flex items-center border-b bg-muted/50 text-xs font-medium text-muted-foreground sticky top-0 z-10"
@@ -98,6 +154,7 @@ export function TaskListPanel({
         <div className="w-[90px] px-2 text-center">Start</div>
         <div className="w-[90px] px-2 text-center">End</div>
         <div className="w-[50px] px-2 text-center">Days</div>
+        <div className="w-[130px] px-2 text-center">Predecessor</div>
         <div className="w-[55px] px-2 text-center">%</div>
         <div className="w-[32px]" />
       </div>
@@ -218,6 +275,73 @@ export function TaskListPanel({
               {/* Duration */}
               <div className="w-[50px] px-2 text-center text-xs text-muted-foreground">
                 {getDuration(task.start_date, task.end_date)}d
+              </div>
+
+              {/* Predecessor */}
+              <div className="w-[130px] px-1 text-center">
+                {editingCell?.taskId === task.id &&
+                editingCell.field === "predecessor" ? (
+                  <div className="flex items-center gap-0.5">
+                    <select
+                      className="h-7 flex-1 min-w-0 rounded-md border border-input bg-transparent px-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      autoFocus
+                    >
+                      <option value="">None</option>
+                      {tasks
+                        .filter((t) => t.id !== task.id)
+                        .map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                    </select>
+                    {editValue && (
+                      <Input
+                        type="number"
+                        className="h-7 w-[42px] text-xs px-1"
+                        value={editLag}
+                        onChange={(e) => setEditLag(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="lag"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:underline shrink-0 px-0.5"
+                      onClick={commitEdit}
+                    >
+                      OK
+                    </button>
+                  </div>
+                ) : (
+                  <span
+                    className="text-xs cursor-pointer hover:underline truncate block"
+                    onClick={() => {
+                      const pred = predMap.get(task.id);
+                      setEditingCell({ taskId: task.id, field: "predecessor" });
+                      setEditValue(pred?.predecessorTask.id ?? "");
+                      setEditLag(String(pred?.lagDays ?? 0));
+                    }}
+                  >
+                    {(() => {
+                      const pred = predMap.get(task.id);
+                      if (!pred) return <span className="text-muted-foreground">—</span>;
+                      const lag = pred.lagDays;
+                      const lagStr =
+                        lag > 0 ? ` +${lag}d` : lag < 0 ? ` ${lag}d` : "";
+                      return (
+                        <span title={pred.predecessorTask.name + lagStr}>
+                          {pred.predecessorTask.name.length > 12
+                            ? pred.predecessorTask.name.slice(0, 12) + "..."
+                            : pred.predecessorTask.name}
+                          {lagStr}
+                        </span>
+                      );
+                    })()}
+                  </span>
+                )}
               </div>
 
               {/* Progress */}

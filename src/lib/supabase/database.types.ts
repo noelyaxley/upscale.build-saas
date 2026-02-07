@@ -1202,6 +1202,7 @@ export type Database = {
           created_at: string
           dependency_type: string
           id: string
+          lag_days: number
           predecessor_id: string
           successor_id: string
         }
@@ -1209,6 +1210,7 @@ export type Database = {
           created_at?: string
           dependency_type?: string
           id?: string
+          lag_days?: number
           predecessor_id: string
           successor_id: string
         }
@@ -1216,6 +1218,7 @@ export type Database = {
           created_at?: string
           dependency_type?: string
           id?: string
+          lag_days?: number
           predecessor_id?: string
           successor_id?: string
         }

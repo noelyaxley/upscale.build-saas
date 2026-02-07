@@ -22,12 +22,14 @@ import type { ProgrammeTask } from "@/app/(app)/projects/[id]/programmes/gantt-u
 interface CreateTaskDialogProps {
   projectId: string;
   tasks: ProgrammeTask[];
+  dependencies: { predecessor_id: string; successor_id: string; lag_days: number }[];
   children: ReactNode;
 }
 
 export function CreateTaskDialog({
   projectId,
   tasks,
+  dependencies,
   children,
 }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);
@@ -44,6 +46,8 @@ export function CreateTaskDialog({
     startDate: today,
     endDate: today,
     parentId: "",
+    predecessorId: "",
+    lagDays: "0",
     progress: "0",
     notes: "",
   });
@@ -58,7 +62,7 @@ export function CreateTaskDialog({
         .filter((t) => t.parent_id === (formData.parentId || null))
         .reduce((max, t) => Math.max(max, t.sort_order), -1);
 
-      const { error: insertError } = await supabase
+      const { data: insertedTask, error: insertError } = await supabase
         .from("programme_tasks")
         .insert({
           org_id: organisation.id,
@@ -71,9 +75,23 @@ export function CreateTaskDialog({
           notes: formData.notes || null,
           sort_order: maxSort + 1,
           created_by_user_id: profile.id,
-        });
+        })
+        .select("id")
+        .single();
 
       if (insertError) throw insertError;
+
+      // Create dependency if predecessor selected
+      if (formData.predecessorId && insertedTask) {
+        const { error: depError } = await supabase
+          .from("programme_dependencies")
+          .insert({
+            predecessor_id: formData.predecessorId,
+            successor_id: insertedTask.id,
+            lag_days: parseInt(formData.lagDays) || 0,
+          });
+        if (depError) throw depError;
+      }
 
       setOpen(false);
       setFormData({
@@ -81,6 +99,8 @@ export function CreateTaskDialog({
         startDate: today,
         endDate: today,
         parentId: "",
+        predecessorId: "",
+        lagDays: "0",
         progress: "0",
         notes: "",
       });
@@ -175,6 +195,45 @@ export function CreateTaskDialog({
                 ))}
               </select>
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="task-predecessor" className="text-right">
+                Predecessor
+              </Label>
+              <select
+                id="task-predecessor"
+                className="col-span-3 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={formData.predecessorId}
+                onChange={(e) =>
+                  setFormData({ ...formData, predecessorId: e.target.value })
+                }
+              >
+                <option value="">None</option>
+                {tasks.map((task) => (
+                  <option key={task.id} value={task.id}>
+                    {task.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {formData.predecessorId && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="task-lag" className="text-right">
+                  Lag (days)
+                </Label>
+                <Input
+                  id="task-lag"
+                  type="number"
+                  className="col-span-3"
+                  value={formData.lagDays}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lagDays: e.target.value })
+                  }
+                  placeholder="e.g. 3 or -2"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="task-progress" className="text-right">

@@ -60,9 +60,24 @@ export function GanttChart({ rows, timeline, dependencies }: GanttChartProps) {
         const midX = x1 + 12;
         const d = `M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`;
 
-        return { d, x2, y2, key: dep.id };
+        // Lag label
+        const lagDays = dep.lag_days;
+        const lagLabel =
+          lagDays > 0 ? `+${lagDays}d` : lagDays < 0 ? `${lagDays}d` : "";
+        const labelX = midX;
+        const labelY = y1 < y2 ? y1 + (y2 - y1) / 2 : y2 + (y1 - y2) / 2;
+
+        return { d, x2, y2, key: dep.id, lagLabel, labelX, labelY };
       })
-      .filter(Boolean) as { d: string; x2: number; y2: number; key: string }[];
+      .filter(Boolean) as {
+      d: string;
+      x2: number;
+      y2: number;
+      key: string;
+      lagLabel: string;
+      labelX: number;
+      labelY: number;
+    }[];
   }, [dependencies, rowIndexMap, rows, timeline]);
 
   return (
@@ -155,15 +170,27 @@ export function GanttChart({ rows, timeline, dependencies }: GanttChartProps) {
             </marker>
           </defs>
           {depPaths.map((dep) => (
-            <path
-              key={dep.key}
-              d={dep.d}
-              fill="none"
-              stroke="currentColor"
-              className="text-muted-foreground"
-              strokeWidth={1.5}
-              markerEnd="url(#arrowhead)"
-            />
+            <g key={dep.key}>
+              <path
+                d={dep.d}
+                fill="none"
+                stroke="currentColor"
+                className="text-muted-foreground"
+                strokeWidth={1.5}
+                markerEnd="url(#arrowhead)"
+              />
+              {dep.lagLabel && (
+                <text
+                  x={dep.labelX + 4}
+                  y={dep.labelY - 4}
+                  className="fill-muted-foreground"
+                  fontSize={9}
+                  fontWeight={500}
+                >
+                  {dep.lagLabel}
+                </text>
+              )}
+            </g>
           ))}
         </svg>
 

@@ -165,7 +165,7 @@ export function ProgrammesView({
             <SelectItem value="month">Month</SelectItem>
           </SelectContent>
         </Select>
-        <CreateTaskDialog projectId={project.id} tasks={tasks}>
+        <CreateTaskDialog projectId={project.id} tasks={tasks} dependencies={dependencies}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             Add Task
@@ -219,13 +219,14 @@ export function ProgrammesView({
               ref={leftRef}
               onScroll={handleLeftScroll}
               className="overflow-y-auto border-r shrink-0"
-              style={{ width: 520 }}
+              style={{ width: 660 }}
             >
               <TaskListPanel
                 rows={rows}
                 onToggleExpand={toggleExpand}
                 onDeleteTask={handleDeleteTask}
                 tasks={tasks}
+                dependencies={dependencies}
               />
             </div>
 
