@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -126,7 +127,7 @@ export function ProjectActionItems({
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create action item");
+      setError(getErrorMessage(err, "Failed to create action item"));
     } finally {
       setLoading(false);
     }

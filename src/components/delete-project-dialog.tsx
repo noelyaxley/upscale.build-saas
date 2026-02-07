@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/lib/utils";
 
 type Project = Tables<"projects">;
 
@@ -59,7 +60,7 @@ export function DeleteProjectDialog({
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete project");
+      setError(getErrorMessage(err, "Failed to delete project"));
       setLoading(false);
     }
   };

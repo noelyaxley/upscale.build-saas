@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -117,7 +118,7 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
       setOpen(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update project");
+      setError(getErrorMessage(err, "Failed to update project"));
     } finally {
       setLoading(false);
     }

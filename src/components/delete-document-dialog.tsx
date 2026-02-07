@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
@@ -63,7 +64,7 @@ export function DeleteDocumentDialog({
       setOpen(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete document");
+      setError(getErrorMessage(err, "Failed to delete document"));
       setLoading(false);
     }
   };

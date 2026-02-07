@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -257,7 +258,7 @@ export function CreateClaimView({
         `/projects/${project.id}/claims/${contract.id}/${claim.id}`
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create claim");
+      setError(getErrorMessage(err, "Failed to create claim"));
     } finally {
       setLoading(false);
     }

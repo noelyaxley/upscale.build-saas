@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -81,7 +82,7 @@ export function EditCompanyDialog({ company, children }: EditCompanyDialogProps)
       setOpen(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update company");
+      setError(getErrorMessage(err, "Failed to update company"));
     } finally {
       setLoading(false);
     }

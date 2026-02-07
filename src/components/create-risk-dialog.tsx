@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 type RiskType = Database["public"]["Enums"]["risk_type"];
 type RiskLevel = Database["public"]["Enums"]["risk_level"];
@@ -75,7 +76,7 @@ export function CreateRiskDialog({ projectId, children }: CreateRiskDialogProps)
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create risk");
+      setError(getErrorMessage(err, "Failed to create risk"));
     } finally {
       setLoading(false);
     }

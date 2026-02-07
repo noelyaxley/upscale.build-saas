@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -60,7 +61,7 @@ export function CreateFolderDialog({
       setFolderName("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create folder");
+      setError(getErrorMessage(err, "Failed to create folder"));
     } finally {
       setLoading(false);
     }

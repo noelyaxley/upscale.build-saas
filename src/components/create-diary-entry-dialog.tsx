@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -138,7 +139,7 @@ export function CreateDiaryEntryDialog({
       ) {
         setError("An entry for this date already exists");
       } else {
-        setError(err instanceof Error ? err.message : "Failed to create entry");
+        setError(getErrorMessage(err, "Failed to create entry"));
       }
     } finally {
       setLoading(false);

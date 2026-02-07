@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 interface CreateTenderDialogProps {
   projectId: string;
@@ -78,9 +79,7 @@ export function CreateTenderDialog({
       });
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create tender"
-      );
+      setError(getErrorMessage(err, "Failed to create tender"));
     } finally {
       setLoading(false);
     }

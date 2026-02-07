@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getErrorMessage } from "@/lib/utils";
 
 type Company = Tables<"companies">;
 
@@ -51,7 +52,7 @@ export function DeleteCompanyDialog({
       router.push("/companies");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete company");
+      setError(getErrorMessage(err, "Failed to delete company"));
       setLoading(false);
     }
   };

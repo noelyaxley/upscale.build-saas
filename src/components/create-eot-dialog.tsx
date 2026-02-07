@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 type Company = {
   id: string;
@@ -101,7 +102,7 @@ export function CreateEotDialog({
       router.push(`/projects/${projectId}/eot/${data.id}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create EOT");
+      setError(getErrorMessage(err, "Failed to create EOT"));
     } finally {
       setLoading(false);
     }

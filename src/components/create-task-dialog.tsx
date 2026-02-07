@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ProgrammeTask } from "@/app/(app)/projects/[id]/programmes/gantt-utils";
+import { getErrorMessage } from "@/lib/utils";
 
 interface CreateTaskDialogProps {
   projectId: string;
@@ -106,9 +107,7 @@ export function CreateTaskDialog({
       });
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create task"
-      );
+      setError(getErrorMessage(err, "Failed to create task"));
     } finally {
       setLoading(false);
     }

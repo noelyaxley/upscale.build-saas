@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
@@ -64,7 +65,7 @@ export function InviteMemberDialog() {
       setFormData({ email: "", fullName: "", role: "user" });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send invitation");
+      setError(getErrorMessage(err, "Failed to send invitation"));
     } finally {
       setLoading(false);
     }

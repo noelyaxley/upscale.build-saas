@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, User } from "lucide-react";
@@ -66,7 +67,7 @@ export function SettingsForm() {
       router.refresh();
     } catch (err) {
       setProfileError(
-        err instanceof Error ? err.message : "Failed to update profile"
+        getErrorMessage(err, "Failed to update profile")
       );
     } finally {
       setProfileLoading(false);
@@ -91,7 +92,7 @@ export function SettingsForm() {
       router.refresh();
     } catch (err) {
       setOrgError(
-        err instanceof Error ? err.message : "Failed to update organisation"
+        getErrorMessage(err, "Failed to update organisation")
       );
     } finally {
       setOrgLoading(false);

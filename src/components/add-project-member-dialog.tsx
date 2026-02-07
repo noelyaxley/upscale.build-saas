@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { UserPlus } from "lucide-react";
@@ -99,7 +100,7 @@ export function AddProjectMemberDialog({
       setFormData({ user_id: "", role: "member" });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add member");
+      setError(getErrorMessage(err, "Failed to add member"));
     } finally {
       setLoading(false);
     }

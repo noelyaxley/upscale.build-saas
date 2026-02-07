@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 type Company = {
   id: string;
@@ -104,7 +105,7 @@ export function CreateVariationDialog({
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create variation");
+      setError(getErrorMessage(err, "Failed to create variation"));
     } finally {
       setLoading(false);
     }

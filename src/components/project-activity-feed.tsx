@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -143,7 +144,7 @@ export function ProjectActivityFeed({ projectId, updates }: ProjectActivityFeedP
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to post update");
+      setError(getErrorMessage(err, "Failed to post update"));
     } finally {
       setLoading(false);
     }

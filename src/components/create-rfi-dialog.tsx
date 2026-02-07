@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 interface CreateRFIDialogProps {
   projectId: string;
@@ -82,7 +83,7 @@ export function CreateRFIDialog({
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create RFI");
+      setError(getErrorMessage(err, "Failed to create RFI"));
     } finally {
       setLoading(false);
     }

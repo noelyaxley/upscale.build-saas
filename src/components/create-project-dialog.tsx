@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getErrorMessage } from "@/lib/utils";
 
 type Company = Tables<"companies">;
 
@@ -107,7 +108,7 @@ export function CreateProjectDialog() {
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create project");
+      setError(getErrorMessage(err, "Failed to create project"));
     } finally {
       setLoading(false);
     }

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/lib/utils";
 
 type PortalLink = {
   id: string;
@@ -121,7 +122,7 @@ export function SharePortalDialog({
       setShowForm(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create link");
+      setError(getErrorMessage(err, "Failed to create link"));
     } finally {
       setCreating(false);
     }

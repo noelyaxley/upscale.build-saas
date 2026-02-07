@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { getErrorMessage } from "@/lib/utils";
 
 interface UploadDocumentDialogProps {
   projectId: string;
@@ -129,7 +130,7 @@ export function UploadDocumentDialog({
       setProgress(0);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload document");
+      setError(getErrorMessage(err, "Failed to upload document"));
     } finally {
       setLoading(false);
     }

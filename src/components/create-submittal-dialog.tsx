@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 type Company = { id: string; name: string };
 type Member = { id: string; full_name: string | null };
@@ -101,9 +102,7 @@ export function CreateSubmittalDialog({
       });
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create submittal"
-      );
+      setError(getErrorMessage(err, "Failed to create submittal"));
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/utils";
 import { useState, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, ImagePlus, X } from "lucide-react";
@@ -130,7 +131,7 @@ export function CreateDefectDialog({
       setImagePreview(null);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create defect");
+      setError(getErrorMessage(err, "Failed to create defect"));
     } finally {
       setLoading(false);
     }

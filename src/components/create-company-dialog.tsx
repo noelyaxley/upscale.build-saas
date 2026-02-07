@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getErrorMessage } from "@/lib/utils";
 
 const companyTypes = [
   { value: "builder", label: "Builder" },
@@ -82,7 +83,7 @@ export function CreateCompanyDialog() {
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create company");
+      setError(getErrorMessage(err, "Failed to create company"));
     } finally {
       setLoading(false);
     }
