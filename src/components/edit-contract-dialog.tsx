@@ -49,7 +49,6 @@ export function EditContractDialog({
     name: contract.name,
     company_id: contract.company_id || "",
     contract_ref: contract.contract_ref || "",
-    contract_value: (contract.contract_value / 100).toString(),
     description: contract.description || "",
   });
 
@@ -59,17 +58,12 @@ export function EditContractDialog({
     setError(null);
 
     try {
-      const valueCents = formData.contract_value
-        ? Math.round(parseFloat(formData.contract_value) * 100)
-        : 0;
-
       const { error: updateError } = await supabase
         .from("contracts")
         .update({
           name: formData.name,
           company_id: formData.company_id || null,
           contract_ref: formData.contract_ref || null,
-          contract_value: valueCents,
           description: formData.description || null,
         })
         .eq("id", contract.id);
@@ -147,21 +141,6 @@ export function EditContractDialog({
                 value={formData.contract_ref}
                 onChange={(e) =>
                   setFormData({ ...formData, contract_ref: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-contract-value" className="text-right">
-                Value ($)
-              </Label>
-              <Input
-                id="edit-contract-value"
-                type="number"
-                step="0.01"
-                className="col-span-3"
-                value={formData.contract_value}
-                onChange={(e) =>
-                  setFormData({ ...formData, contract_value: e.target.value })
                 }
               />
             </div>

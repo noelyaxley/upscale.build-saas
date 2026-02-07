@@ -53,7 +53,6 @@ export function CreateContractDialog({
     name: "",
     companyId: "",
     contractRef: "",
-    contractValue: "",
     description: "",
   });
 
@@ -63,10 +62,6 @@ export function CreateContractDialog({
     setError(null);
 
     try {
-      const contractCents = formData.contractValue
-        ? Math.round(parseFloat(formData.contractValue) * 100)
-        : 0;
-
       const { error: insertError } = await supabase
         .from("contracts")
         .insert({
@@ -75,7 +70,7 @@ export function CreateContractDialog({
           name: formData.name,
           company_id: formData.companyId || null,
           contract_ref: formData.contractRef || null,
-          contract_value: contractCents,
+          contract_value: 0,
           description: formData.description || null,
           created_by_user_id: profile.id,
         });
@@ -87,7 +82,6 @@ export function CreateContractDialog({
         name: "",
         companyId: "",
         contractRef: "",
-        contractValue: "",
         description: "",
       });
       router.refresh();
@@ -160,23 +154,6 @@ export function CreateContractDialog({
                 value={formData.contractRef}
                 onChange={(e) =>
                   setFormData({ ...formData, contractRef: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="ct-value" className="text-right">
-                Contract Value ($)
-              </Label>
-              <Input
-                id="ct-value"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                className="col-span-3"
-                value={formData.contractValue}
-                onChange={(e) =>
-                  setFormData({ ...formData, contractValue: e.target.value })
                 }
               />
             </div>

@@ -17,6 +17,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { CreateVariationDialog } from "@/components/create-variation-dialog";
 import { EditContractDialog } from "@/components/edit-contract-dialog";
 import { EditContractItemDialog } from "@/components/edit-contract-item-dialog";
 import { createClient } from "@/lib/supabase/client";
@@ -61,6 +62,7 @@ import {
 
 type ContractStatus = Database["public"]["Enums"]["contract_status"];
 type ClaimStatus = Database["public"]["Enums"]["claim_status"];
+type VariationStatus = Database["public"]["Enums"]["variation_status"];
 
 type Contract = Tables<"contracts"> & {
   company: { id: string; name: string } | null;
@@ -131,6 +133,28 @@ const claimStatusLabels: Record<ClaimStatus, string> = {
   certified: "Certified",
   paid: "Paid",
   disputed: "Disputed",
+};
+
+const variationStatusColors: Record<VariationStatus, string> = {
+  draft: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  submitted:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  under_review:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  approved:
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  cancelled:
+    "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+};
+
+const variationStatusLabels: Record<VariationStatus, string> = {
+  draft: "Draft",
+  submitted: "Submitted",
+  under_review: "Under Review",
+  approved: "Approved",
+  rejected: "Rejected",
+  cancelled: "Cancelled",
 };
 
 function formatCurrency(cents: number): string {
@@ -243,11 +267,12 @@ export function ContractDetail({
 
   // Financial summary
   const totalItemsValue = items.reduce((sum, i) => sum + i.contract_value, 0);
-  const variationsValue = variations.reduce(
+  const approvedVariations = variations.filter((v) => v.status === "approved");
+  const variationsValue = approvedVariations.reduce(
     (sum, v) => sum + (v.cost_impact ?? 0),
     0
   );
-  const adjustedValue = contract.contract_value + variationsValue;
+  const adjustedValue = totalItemsValue + variationsValue;
   const totalClaimed = claims.reduce((sum, c) => sum + c.claimed_amount, 0);
   const totalCertified = claims
     .filter((c) => c.status === "certified" || c.status === "paid")
@@ -700,26 +725,58 @@ export function ContractDetail({
             </CardContent>
           </Card>
 
-          {/* Approved Variations */}
-          {variations.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  Approved Variations
-                </CardTitle>
-                <CardDescription>
-                  {variations.length} approved variation
-                  {variations.length !== 1 ? "s" : ""}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+          {/* Variations */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Variations</CardTitle>
+                  <CardDescription>
+                    {variations.length} variation
+                    {variations.length !== 1 ? "s" : ""}
+                  </CardDescription>
+                </div>
+                <CreateVariationDialog
+                  projectId={project.id}
+                  companies={companies}
+                  contracts={[
+                    {
+                      id: contract.id,
+                      name: contract.name,
+                      contract_number: contract.contract_number,
+                    },
+                  ]}
+                >
+                  <Button size="sm" variant="outline">
+                    <Plus className="mr-2 size-4" />
+                    New Variation
+                  </Button>
+                </CreateVariationDialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {variations.length === 0 ? (
+                <div className="py-8 text-center">
+                  <FileText className="mx-auto size-12 text-muted-foreground/50" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    No variations yet
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Create a variation to track contract changes
+                  </p>
+                </div>
+              ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[80px]">No.</TableHead>
                       <TableHead>Title</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">
                         Cost Impact
+                      </TableHead>
+                      <TableHead className="text-right">
+                        Time Impact
                       </TableHead>
                       <TableHead className="w-[120px]">Actions</TableHead>
                     </TableRow>
@@ -731,45 +788,65 @@ export function ContractDetail({
                       );
                       return (
                         <TableRow key={variation.id}>
-                          <TableCell className="font-mono text-sm">
-                            V-
-                            {String(variation.variation_number).padStart(
-                              3,
-                              "0"
-                            )}
+                          <TableCell>
+                            <Link
+                              href={`/projects/${project.id}/variations/${variation.id}`}
+                              className="font-mono text-sm font-medium hover:underline"
+                            >
+                              V-
+                              {String(variation.variation_number).padStart(
+                                3,
+                                "0"
+                              )}
+                            </Link>
                           </TableCell>
                           <TableCell className="font-medium">
                             {variation.title}
                           </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="secondary"
+                              className={variationStatusColors[variation.status]}
+                            >
+                              {variationStatusLabels[variation.status]}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="text-right">
                             {formatCurrency(variation.cost_impact ?? 0)}
                           </TableCell>
+                          <TableCell className="text-right">
+                            {variation.time_impact
+                              ? `${variation.time_impact} day${variation.time_impact !== 1 ? "s" : ""}`
+                              : "-"}
+                          </TableCell>
                           <TableCell>
-                            {alreadyLinked ? (
-                              <Badge variant="outline" className="text-xs">
-                                Added
-                              </Badge>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() =>
-                                  handleAddVariationAsItem(variation)
-                                }
-                              >
-                                <Plus className="mr-1 size-3" />
-                                Add as Item
-                              </Button>
-                            )}
+                            {variation.status === "approved" ? (
+                              alreadyLinked ? (
+                                <Badge variant="outline" className="text-xs">
+                                  Added
+                                </Badge>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleAddVariationAsItem(variation)
+                                  }
+                                >
+                                  <Plus className="mr-1 size-3" />
+                                  Add as Item
+                                </Button>
+                              )
+                            ) : null}
                           </TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           {/* Claims */}
           <Card>
@@ -1019,7 +1096,7 @@ export function ContractDetail({
                     Contract Value
                   </p>
                   <p className="text-lg font-bold">
-                    {formatCurrency(contract.contract_value)}
+                    {formatCurrency(totalItemsValue)}
                   </p>
                 </div>
               </div>

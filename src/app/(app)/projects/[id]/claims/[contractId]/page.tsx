@@ -79,7 +79,6 @@ export default async function ContractPage({ params }: ContractPageProps) {
       submitted_by_company:companies!variations_submitted_by_company_id_fkey(id, name)
     `)
     .eq("contract_id", contractId)
-    .eq("status", "approved")
     .order("variation_number", { ascending: true });
 
   // Fetch companies for dialogs
