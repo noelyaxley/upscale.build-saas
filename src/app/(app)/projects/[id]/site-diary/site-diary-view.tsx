@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Calendar,
@@ -74,28 +73,11 @@ const weatherLabels: Record<WeatherCondition, string> = {
   cold: "Cold",
 };
 
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString("en-AU", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatDateShort(date: string): string {
-  return new Date(date).toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "short",
-  });
-}
-
 export function SiteDiaryView({
   project,
   entries,
   companies,
 }: SiteDiaryViewProps) {
-  const router = useRouter();
 
   // Group entries by month
   const entriesByMonth = entries.reduce<Record<string, DiaryEntry[]>>(

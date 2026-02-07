@@ -170,6 +170,7 @@ export function CreateDefectDialog({
                 />
                 {imagePreview ? (
                   <div className="relative inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imagePreview}
                       alt="Preview"

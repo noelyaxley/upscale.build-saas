@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Award,
   Calendar,
-  CheckCircle,
   ChevronRight,
   DollarSign,
   FileText,

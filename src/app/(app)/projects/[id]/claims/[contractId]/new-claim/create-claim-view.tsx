@@ -132,11 +132,6 @@ export function CreateClaimView({
   const itemTree = buildItemTree(items);
   const flatItems = flattenTree(itemTree);
 
-  // Only leaf items (no children) are claimable
-  const leafItemIds = new Set(
-    flatItems.filter((n) => n.children.length === 0).map((n) => n.item.id)
-  );
-
   const getThisClaimCents = (itemId: string): number => {
     const val = claimAmounts[itemId];
     if (!val) return 0;

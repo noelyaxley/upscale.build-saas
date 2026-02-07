@@ -12,7 +12,6 @@ import {
   ChevronRight,
   DollarSign,
   FileText,
-  Pencil,
   Plus,
   Trash2,
   User,
@@ -123,7 +122,7 @@ export function ConsultantDetail({
   const [addPhaseLoading, setAddPhaseLoading] = useState(false);
   const [editingPaidId, setEditingPaidId] = useState<string | null>(null);
   const [editingDisbursementsId, setEditingDisbursementsId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
+  const [, setEditValue] = useState("");
   const [newPhase, setNewPhase] = useState({
     phaseName: "",
     fee: "",

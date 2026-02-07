@@ -54,7 +54,6 @@ const weatherOptions: { value: WeatherCondition; label: string }[] = [
 
 export function CreateDiaryEntryDialog({
   projectId,
-  companies,
   children,
 }: CreateDiaryEntryDialogProps) {
   const [open, setOpen] = useState(false);

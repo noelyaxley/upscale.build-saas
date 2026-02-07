@@ -83,7 +83,6 @@ function formatDate(date: string | null): string {
 }
 
 export function VariationDetail({ project, contract, variation }: VariationDetailProps) {
-  const [rejectionReason, setRejectionReason] = useState("");
   const [updating, setUpdating] = useState(false);
   const router = useRouter();
   const { isAdmin, profile } = useOrganisation();

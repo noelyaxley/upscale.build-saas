@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -89,7 +88,7 @@ function isOverdue(dueDate: string | null, status: string): boolean {
   return new Date(dueDate) < new Date();
 }
 
-export function RFIDetail({ project, rfi, messages, members }: RFIDetailProps) {
+export function RFIDetail({ project, rfi, messages }: RFIDetailProps) {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);

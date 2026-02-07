@@ -10,7 +10,6 @@ import {
   type ProgrammeTask,
   type ProgrammeDependency,
   getDuration,
-  formatDate,
 } from "./gantt-utils";
 
 const ROW_HEIGHT = 40;

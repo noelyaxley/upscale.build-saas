@@ -23,13 +23,6 @@ export default async function DocumentsPage({ params, searchParams }: DocumentsP
     notFound();
   }
 
-  // Fetch folders for this project
-  const { data: folders } = await supabase
-    .from("document_folders")
-    .select("*")
-    .eq("project_id", id)
-    .order("name");
-
   // Fetch documents for current folder (or root if no folder)
   const documentsQuery = supabase
     .from("documents")
@@ -45,8 +38,6 @@ export default async function DocumentsPage({ params, searchParams }: DocumentsP
 
   const { data: documents } = await documentsQuery;
 
-  // Get current folder if viewing subfolder
-  let currentFolder = null;
   let breadcrumbs: { id: string | null; name: string }[] = [{ id: null, name: "Documents" }];
 
   if (folderId) {
@@ -55,8 +46,6 @@ export default async function DocumentsPage({ params, searchParams }: DocumentsP
       .select("*")
       .eq("id", folderId)
       .single();
-
-    currentFolder = folder;
 
     // Build breadcrumb path
     if (folder) {

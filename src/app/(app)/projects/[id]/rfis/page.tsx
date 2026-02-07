@@ -41,12 +41,6 @@ export default async function RFIsPage({ params, searchParams }: RFIsPageProps) 
 
   const { data: rfis } = await query;
 
-  // Fetch project members for assignee dropdown
-  const { data: members } = await supabase
-    .from("project_members")
-    .select("user_id, profiles(id, full_name)")
-    .eq("project_id", id);
-
   // Also include all org members for now (since not all users may be project members)
   const { data: orgMembers } = await supabase
     .from("profiles")

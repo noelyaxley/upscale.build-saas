@@ -10,7 +10,6 @@ import {
   Clock,
   FileText,
   Plus,
-  XCircle,
 } from "lucide-react";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { Badge } from "@/components/ui/badge";

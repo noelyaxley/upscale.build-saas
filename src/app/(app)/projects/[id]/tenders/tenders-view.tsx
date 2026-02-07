@@ -93,7 +93,6 @@ function formatDate(date: string | null): string {
 export function TendersView({
   project,
   tenders,
-  companies,
   statusFilter,
 }: TendersViewProps) {
   const router = useRouter();

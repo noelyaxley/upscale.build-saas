@@ -30,7 +30,6 @@ interface CreateTaskDialogProps {
 export function CreateTaskDialog({
   projectId,
   tasks,
-  dependencies,
   children,
 }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);

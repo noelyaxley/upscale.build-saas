@@ -9,7 +9,6 @@ import {
   Circle,
   Clock,
   Plus,
-  User,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";

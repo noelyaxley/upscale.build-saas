@@ -250,6 +250,7 @@ export function DefectDetail({ project, defect, companies }: DefectDetailProps) 
                 <CardTitle className="text-base">Photo</CardTitle>
               </CardHeader>
               <CardContent>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={defect.photo_url}
                   alt={defect.name}
@@ -403,6 +404,7 @@ export function DefectDetail({ project, defect, companies }: DefectDetailProps) 
                     />
                     {contractorImagePreview ? (
                       <div className="relative inline-block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={contractorImagePreview}
                           alt="Completion photo"
@@ -466,6 +468,7 @@ export function DefectDetail({ project, defect, companies }: DefectDetailProps) 
                   {defect.contractor_photo_url && (
                     <div>
                       <p className="text-sm font-medium mb-2">Completion Photo</p>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={defect.contractor_photo_url}
                         alt="Contractor completion photo"
@@ -502,6 +505,7 @@ export function DefectDetail({ project, defect, companies }: DefectDetailProps) 
                   {defect.contractor_photo_url && (
                     <div className="mt-4">
                       <p className="text-sm font-medium mb-2">Completion Photo</p>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={defect.contractor_photo_url}
                         alt="Contractor completion photo"

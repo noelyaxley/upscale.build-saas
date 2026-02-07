@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   ArrowLeft,
-  CheckCircle,
   ChevronRight,
   Plus,
   Shield,
