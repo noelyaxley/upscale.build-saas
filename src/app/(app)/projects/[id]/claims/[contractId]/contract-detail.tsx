@@ -13,9 +13,12 @@ import {
   DollarSign,
   FileText,
   Layers,
+  Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
+import { EditContractDialog } from "@/components/edit-contract-dialog";
+import { EditContractItemDialog } from "@/components/edit-contract-item-dialog";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
@@ -211,6 +214,8 @@ export function ContractDetail({
     contractValue: "",
     parentId: "",
   });
+  const [editItemOpen, setEditItemOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ContractItem | null>(null);
   const router = useRouter();
   const { isAdmin } = useOrganisation();
   const supabase = createClient();
@@ -390,7 +395,15 @@ export function ContractDetail({
           {/* Contract info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Contract Details</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Contract Details</CardTitle>
+                <EditContractDialog contract={contract} companies={companies}>
+                  <Button size="sm" variant="ghost">
+                    <Pencil className="mr-2 size-4" />
+                    Edit
+                  </Button>
+                </EditContractDialog>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -575,9 +588,7 @@ export function ContractDetail({
                       </TableHead>
                       <TableHead className="text-right">Remaining</TableHead>
                       <TableHead className="text-right w-[60px]">%</TableHead>
-                      {isAdmin && (
-                        <TableHead className="w-[60px]">Actions</TableHead>
-                      )}
+                      <TableHead className="w-[80px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -630,23 +641,35 @@ export function ContractDetail({
                           <TableCell className="text-right text-sm text-muted-foreground">
                             {pct > 0 ? `${pct.toFixed(0)}%` : "-"}
                           </TableCell>
-                          {isAdmin && (
-                            <TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="text-destructive"
-                                onClick={() =>
-                                  handleDeleteItem(
-                                    node.item.id,
-                                    node.item.description
-                                  )
-                                }
+                                onClick={() => {
+                                  setEditingItem(node.item);
+                                  setEditItemOpen(true);
+                                }}
                               >
-                                <Trash2 className="size-4" />
+                                <Pencil className="size-4" />
                               </Button>
-                            </TableCell>
-                          )}
+                              {isAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive"
+                                  onClick={() =>
+                                    handleDeleteItem(
+                                      node.item.id,
+                                      node.item.description
+                                    )
+                                  }
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -669,7 +692,7 @@ export function ContractDetail({
                           ? `${((totalClaimed / totalItemsValue) * 100).toFixed(0)}%`
                           : "-"}
                       </TableCell>
-                      {isAdmin && <TableCell />}
+                      <TableCell />
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -1105,6 +1128,14 @@ export function ContractDetail({
           </Card>
         </div>
       </div>
+
+      {editingItem && (
+        <EditContractItemDialog
+          item={editingItem}
+          open={editItemOpen}
+          onOpenChange={setEditItemOpen}
+        />
+      )}
     </div>
   );
 }
