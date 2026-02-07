@@ -277,6 +277,9 @@ export function ContractDetail({
     .filter((v) => !linkedVariationIds.has(v.id))
     .reduce((sum, v) => sum + (v.cost_impact ?? 0), 0);
   const adjustedValue = totalItemsValue + variationsValue;
+  const unapprovedVariationsValue = variations
+    .filter((v) => v.status === "draft" || v.status === "submitted" || v.status === "under_review")
+    .reduce((sum, v) => sum + (v.cost_impact ?? 0), 0);
   const totalClaimed = claims.reduce((sum, c) => sum + c.claimed_amount, 0);
   const totalCertified = claims
     .filter((c) => c.status === "certified" || c.status === "paid")
@@ -1096,7 +1099,7 @@ export function ContractDetail({
               <div className="flex items-center gap-3">
                 <DollarSign className="size-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Variations</p>
+                  <p className="text-xs text-muted-foreground">Approved Variations</p>
                   <p className="text-sm font-medium">
                     {variationsValue !== 0
                       ? formatCurrency(variationsValue)
@@ -1112,6 +1115,17 @@ export function ContractDetail({
                   </p>
                   <p className="text-lg font-bold">
                     {formatCurrency(adjustedValue)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <DollarSign className="size-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Unapproved Variations</p>
+                  <p className="text-sm text-muted-foreground">
+                    {unapprovedVariationsValue !== 0
+                      ? formatCurrency(unapprovedVariationsValue)
+                      : "-"}
                   </p>
                 </div>
               </div>
