@@ -46,11 +46,19 @@ export default async function VariationsPage({ params, searchParams }: Variation
     .select("id, name")
     .order("name");
 
+  // Fetch contracts for the create dialog
+  const { data: contracts } = await supabase
+    .from("contracts")
+    .select("id, name, contract_number")
+    .eq("project_id", id)
+    .order("contract_number", { ascending: true });
+
   return (
     <VariationsView
       project={project}
       variations={variations ?? []}
       companies={companies ?? []}
+      contracts={contracts ?? []}
       statusFilter={status || "all"}
     />
   );

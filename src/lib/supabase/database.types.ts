@@ -87,7 +87,9 @@ export type Database = {
       }
       claim_line_items: {
         Row: {
+          certified_this_claim: number
           claim_id: string
+          contract_item_id: string | null
           contract_value: number
           created_at: string
           description: string
@@ -99,7 +101,9 @@ export type Database = {
           total_claimed: number
         }
         Insert: {
+          certified_this_claim?: number
           claim_id: string
+          contract_item_id?: string | null
           contract_value?: number
           created_at?: string
           description: string
@@ -111,7 +115,9 @@ export type Database = {
           total_claimed?: number
         }
         Update: {
+          certified_this_claim?: number
           claim_id?: string
+          contract_item_id?: string | null
           contract_value?: number
           created_at?: string
           description?: string
@@ -128,6 +134,13 @@ export type Database = {
             columns: ["claim_id"]
             isOneToOne: false
             referencedRelation: "progress_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_line_items_contract_item_id_fkey"
+            columns: ["contract_item_id"]
+            isOneToOne: false
+            referencedRelation: "contract_items"
             referencedColumns: ["id"]
           },
         ]
@@ -236,6 +249,141 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_items: {
+        Row: {
+          contract_id: string
+          contract_value: number
+          created_at: string
+          description: string
+          id: string
+          parent_id: string | null
+          sort_order: number
+          updated_at: string
+          variation_id: string | null
+        }
+        Insert: {
+          contract_id: string
+          contract_value?: number
+          created_at?: string
+          description: string
+          id?: string
+          parent_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          variation_id?: string | null
+        }
+        Update: {
+          contract_id?: string
+          contract_value?: number
+          created_at?: string
+          description?: string
+          id?: string
+          parent_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          variation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_items_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "contract_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_items_variation_id_fkey"
+            columns: ["variation_id"]
+            isOneToOne: false
+            referencedRelation: "variations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          company_id: string | null
+          contract_number: number
+          contract_ref: string | null
+          contract_value: number
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["contract_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          contract_number?: number
+          contract_ref?: string | null
+          contract_value?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          contract_number?: number
+          contract_ref?: string | null
+          contract_value?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -1327,6 +1475,7 @@ export type Database = {
           certified_by_user_id: string | null
           claim_number: number
           claimed_amount: number
+          contract_id: string | null
           created_at: string
           created_by_user_id: string | null
           id: string
@@ -1347,8 +1496,9 @@ export type Database = {
           certified_amount?: number | null
           certified_at?: string | null
           certified_by_user_id?: string | null
-          claim_number: number
+          claim_number?: number
           claimed_amount?: number
+          contract_id?: string | null
           created_at?: string
           created_by_user_id?: string | null
           id?: string
@@ -1371,6 +1521,7 @@ export type Database = {
           certified_by_user_id?: string | null
           claim_number?: number
           claimed_amount?: number
+          contract_id?: string | null
           created_at?: string
           created_by_user_id?: string | null
           id?: string
@@ -1392,6 +1543,13 @@ export type Database = {
             columns: ["certified_by_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_claims_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
           {
@@ -2295,6 +2453,7 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by_user_id: string | null
+          contract_id: string | null
           cost_impact: number | null
           created_at: string
           created_by_user_id: string | null
@@ -2315,6 +2474,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by_user_id?: string | null
+          contract_id?: string | null
           cost_impact?: number | null
           created_at?: string
           created_by_user_id?: string | null
@@ -2330,11 +2490,12 @@ export type Database = {
           time_impact?: number | null
           title: string
           updated_at?: string
-          variation_number: number
+          variation_number?: number
         }
         Update: {
           approved_at?: string | null
           approved_by_user_id?: string | null
+          contract_id?: string | null
           cost_impact?: number | null
           created_at?: string
           created_by_user_id?: string | null
@@ -2358,6 +2519,13 @@ export type Database = {
             columns: ["approved_by_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variations_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
           {
@@ -2401,6 +2569,7 @@ export type Database = {
       action_status: "pending" | "completed"
       claim_status: "draft" | "submitted" | "certified" | "paid" | "disputed"
       consultant_status: "draft" | "engaged" | "completed" | "terminated"
+      contract_status: "draft" | "active" | "completed" | "terminated"
       decision_status: "pending" | "approved" | "rejected"
       defect_status: "open" | "contractor_complete" | "closed"
       eot_status:

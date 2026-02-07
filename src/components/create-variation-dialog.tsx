@@ -30,15 +30,23 @@ type Company = {
   name: string;
 };
 
+type ContractOption = {
+  id: string;
+  name: string;
+  contract_number: number;
+};
+
 interface CreateVariationDialogProps {
   projectId: string;
   companies: Company[];
+  contracts?: ContractOption[];
   children: ReactNode;
 }
 
 export function CreateVariationDialog({
   projectId,
   companies,
+  contracts = [],
   children,
 }: CreateVariationDialogProps) {
   const [open, setOpen] = useState(false);
@@ -55,6 +63,7 @@ export function CreateVariationDialog({
     costImpact: "",
     timeImpact: "",
     submittedByCompanyId: "",
+    contractId: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,6 +86,7 @@ export function CreateVariationDialog({
         cost_impact: costInCents,
         time_impact: formData.timeImpact ? parseInt(formData.timeImpact) : 0,
         submitted_by_company_id: formData.submittedByCompanyId || null,
+        contract_id: formData.contractId || null,
         created_by_user_id: profile.id,
       });
 
@@ -90,6 +100,7 @@ export function CreateVariationDialog({
         costImpact: "",
         timeImpact: "",
         submittedByCompanyId: "",
+        contractId: "",
       });
       router.refresh();
     } catch (err) {
@@ -212,6 +223,32 @@ export function CreateVariationDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            {contracts.length > 0 && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="var-contract" className="text-right">
+                  Contract
+                </Label>
+                <Select
+                  value={formData.contractId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, contractId: value === "none" ? "" : value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="None (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {contracts.map((ct) => (
+                      <SelectItem key={ct.id} value={ct.id}>
+                        CT-{String(ct.contract_number).padStart(3, "0")} — {ct.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>

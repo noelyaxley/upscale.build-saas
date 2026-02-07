@@ -23,21 +23,27 @@ export default async function ClaimsPage({ params, searchParams }: ClaimsPagePro
     notFound();
   }
 
-  // Build claims query with filters
+  // Fetch contracts with company join
   let query = supabase
-    .from("progress_claims")
+    .from("contracts")
     .select(`
       *,
-      submitted_by_company:companies!progress_claims_submitted_by_company_id_fkey(id, name)
+      company:companies!contracts_company_id_fkey(id, name)
     `)
     .eq("project_id", id)
-    .order("claim_number", { ascending: false });
+    .order("contract_number", { ascending: true });
 
   if (status && status !== "all") {
     query = query.eq("status", status);
   }
 
-  const { data: claims } = await query;
+  const { data: contracts } = await query;
+
+  // Fetch claims aggregation per contract
+  const { data: claims } = await supabase
+    .from("progress_claims")
+    .select("id, contract_id, claimed_amount, certified_amount, status")
+    .eq("project_id", id);
 
   // Fetch companies for the create dialog
   const { data: companies } = await supabase
@@ -48,6 +54,7 @@ export default async function ClaimsPage({ params, searchParams }: ClaimsPagePro
   return (
     <ClaimsView
       project={project}
+      contracts={contracts ?? []}
       claims={claims ?? []}
       companies={companies ?? []}
       statusFilter={status || "all"}

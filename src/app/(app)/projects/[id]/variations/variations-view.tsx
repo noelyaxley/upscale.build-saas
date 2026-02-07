@@ -53,10 +53,17 @@ type Company = {
   name: string;
 };
 
+type ContractOption = {
+  id: string;
+  name: string;
+  contract_number: number;
+};
+
 interface VariationsViewProps {
   project: { id: string; code: string; name: string };
   variations: Variation[];
   companies: Company[];
+  contracts?: ContractOption[];
   statusFilter: string;
 }
 
@@ -101,6 +108,7 @@ export function VariationsView({
   project,
   variations,
   companies,
+  contracts = [],
   statusFilter,
 }: VariationsViewProps) {
   const router = useRouter();
@@ -146,7 +154,7 @@ export function VariationsView({
           </div>
           <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
         </div>
-        <CreateVariationDialog projectId={project.id} companies={companies}>
+        <CreateVariationDialog projectId={project.id} companies={companies} contracts={contracts}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             New Variation
