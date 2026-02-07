@@ -739,13 +739,7 @@ export function ContractDetail({
                 <CreateVariationDialog
                   projectId={project.id}
                   companies={companies}
-                  contracts={[
-                    {
-                      id: contract.id,
-                      name: contract.name,
-                      contract_number: contract.contract_number,
-                    },
-                  ]}
+                  contractId={contract.id}
                 >
                   <Button size="sm" variant="outline">
                     <Plus className="mr-2 size-4" />

@@ -41,6 +41,7 @@ interface CreateVariationDialogProps {
   projectId: string;
   companies: Company[];
   contracts?: ContractOption[];
+  contractId?: string;
   children: ReactNode;
 }
 
@@ -48,6 +49,7 @@ export function CreateVariationDialog({
   projectId,
   companies,
   contracts = [],
+  contractId,
   children,
 }: CreateVariationDialogProps) {
   const [open, setOpen] = useState(false);
@@ -87,7 +89,7 @@ export function CreateVariationDialog({
         cost_impact: costInCents,
         time_impact: formData.timeImpact ? parseInt(formData.timeImpact) : 0,
         submitted_by_company_id: formData.submittedByCompanyId || null,
-        contract_id: formData.contractId || null,
+        contract_id: contractId || formData.contractId || null,
         created_by_user_id: profile.id,
       });
 
@@ -186,69 +188,73 @@ export function CreateVariationDialog({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="var-time" className="text-right">
-                Time Impact (days)
-              </Label>
-              <Input
-                id="var-time"
-                type="number"
-                placeholder="0"
-                className="col-span-3"
-                value={formData.timeImpact}
-                onChange={(e) =>
-                  setFormData({ ...formData, timeImpact: e.target.value })
-                }
-              />
-            </div>
+            {!contractId && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="var-time" className="text-right">
+                    Time Impact (days)
+                  </Label>
+                  <Input
+                    id="var-time"
+                    type="number"
+                    placeholder="0"
+                    className="col-span-3"
+                    value={formData.timeImpact}
+                    onChange={(e) =>
+                      setFormData({ ...formData, timeImpact: e.target.value })
+                    }
+                  />
+                </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="var-company" className="text-right">
-                Submitted By
-              </Label>
-              <Select
-                value={formData.submittedByCompanyId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, submittedByCompanyId: value })
-                }
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select company" />
-                </SelectTrigger>
-                <SelectContent>
-                  {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="var-company" className="text-right">
+                    Submitted By
+                  </Label>
+                  <Select
+                    value={formData.submittedByCompanyId}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, submittedByCompanyId: value })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {contracts.length > 0 && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="var-contract" className="text-right">
-                  Contract
-                </Label>
-                <Select
-                  value={formData.contractId}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, contractId: value === "none" ? "" : value })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="None (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {contracts.map((ct) => (
-                      <SelectItem key={ct.id} value={ct.id}>
-                        CT-{String(ct.contract_number).padStart(3, "0")} — {ct.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                {contracts.length > 0 && (
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="var-contract" className="text-right">
+                      Contract
+                    </Label>
+                    <Select
+                      value={formData.contractId}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, contractId: value === "none" ? "" : value })
+                      }
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="None (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {contracts.map((ct) => (
+                          <SelectItem key={ct.id} value={ct.id}>
+                            CT-{String(ct.contract_number).padStart(3, "0")} — {ct.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
             )}
 
             {error && <p className="text-sm text-destructive">{error}</p>}
