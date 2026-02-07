@@ -784,7 +784,7 @@ export function ContractDetail({
                         <TableRow key={variation.id}>
                           <TableCell>
                             <Link
-                              href={`/projects/${project.id}/variations/${variation.id}`}
+                              href={`/projects/${project.id}/claims/${contract.id}/variations/${variation.id}`}
                               className="font-mono text-sm font-medium hover:underline"
                             >
                               V-

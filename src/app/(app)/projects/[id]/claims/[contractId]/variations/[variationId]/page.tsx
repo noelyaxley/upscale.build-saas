@@ -3,11 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { VariationDetail } from "./variation-detail";
 
 interface VariationDetailPageProps {
-  params: Promise<{ id: string; variationId: string }>;
+  params: Promise<{ id: string; contractId: string; variationId: string }>;
 }
 
 export default async function VariationDetailPage({ params }: VariationDetailPageProps) {
-  const { id, variationId } = await params;
+  const { id, contractId, variationId } = await params;
   const supabase = await createClient();
 
   // Fetch project
@@ -18,6 +18,17 @@ export default async function VariationDetailPage({ params }: VariationDetailPag
     .single();
 
   if (projectError || !project) {
+    notFound();
+  }
+
+  // Fetch contract
+  const { data: contract, error: contractError } = await supabase
+    .from("contracts")
+    .select("id, name, contract_number")
+    .eq("id", contractId)
+    .single();
+
+  if (contractError || !contract) {
     notFound();
   }
 
@@ -38,5 +49,5 @@ export default async function VariationDetailPage({ params }: VariationDetailPag
     notFound();
   }
 
-  return <VariationDetail project={project} variation={variation} />;
+  return <VariationDetail project={project} contract={contract} variation={variation} />;
 }

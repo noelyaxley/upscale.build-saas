@@ -30,7 +30,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 
 type VariationStatus = Database["public"]["Enums"]["variation_status"];
 
@@ -42,6 +41,7 @@ type Variation = Tables<"variations"> & {
 
 interface VariationDetailProps {
   project: { id: string; code: string; name: string };
+  contract: { id: string; name: string; contract_number: number };
   variation: Variation;
 }
 
@@ -82,7 +82,7 @@ function formatDate(date: string | null): string {
   });
 }
 
-export function VariationDetail({ project, variation }: VariationDetailProps) {
+export function VariationDetail({ project, contract, variation }: VariationDetailProps) {
   const [rejectionReason, setRejectionReason] = useState("");
   const [updating, setUpdating] = useState(false);
   const router = useRouter();
@@ -136,7 +136,7 @@ export function VariationDetail({ project, variation }: VariationDetailProps) {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/variations`}>
+          <Link href={`/projects/${project.id}/claims/${contract.id}`}>
             <ArrowLeft className="size-4" />
           </Link>
         </Button>
@@ -146,8 +146,12 @@ export function VariationDetail({ project, variation }: VariationDetailProps) {
               {project.code}
             </Link>
             <ChevronRight className="size-4" />
-            <Link href={`/projects/${project.id}/variations`} className="hover:underline">
-              Variations
+            <Link href={`/projects/${project.id}/claims`} className="hover:underline">
+              Progress Claims
+            </Link>
+            <ChevronRight className="size-4" />
+            <Link href={`/projects/${project.id}/claims/${contract.id}`} className="hover:underline">
+              {contract.name}
             </Link>
             <ChevronRight className="size-4" />
             <span className="font-mono">

@@ -10,7 +10,6 @@ import {
   ClipboardList,
   Clock,
   DollarSign,
-  FileEdit,
   FileText,
   MapPin,
   MessageSquarePlus,
@@ -334,23 +333,6 @@ export function ProjectDetail({
                   <p className="font-medium">Risks & Opportunities</p>
                   <p className="text-xs text-muted-foreground">
                     Monitor project risks
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/variations`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                  <FileEdit className="size-5 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Variations</p>
-                  <p className="text-xs text-muted-foreground">
-                    Contract change orders
                   </p>
                 </div>
               </div>
