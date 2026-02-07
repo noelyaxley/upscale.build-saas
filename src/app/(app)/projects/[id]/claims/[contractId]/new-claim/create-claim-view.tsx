@@ -8,6 +8,7 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -430,6 +431,9 @@ export function CreateClaimView({
                               }}
                             >
                               {node.item.description}
+                              {node.item.variation_id && (
+                                <Badge variant="outline" className="ml-2 text-xs">Variation</Badge>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className="text-right">

@@ -36,11 +36,48 @@ export default async function NewClaimPage({ params }: NewClaimPageProps) {
   }
 
   // Fetch contract items
-  const { data: items } = await supabase
+  let { data: items } = await supabase
     .from("contract_items")
     .select("*")
     .eq("contract_id", contractId)
     .order("sort_order", { ascending: true });
+
+  // Auto-create contract items for approved variations that aren't yet linked
+  const { data: approvedVariations } = await supabase
+    .from("variations")
+    .select("id, variation_number, title, cost_impact")
+    .eq("contract_id", contractId)
+    .eq("status", "approved");
+
+  if (approvedVariations && approvedVariations.length > 0) {
+    const linkedVariationIds = new Set(
+      (items ?? []).filter((i) => i.variation_id).map((i) => i.variation_id)
+    );
+    const unlinked = approvedVariations.filter(
+      (v) => !linkedVariationIds.has(v.id)
+    );
+
+    if (unlinked.length > 0) {
+      const currentCount = (items ?? []).length;
+      await supabase.from("contract_items").insert(
+        unlinked.map((v, idx) => ({
+          contract_id: contractId,
+          description: `V-${String(v.variation_number).padStart(3, "0")}: ${v.title}`,
+          contract_value: v.cost_impact ?? 0,
+          variation_id: v.id,
+          sort_order: currentCount + idx,
+        }))
+      );
+
+      // Re-fetch items with the newly created variation items
+      const { data: refreshedItems } = await supabase
+        .from("contract_items")
+        .select("*")
+        .eq("contract_id", contractId)
+        .order("sort_order", { ascending: true });
+      items = refreshedItems;
+    }
+  }
 
   // Fetch all prior claims (submitted, certified, paid) for this contract
   const { data: priorClaims } = await supabase

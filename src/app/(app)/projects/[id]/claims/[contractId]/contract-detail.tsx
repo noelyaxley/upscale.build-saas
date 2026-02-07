@@ -265,13 +265,17 @@ export function ContractDetail({
     }
   }
 
+  // Items that are already linked from variations
+  const linkedVariationIds = new Set(
+    items.filter((i) => i.variation_id).map((i) => i.variation_id)
+  );
+
   // Financial summary
   const totalItemsValue = items.reduce((sum, i) => sum + i.contract_value, 0);
   const approvedVariations = variations.filter((v) => v.status === "approved");
-  const variationsValue = approvedVariations.reduce(
-    (sum, v) => sum + (v.cost_impact ?? 0),
-    0
-  );
+  const variationsValue = approvedVariations
+    .filter((v) => !linkedVariationIds.has(v.id))
+    .reduce((sum, v) => sum + (v.cost_impact ?? 0), 0);
   const adjustedValue = totalItemsValue + variationsValue;
   const totalClaimed = claims.reduce((sum, c) => sum + c.claimed_amount, 0);
   const totalCertified = claims
@@ -354,11 +358,6 @@ export function ContractDetail({
       console.error("Failed to add variation as item:", err);
     }
   };
-
-  // Items that are already linked from variations
-  const linkedVariationIds = new Set(
-    items.filter((i) => i.variation_id).map((i) => i.variation_id)
-  );
 
   const workflowSteps = [
     { key: "draft", label: "Draft", icon: FileText },
