@@ -43,7 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { UploadDocumentDialog } from "@/components/upload-document-dialog";
 import { CreateFolderDialog } from "@/components/create-folder-dialog";
 import { DeleteDocumentDialog } from "@/components/delete-document-dialog";
@@ -157,40 +157,6 @@ export function DocumentsView({
           <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
         </div>
         <div className="flex items-center gap-2">
-          {/* Dropbox admin controls */}
-          {isAdmin && !dropboxConnection && (
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <a href={`/api/dropbox/auth?projectId=${project.id}`}>
-                <LinkIcon className="mr-2 size-4" />
-                Connect Dropbox
-              </a>
-            </Button>
-          )}
-          {isAdmin && dropboxConnection && (
-            <>
-              <Badge variant="secondary">Dropbox Connected</Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFolderPickerOpen(true)}
-              >
-                Change Folder
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDisconnect}
-                disabled={disconnecting}
-              >
-                <Unlink className="mr-2 size-4" />
-                {disconnecting ? "Disconnecting..." : "Disconnect"}
-              </Button>
-            </>
-          )}
           {isAdmin && (
             <>
               <CreateFolderDialog
@@ -235,46 +201,88 @@ export function DocumentsView({
         ))}
       </nav>
 
-      {hasDropboxFolder ? (
-        <Tabs defaultValue="documents">
-          <TabsList>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="dropbox">Dropbox</TabsTrigger>
-          </TabsList>
+      <DocumentsCard
+        project={project}
+        folders={folders}
+        documents={documents}
+        isAdmin={isAdmin}
+      />
 
-          <TabsContent value="documents">
-            <DocumentsCard
-              project={project}
-              folders={folders}
-              documents={documents}
-              isAdmin={isAdmin}
-            />
-          </TabsContent>
-
-          <TabsContent value="dropbox">
-            <Card>
-              <CardHeader>
-                <CardTitle>Dropbox Files</CardTitle>
+      {/* Dropbox card — shown to admins always, and to non-admins when connected with folder */}
+      {(isAdmin || hasDropboxFolder) && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Dropbox</CardTitle>
                 <CardDescription>
-                  Browsing: {dropboxConnection!.dropbox_folder_path}
+                  {hasDropboxFolder
+                    ? dropboxConnection!.dropbox_folder_path
+                    : dropboxConnection
+                      ? "Select a folder to browse Dropbox files"
+                      : "Connect your Dropbox account to sync project files"}
                 </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DropboxFileBrowser
-                  projectId={project.id}
-                  dropboxFolderPath={dropboxConnection!.dropbox_folder_path!}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      ) : (
-        <DocumentsCard
-          project={project}
-          folders={folders}
-          documents={documents}
-          isAdmin={isAdmin}
-        />
+              </div>
+              <div className="flex items-center gap-2">
+                {isAdmin && !dropboxConnection && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={`/api/dropbox/auth?projectId=${project.id}`}>
+                      <LinkIcon className="mr-2 size-4" />
+                      Connect Dropbox
+                    </a>
+                  </Button>
+                )}
+                {isAdmin && dropboxConnection && !hasDropboxFolder && (
+                  <Button size="sm" onClick={() => setFolderPickerOpen(true)}>
+                    Select Folder
+                  </Button>
+                )}
+                {isAdmin && hasDropboxFolder && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFolderPickerOpen(true)}
+                    >
+                      Change Folder
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDisconnect}
+                      disabled={disconnecting}
+                    >
+                      <Unlink className="mr-2 size-4" />
+                      {disconnecting ? "Disconnecting..." : "Disconnect"}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {hasDropboxFolder ? (
+              <DropboxFileBrowser
+                projectId={project.id}
+                dropboxFolderPath={dropboxConnection!.dropbox_folder_path!}
+              />
+            ) : !dropboxConnection ? (
+              <div className="py-8 text-center">
+                <Folder className="mx-auto size-12 text-muted-foreground/50" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Connect Dropbox to browse and upload project files
+                </p>
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <Folder className="mx-auto size-12 text-muted-foreground/50" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Select a Dropbox folder to get started
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Folder Picker Dialog */}
