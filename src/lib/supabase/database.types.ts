@@ -969,6 +969,73 @@ export type Database = {
           },
         ]
       }
+      dropbox_connections: {
+        Row: {
+          access_token_encrypted: string
+          connected_by_user_id: string | null
+          created_at: string
+          dropbox_account_id: string
+          dropbox_folder_id: string | null
+          dropbox_folder_path: string | null
+          id: string
+          org_id: string
+          project_id: string
+          refresh_token_encrypted: string
+          token_expires_at: string
+          updated_at: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          connected_by_user_id?: string | null
+          created_at?: string
+          dropbox_account_id: string
+          dropbox_folder_id?: string | null
+          dropbox_folder_path?: string | null
+          id?: string
+          org_id: string
+          project_id: string
+          refresh_token_encrypted: string
+          token_expires_at: string
+          updated_at?: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          connected_by_user_id?: string | null
+          created_at?: string
+          dropbox_account_id?: string
+          dropbox_folder_id?: string | null
+          dropbox_folder_path?: string | null
+          id?: string
+          org_id?: string
+          project_id?: string
+          refresh_token_encrypted?: string
+          token_expires_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dropbox_connections_connected_by_user_id_fkey"
+            columns: ["connected_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dropbox_connections_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dropbox_connections_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       extension_of_time: {
         Row: {
           approved_at: string | null

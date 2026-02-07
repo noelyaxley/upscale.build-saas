@@ -4,12 +4,12 @@ import { DocumentsView } from "./documents-view";
 
 interface DocumentsPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ folder?: string }>;
+  searchParams: Promise<{ folder?: string; dropbox?: string }>;
 }
 
 export default async function DocumentsPage({ params, searchParams }: DocumentsPageProps) {
   const { id } = await params;
-  const { folder: folderId } = await searchParams;
+  const { folder: folderId, dropbox: dropboxParam } = await searchParams;
   const supabase = await createClient();
 
   // Fetch project
@@ -96,6 +96,13 @@ export default async function DocumentsPage({ params, searchParams }: DocumentsP
 
   const { data: subfolders } = await subfoldersQuery;
 
+  // Fetch Dropbox connection for this project
+  const { data: dropboxConnection } = await supabase
+    .from("dropbox_connections")
+    .select("id, project_id, dropbox_folder_id, dropbox_folder_path")
+    .eq("project_id", id)
+    .maybeSingle();
+
   return (
     <DocumentsView
       project={project}
@@ -103,6 +110,8 @@ export default async function DocumentsPage({ params, searchParams }: DocumentsP
       documents={documents ?? []}
       currentFolderId={folderId ?? null}
       breadcrumbs={breadcrumbs}
+      dropboxConnection={dropboxConnection}
+      dropboxJustConnected={dropboxParam === "connected"}
     />
   );
 }
