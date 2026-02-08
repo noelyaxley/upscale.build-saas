@@ -24,14 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const DEVELOPMENT_TYPES = [
-  { value: "residential", label: "Residential" },
-  { value: "commercial", label: "Commercial" },
-  { value: "mixed_use", label: "Mixed Use" },
-  { value: "industrial", label: "Industrial" },
-  { value: "land_subdivision", label: "Land Subdivision" },
-];
+import { DEVELOPMENT_TYPES } from "@/lib/feasibility/constants";
 
 const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
 

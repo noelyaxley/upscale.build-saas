@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, Plus, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -11,11 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CreateScenarioDialog } from "@/components/create-scenario-dialog";
+import type { DevelopmentType } from "@/lib/feasibility/types";
+import { DEVELOPMENT_TYPE_LABELS } from "@/lib/feasibility/constants";
 
 interface ScenarioHeaderProps {
   project: { id: string; code: string; name: string };
   scenarios: { id: string; name: string }[];
   selectedId: string;
+  developmentType?: DevelopmentType;
   onSelectScenario: (id: string) => void;
   onSave: () => void;
   saving: boolean;
@@ -25,6 +29,7 @@ export function ScenarioHeader({
   project,
   scenarios,
   selectedId,
+  developmentType,
   onSelectScenario,
   onSave,
   saving,
@@ -48,9 +53,16 @@ export function ScenarioHeader({
             <ChevronRight className="size-4" />
             <span>Feasibility</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {project.name}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight">
+              {project.name}
+            </h1>
+            {developmentType && (
+              <Badge variant="secondary" className="text-xs">
+                {DEVELOPMENT_TYPE_LABELS[developmentType]}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 

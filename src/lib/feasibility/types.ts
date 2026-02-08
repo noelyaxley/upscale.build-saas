@@ -5,6 +5,9 @@ export type GstStatus = "exclusive" | "inclusive" | "exempt";
 export type SaleStatus = "unsold" | "exchanged" | "settled" | "withdrawn";
 export type LoanType = "interest_only" | "principal_and_interest";
 export type LvrMethod = "tdc" | "grv";
+export type ProductType = "residential" | "commercial" | "industrial";
+export type SaleType = "vacant_possession" | "sale_with_lease";
+export type DevelopmentType = "residential" | "commercial" | "mixed_use" | "industrial" | "land_subdivision";
 
 export type LineItemSection =
   | "acquisition"
@@ -62,6 +65,9 @@ export interface SalesUnit {
   tab_name: string;
   name: string;
   status: SaleStatus;
+  product_type: ProductType;
+  sale_type: SaleType;
+  cap_rate: number | null;
   bedrooms: number;
   bathrooms: number;
   car_spaces: number;
@@ -115,7 +121,7 @@ export interface ScenarioFields {
   name: string;
   project_id: string;
   org_id: string;
-  development_type: string;
+  development_type: DevelopmentType;
   project_length_months: number;
   project_lots: number;
   start_date: string | null;

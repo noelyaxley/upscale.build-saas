@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import type {
   FeasibilityAction,
   FeasibilitySummary,
   LineItemSection,
+  DevelopmentType,
 } from "@/lib/feasibility/types";
 import { LineItemsTable } from "./line-items-table";
 import { formatCurrency } from "./currency-helpers";
@@ -32,7 +33,7 @@ interface CostSection {
   summaryValue: (s: FeasibilitySummary) => number;
 }
 
-const SECTIONS: CostSection[] = [
+const BASE_SECTIONS: CostSection[] = [
   {
     key: "professional_fees",
     label: "Professional Fees",
@@ -65,12 +66,35 @@ const SECTIONS: CostSection[] = [
   },
 ];
 
+function getSections(devType: DevelopmentType): CostSection[] {
+  let sections = [...BASE_SECTIONS];
+
+  // Land subdivision: hide construction
+  if (devType === "land_subdivision") {
+    sections = sections.filter((s) => s.key !== "construction");
+  }
+
+  // Industrial: adjust construction sub-tabs
+  if (devType === "industrial") {
+    sections = sections.map((s) =>
+      s.key === "construction"
+        ? { ...s, defaultTabs: ["Siteworks", "Building", "Other"] }
+        : s
+    );
+  }
+
+  return sections;
+}
+
 export function CostsTab({ state, dispatch, summary }: CostsTabProps) {
+  const devType = state.scenario.development_type;
+  const sections = useMemo(() => getSections(devType), [devType]);
+
   const [activeSection, setActiveSection] = useState<LineItemSection>(
-    "professional_fees"
+    sections[0].key
   );
 
-  const currentSection = SECTIONS.find((s) => s.key === activeSection)!;
+  const currentSection = sections.find((s) => s.key === activeSection) ?? sections[0];
 
   // Get unique tab names for this section from existing items, or use defaults
   const existingTabs = [
@@ -88,7 +112,7 @@ export function CostsTab({ state, dispatch, summary }: CostsTabProps) {
       <div className="space-y-4 lg:col-span-2">
         {/* Section navigation pills */}
         <div className="flex flex-wrap items-center gap-2">
-          {SECTIONS.map((sec) => (
+          {sections.map((sec) => (
             <Button
               key={sec.key}
               variant={sec.key === activeSection ? "default" : "outline"}
@@ -152,7 +176,7 @@ export function CostsTab({ state, dispatch, summary }: CostsTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {SECTIONS.map((sec) => (
+            {sections.map((sec) => (
               <div key={sec.key} className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{sec.label}</span>
                 <span className="font-medium">
@@ -165,11 +189,7 @@ export function CostsTab({ state, dispatch, summary }: CostsTabProps) {
                 <span>Total Costs (ex Land)</span>
                 <span>
                   {formatCurrency(
-                    summary.professionalFees +
-                      summary.constructionCosts +
-                      summary.devFees +
-                      summary.landHoldingCosts +
-                      summary.contingencyCosts
+                    sections.reduce((sum, sec) => sum + sec.summaryValue(summary), 0)
                   )}
                 </span>
               </div>

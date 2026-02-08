@@ -29,6 +29,9 @@ import type {
   SaleStatus,
   LoanType,
   LvrMethod,
+  ProductType,
+  SaleType,
+  DevelopmentType,
 } from "@/lib/feasibility/types";
 import { computeSummary } from "@/lib/feasibility/calculations";
 import { ScenarioHeader } from "./components/scenario-header";
@@ -91,6 +94,9 @@ function mapSalesUnit(row: Record<string, unknown>): SalesUnit {
     tab_name: (row.tab_name as string) ?? "Residential",
     name: (row.name as string) ?? "Unit",
     status: (row.status as SaleStatus) ?? "unsold",
+    product_type: (row.product_type as ProductType) ?? "residential",
+    sale_type: (row.sale_type as SaleType) ?? "vacant_possession",
+    cap_rate: row.cap_rate as number | null,
     bedrooms: (row.bedrooms as number) ?? 0,
     bathrooms: (row.bathrooms as number) ?? 0,
     car_spaces: (row.car_spaces as number) ?? 0,
@@ -155,7 +161,7 @@ function scenarioToFields(
     project_id: s.project_id,
     org_id: s.org_id,
     development_type:
-      (s as Record<string, unknown>).development_type as string ?? "residential",
+      (s as Record<string, unknown>).development_type as DevelopmentType ?? "residential",
     project_length_months:
       (s as Record<string, unknown>).project_length_months as number ?? 24,
     project_lots:
@@ -532,6 +538,9 @@ export function FeasibilityView({
               tab_name: u.tab_name,
               name: u.name,
               status: u.status,
+              product_type: u.product_type,
+              sale_type: u.sale_type,
+              cap_rate: u.cap_rate,
               bedrooms: u.bedrooms,
               bathrooms: u.bathrooms,
               car_spaces: u.car_spaces,
@@ -614,6 +623,7 @@ export function FeasibilityView({
         project={project}
         scenarios={scenarios.map((s) => ({ id: s.id, name: s.name }))}
         selectedId={activeScenarioId ?? ""}
+        developmentType={state.scenario.id ? state.scenario.development_type : undefined}
         onSelectScenario={handleSelectScenario}
         onSave={handleSave}
         saving={saving}
