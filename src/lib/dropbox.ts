@@ -245,6 +245,24 @@ export async function moveEntry(
   return data.metadata as DropboxEntry;
 }
 
+export async function deleteEntry(
+  accessToken: string,
+  path: string
+): Promise<void> {
+  const res = await fetch("https://api.dropboxapi.com/2/files/delete_v2", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ path }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Dropbox delete failed: ${text}`);
+  }
+}
+
 export async function getTemporaryLink(
   accessToken: string,
   path: string

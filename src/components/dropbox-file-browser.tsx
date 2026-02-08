@@ -14,6 +14,7 @@ import {
   MoreHorizontal,
   Pencil,
   RefreshCw,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -124,6 +125,12 @@ export function DropboxFileBrowser({
   const [moveDialogLoading, setMoveDialogLoading] = useState(false);
   const [moveLoading, setMoveLoading] = useState(false);
   const [moveError, setMoveError] = useState<string | null>(null);
+
+  // Delete confirmation dialog
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTargets, setDeleteTargets] = useState<DropboxEntry[]>([]);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const pathParts = subpath ? subpath.split("/").filter(Boolean) : [];
 
@@ -388,6 +395,45 @@ export function DropboxFileBrowser({
     }
   };
 
+  // ── Delete ──
+
+  const openDelete = (targets: DropboxEntry[]) => {
+    setDeleteTargets(targets);
+    setDeleteError(null);
+    setDeleteOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (deleteTargets.length === 0) return;
+
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/dropbox/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          entries: deleteTargets.map((e) => e.path_display),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete");
+      }
+      setDeleteOpen(false);
+      setDeleteTargets([]);
+      setSelectedIds(new Set());
+      fetchEntries(subpath);
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete"
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   // ── Move To Dialog ──
 
   const openMoveDialog = () => {
@@ -536,6 +582,16 @@ export function DropboxFileBrowser({
             Move to...
           </Button>
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openDelete(selectedEntries)}
+            disabled={moving}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="mr-2 size-4" />
+            Delete
+          </Button>
+          <Button
             variant="ghost"
             size="sm"
             onClick={() => setSelectedIds(new Set())}
@@ -642,6 +698,13 @@ export function DropboxFileBrowser({
                         <DropdownMenuItem onClick={() => openRename(entry)}>
                           <Pencil className="mr-2 size-4" />
                           Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => openDelete([entry])}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -886,6 +949,40 @@ export function DropboxFileBrowser({
               {moveLoading
                 ? "Moving..."
                 : `Move to ${currentMoveDestinationLabel}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Delete {deleteTargets.length > 1 ? "items" : deleteTargets[0]?.[".tag"] === "folder" ? "folder" : "file"}</DialogTitle>
+            <DialogDescription>
+              {deleteTargets.length === 1
+                ? `Are you sure you want to delete "${deleteTargets[0]?.name}"? ${deleteTargets[0]?.[".tag"] === "folder" ? "All contents will be permanently deleted." : "This cannot be undone."}`
+                : `Are you sure you want to delete ${deleteTargets.length} items? This cannot be undone.`}
+            </DialogDescription>
+          </DialogHeader>
+          {deleteError && (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          )}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleteLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
