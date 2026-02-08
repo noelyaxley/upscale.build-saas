@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       action_items: {
@@ -253,141 +278,6 @@ export type Database = {
           },
         ]
       }
-      contract_items: {
-        Row: {
-          contract_id: string
-          contract_value: number
-          created_at: string
-          description: string
-          id: string
-          parent_id: string | null
-          sort_order: number
-          updated_at: string
-          variation_id: string | null
-        }
-        Insert: {
-          contract_id: string
-          contract_value?: number
-          created_at?: string
-          description: string
-          id?: string
-          parent_id?: string | null
-          sort_order?: number
-          updated_at?: string
-          variation_id?: string | null
-        }
-        Update: {
-          contract_id?: string
-          contract_value?: number
-          created_at?: string
-          description?: string
-          id?: string
-          parent_id?: string | null
-          sort_order?: number
-          updated_at?: string
-          variation_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contract_items_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contract_items_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "contract_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contract_items_variation_id_fkey"
-            columns: ["variation_id"]
-            isOneToOne: false
-            referencedRelation: "variations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contracts: {
-        Row: {
-          company_id: string | null
-          contract_number: number
-          contract_ref: string | null
-          contract_value: number
-          created_at: string
-          created_by_user_id: string | null
-          description: string | null
-          id: string
-          name: string
-          org_id: string
-          project_id: string
-          status: Database["public"]["Enums"]["contract_status"]
-          updated_at: string
-        }
-        Insert: {
-          company_id?: string | null
-          contract_number?: number
-          contract_ref?: string | null
-          contract_value?: number
-          created_at?: string
-          created_by_user_id?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          org_id: string
-          project_id: string
-          status?: Database["public"]["Enums"]["contract_status"]
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string | null
-          contract_number?: number
-          contract_ref?: string | null
-          contract_value?: number
-          created_at?: string
-          created_by_user_id?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          org_id?: string
-          project_id?: string
-          status?: Database["public"]["Enums"]["contract_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contracts_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contracts_created_by_user_id_fkey"
-            columns: ["created_by_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contracts_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organisations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contracts_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       consultant_phases: {
         Row: {
           amount_paid: number
@@ -514,6 +404,141 @@ export type Database = {
           },
           {
             foreignKeyName: "consultants_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_items: {
+        Row: {
+          contract_id: string
+          contract_value: number
+          created_at: string
+          description: string
+          id: string
+          parent_id: string | null
+          sort_order: number
+          updated_at: string
+          variation_id: string | null
+        }
+        Insert: {
+          contract_id: string
+          contract_value?: number
+          created_at?: string
+          description: string
+          id?: string
+          parent_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          variation_id?: string | null
+        }
+        Update: {
+          contract_id?: string
+          contract_value?: number
+          created_at?: string
+          description?: string
+          id?: string
+          parent_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          variation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_items_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "contract_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_items_variation_id_fkey"
+            columns: ["variation_id"]
+            isOneToOne: false
+            referencedRelation: "variations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          company_id: string | null
+          contract_number: number
+          contract_ref: string | null
+          contract_value: number
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["contract_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          contract_number: number
+          contract_ref?: string | null
+          contract_value?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          contract_number?: number
+          contract_ref?: string | null
+          contract_value?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -1150,12 +1175,377 @@ export type Database = {
           },
         ]
       }
+      feasibility_debt_facilities: {
+        Row: {
+          calculation_type: string | null
+          created_at: string
+          id: string
+          interest_provision: number | null
+          interest_rate: number | null
+          lvr_method: string | null
+          lvr_pct: number | null
+          name: string
+          priority: string | null
+          scenario_id: string
+          sort_order: number | null
+          term_months: number | null
+          total_facility: number | null
+          updated_at: string
+        }
+        Insert: {
+          calculation_type?: string | null
+          created_at?: string
+          id?: string
+          interest_provision?: number | null
+          interest_rate?: number | null
+          lvr_method?: string | null
+          lvr_pct?: number | null
+          name?: string
+          priority?: string | null
+          scenario_id: string
+          sort_order?: number | null
+          term_months?: number | null
+          total_facility?: number | null
+          updated_at?: string
+        }
+        Update: {
+          calculation_type?: string | null
+          created_at?: string
+          id?: string
+          interest_provision?: number | null
+          interest_rate?: number | null
+          lvr_method?: string | null
+          lvr_pct?: number | null
+          name?: string
+          priority?: string | null
+          scenario_id?: string
+          sort_order?: number | null
+          term_months?: number | null
+          total_facility?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasibility_debt_facilities_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "feasibility_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feasibility_debt_loans: {
+        Row: {
+          created_at: string
+          id: string
+          interest_rate: number | null
+          loan_type: string | null
+          name: string
+          payment_period: string | null
+          principal_amount: number | null
+          scenario_id: string
+          sort_order: number | null
+          term_months: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interest_rate?: number | null
+          loan_type?: string | null
+          name?: string
+          payment_period?: string | null
+          principal_amount?: number | null
+          scenario_id: string
+          sort_order?: number | null
+          term_months?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interest_rate?: number | null
+          loan_type?: string | null
+          name?: string
+          payment_period?: string | null
+          principal_amount?: number | null
+          scenario_id?: string
+          sort_order?: number | null
+          term_months?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasibility_debt_loans_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "feasibility_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feasibility_equity_partners: {
+        Row: {
+          created_at: string
+          distribution_type: string | null
+          equity_amount: number | null
+          id: string
+          is_developer_equity: boolean | null
+          name: string
+          return_percentage: number | null
+          scenario_id: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          distribution_type?: string | null
+          equity_amount?: number | null
+          id?: string
+          is_developer_equity?: boolean | null
+          name?: string
+          return_percentage?: number | null
+          scenario_id: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          distribution_type?: string | null
+          equity_amount?: number | null
+          id?: string
+          is_developer_equity?: boolean | null
+          name?: string
+          return_percentage?: number | null
+          scenario_id?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasibility_equity_partners_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "feasibility_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feasibility_land_lots: {
+        Row: {
+          address: string | null
+          created_at: string
+          deposit_amount: number | null
+          deposit_pct: number | null
+          entity_gst_registered: boolean | null
+          id: string
+          land_purchase_gst_included: boolean | null
+          land_rate: number | null
+          land_size_m2: number | null
+          margin_scheme_applied: boolean | null
+          name: string
+          postcode: string | null
+          purchase_price: number | null
+          scenario_id: string
+          sort_order: number | null
+          state: string | null
+          suburb: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          deposit_amount?: number | null
+          deposit_pct?: number | null
+          entity_gst_registered?: boolean | null
+          id?: string
+          land_purchase_gst_included?: boolean | null
+          land_rate?: number | null
+          land_size_m2?: number | null
+          margin_scheme_applied?: boolean | null
+          name?: string
+          postcode?: string | null
+          purchase_price?: number | null
+          scenario_id: string
+          sort_order?: number | null
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          deposit_amount?: number | null
+          deposit_pct?: number | null
+          entity_gst_registered?: boolean | null
+          id?: string
+          land_purchase_gst_included?: boolean | null
+          land_rate?: number | null
+          land_size_m2?: number | null
+          margin_scheme_applied?: boolean | null
+          name?: string
+          postcode?: string | null
+          purchase_price?: number | null
+          scenario_id?: string
+          sort_order?: number | null
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasibility_land_lots_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "feasibility_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feasibility_line_items: {
+        Row: {
+          amount_ex_gst: number | null
+          cashflow_span_months: number | null
+          cashflow_start_month: number | null
+          created_at: string
+          gst_status: string | null
+          id: string
+          land_lot_id: string | null
+          name: string
+          parent_entity_id: string | null
+          quantity: number | null
+          rate: number | null
+          rate_type: string | null
+          scenario_id: string
+          section: string
+          sort_order: number | null
+          tab_name: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ex_gst?: number | null
+          cashflow_span_months?: number | null
+          cashflow_start_month?: number | null
+          created_at?: string
+          gst_status?: string | null
+          id?: string
+          land_lot_id?: string | null
+          name?: string
+          parent_entity_id?: string | null
+          quantity?: number | null
+          rate?: number | null
+          rate_type?: string | null
+          scenario_id: string
+          section: string
+          sort_order?: number | null
+          tab_name?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ex_gst?: number | null
+          cashflow_span_months?: number | null
+          cashflow_start_month?: number | null
+          created_at?: string
+          gst_status?: string | null
+          id?: string
+          land_lot_id?: string | null
+          name?: string
+          parent_entity_id?: string | null
+          quantity?: number | null
+          rate?: number | null
+          rate_type?: string | null
+          scenario_id?: string
+          section?: string
+          sort_order?: number | null
+          tab_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasibility_line_items_land_lot_id_fkey"
+            columns: ["land_lot_id"]
+            isOneToOne: false
+            referencedRelation: "feasibility_land_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feasibility_line_items_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "feasibility_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feasibility_sales_units: {
+        Row: {
+          amount_ex_gst: number | null
+          area_m2: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          car_spaces: number | null
+          created_at: string
+          gst_status: string | null
+          id: string
+          name: string
+          sale_price: number | null
+          scenario_id: string
+          sort_order: number | null
+          status: string | null
+          tab_name: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ex_gst?: number | null
+          area_m2?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          car_spaces?: number | null
+          created_at?: string
+          gst_status?: string | null
+          id?: string
+          name?: string
+          sale_price?: number | null
+          scenario_id: string
+          sort_order?: number | null
+          status?: string | null
+          tab_name?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ex_gst?: number | null
+          area_m2?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          car_spaces?: number | null
+          created_at?: string
+          gst_status?: string | null
+          id?: string
+          name?: string
+          sale_price?: number | null
+          scenario_id?: string
+          sort_order?: number | null
+          status?: string | null
+          tab_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasibility_sales_units_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "feasibility_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feasibility_scenarios: {
         Row: {
           construction_cost: number | null
           contingency: number | null
           created_at: string
           created_by_user_id: string | null
+          development_type: string | null
           efficiency: number | null
           finance_costs: number | null
           fsr: number | null
@@ -1171,9 +1561,13 @@ export type Database = {
           profit: number | null
           profit_on_cost: number | null
           project_id: string
+          project_length_months: number | null
+          project_lots: number | null
           sale_rate: number | null
           site_area: number | null
           site_cost: number | null
+          start_date: string | null
+          state: string | null
           statutory_fees: number | null
           total_costs: number | null
           total_revenue: number | null
@@ -1185,6 +1579,7 @@ export type Database = {
           contingency?: number | null
           created_at?: string
           created_by_user_id?: string | null
+          development_type?: string | null
           efficiency?: number | null
           finance_costs?: number | null
           fsr?: number | null
@@ -1200,9 +1595,13 @@ export type Database = {
           profit?: number | null
           profit_on_cost?: number | null
           project_id: string
+          project_length_months?: number | null
+          project_lots?: number | null
           sale_rate?: number | null
           site_area?: number | null
           site_cost?: number | null
+          start_date?: string | null
+          state?: string | null
           statutory_fees?: number | null
           total_costs?: number | null
           total_revenue?: number | null
@@ -1214,6 +1613,7 @@ export type Database = {
           contingency?: number | null
           created_at?: string
           created_by_user_id?: string | null
+          development_type?: string | null
           efficiency?: number | null
           finance_costs?: number | null
           fsr?: number | null
@@ -1229,9 +1629,13 @@ export type Database = {
           profit?: number | null
           profit_on_cost?: number | null
           project_id?: string
+          project_length_months?: number | null
+          project_lots?: number | null
           sale_rate?: number | null
           site_area?: number | null
           site_cost?: number | null
+          start_date?: string | null
+          state?: string | null
           statutory_fees?: number | null
           total_costs?: number | null
           total_revenue?: number | null
@@ -1563,7 +1967,7 @@ export type Database = {
           certified_amount?: number | null
           certified_at?: string | null
           certified_by_user_id?: string | null
-          claim_number?: number
+          claim_number: number
           claimed_amount?: number
           contract_id?: string | null
           created_at?: string
@@ -2557,7 +2961,7 @@ export type Database = {
           time_impact?: number | null
           title: string
           updated_at?: string
-          variation_number?: number
+          variation_number: number
         }
         Update: {
           approved_at?: string | null
@@ -2811,11 +3215,15 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       action_status: ["pending", "completed"],
       claim_status: ["draft", "submitted", "certified", "paid", "disputed"],
       consultant_status: ["draft", "engaged", "completed", "terminated"],
+      contract_status: ["draft", "active", "completed", "terminated"],
       decision_status: ["pending", "approved", "rejected"],
       defect_status: ["open", "contractor_complete", "closed"],
       eot_status: [
