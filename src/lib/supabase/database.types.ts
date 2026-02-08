@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       action_items: {
@@ -1483,12 +1458,15 @@ export type Database = {
           area_m2: number | null
           bathrooms: number | null
           bedrooms: number | null
+          cap_rate: number | null
           car_spaces: number | null
           created_at: string
           gst_status: string | null
           id: string
           name: string
+          product_type: string
           sale_price: number | null
+          sale_type: string
           scenario_id: string
           sort_order: number | null
           status: string | null
@@ -1500,12 +1478,15 @@ export type Database = {
           area_m2?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          cap_rate?: number | null
           car_spaces?: number | null
           created_at?: string
           gst_status?: string | null
           id?: string
           name?: string
+          product_type?: string
           sale_price?: number | null
+          sale_type?: string
           scenario_id: string
           sort_order?: number | null
           status?: string | null
@@ -1517,12 +1498,15 @@ export type Database = {
           area_m2?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          cap_rate?: number | null
           car_spaces?: number | null
           created_at?: string
           gst_status?: string | null
           id?: string
           name?: string
+          product_type?: string
           sale_price?: number | null
+          sale_type?: string
           scenario_id?: string
           sort_order?: number | null
           status?: string | null
@@ -1950,6 +1934,7 @@ export type Database = {
           created_at: string
           created_by_user_id: string | null
           id: string
+          name: string | null
           notes: string | null
           org_id: string
           paid_at: string | null
@@ -1973,6 +1958,7 @@ export type Database = {
           created_at?: string
           created_by_user_id?: string | null
           id?: string
+          name?: string | null
           notes?: string | null
           org_id: string
           paid_at?: string | null
@@ -1996,6 +1982,7 @@ export type Database = {
           created_at?: string
           created_by_user_id?: string | null
           id?: string
+          name?: string | null
           notes?: string | null
           org_id?: string
           paid_at?: string | null
@@ -2920,6 +2907,45 @@ export type Database = {
           },
         ]
       }
+      variation_comments: {
+        Row: {
+          author_user_id: string | null
+          body: string
+          created_at: string
+          id: string
+          variation_id: string
+        }
+        Insert: {
+          author_user_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          variation_id: string
+        }
+        Update: {
+          author_user_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          variation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_comments_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_comments_variation_id_fkey"
+            columns: ["variation_id"]
+            isOneToOne: false
+            referencedRelation: "variations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       variations: {
         Row: {
           approved_at: string | null
@@ -3215,9 +3241,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       action_status: ["pending", "completed"],

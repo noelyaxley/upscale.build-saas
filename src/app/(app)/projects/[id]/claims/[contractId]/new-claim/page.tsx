@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CreateClaimView } from "./create-claim-view";
 
@@ -35,6 +35,11 @@ export default async function NewClaimPage({ params }: NewClaimPageProps) {
     notFound();
   }
 
+  // Claims can only be created for active contracts
+  if (contract.status !== "active") {
+    redirect(`/projects/${id}/claims/${contractId}`);
+  }
+
   // Fetch contract items
   let { data: items } = await supabase
     .from("contract_items")
@@ -62,7 +67,7 @@ export default async function NewClaimPage({ params }: NewClaimPageProps) {
       await supabase.from("contract_items").insert(
         unlinked.map((v, idx) => ({
           contract_id: contractId,
-          description: `V-${String(v.variation_number).padStart(3, "0")}: ${v.title}`,
+          description: v.title,
           contract_value: v.cost_impact ?? 0,
           variation_id: v.id,
           sort_order: currentCount + idx,
@@ -113,19 +118,12 @@ export default async function NewClaimPage({ params }: NewClaimPageProps) {
     }
   }
 
-  // Fetch companies for submitted-by select
-  const { data: companies } = await supabase
-    .from("companies")
-    .select("id, name")
-    .order("name");
-
   return (
     <CreateClaimView
       project={project}
       contract={contract}
       items={items ?? []}
       previouslyClaimed={Object.fromEntries(previouslyClaimed)}
-      companies={companies ?? []}
     />
   );
 }

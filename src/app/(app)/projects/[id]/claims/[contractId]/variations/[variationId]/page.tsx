@@ -49,5 +49,22 @@ export default async function VariationDetailPage({ params }: VariationDetailPag
     notFound();
   }
 
-  return <VariationDetail project={project} contract={contract} variation={variation} />;
+  // Fetch comments
+  const { data: comments } = await supabase
+    .from("variation_comments")
+    .select(`
+      *,
+      author:profiles!variation_comments_author_user_id_fkey(id, full_name)
+    `)
+    .eq("variation_id", variationId)
+    .order("created_at", { ascending: true });
+
+  return (
+    <VariationDetail
+      project={project}
+      contract={contract}
+      variation={variation}
+      comments={comments ?? []}
+    />
+  );
 }

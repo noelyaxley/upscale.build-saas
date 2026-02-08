@@ -12,8 +12,11 @@ import {
   Clock,
   DollarSign,
   FileText,
+  Pencil,
+  RotateCcw,
   Send,
 } from "lucide-react";
+import { getErrorMessage } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
@@ -27,6 +30,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -118,6 +122,21 @@ export function ClaimDetail({
   const { isAdmin, profile } = useOrganisation();
   const supabase = createClient();
 
+  // Draft editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(claim.name || "");
+  const [editPeriodStart, setEditPeriodStart] = useState(claim.period_start);
+  const [editPeriodEnd, setEditPeriodEnd] = useState(claim.period_end);
+  const [editNotes, setEditNotes] = useState(claim.notes || "");
+  const [editAmounts, setEditAmounts] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const li of lineItems) {
+      initial[li.id] = li.this_claim > 0 ? (li.this_claim / 100).toString() : "";
+    }
+    return initial;
+  });
+  const [editError, setEditError] = useState<string | null>(null);
+
   const isCertifying = claim.status === "submitted" && isAdmin;
 
   const totalClaimed = lineItems.reduce((sum, li) => sum + li.this_claim, 0);
@@ -203,6 +222,113 @@ export function ClaimDetail({
     }
   };
 
+  const getEditAmountCents = (liId: string): number => {
+    const val = editAmounts[liId];
+    if (!val) return 0;
+    return Math.round(parseFloat(val) * 100);
+  };
+
+  const editTotalThisClaim = lineItems.reduce(
+    (sum, li) => sum + getEditAmountCents(li.id),
+    0
+  );
+
+  const handleRevertToDraft = async () => {
+    if (
+      !window.confirm(
+        "Revert this claim to draft? This will clear certification and payment data."
+      )
+    )
+      return;
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("progress_claims")
+        .update({
+          status: "draft" as ClaimStatus,
+          submitted_at: null,
+          certified_at: null,
+          paid_at: null,
+          certified_amount: null,
+          certified_by_user_id: null,
+        })
+        .eq("id", claim.id);
+      if (error) throw error;
+      // Reset certified_this_claim on line items
+      for (const li of lineItems) {
+        await supabase
+          .from("claim_line_items")
+          .update({ certified_this_claim: 0 })
+          .eq("id", li.id);
+      }
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to revert claim:", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleSaveEdits = async () => {
+    setUpdating(true);
+    setEditError(null);
+    try {
+      // Validate: no item exceeds remaining
+      for (const li of lineItems) {
+        const newThisClaim = getEditAmountCents(li.id);
+        const remaining = li.contract_value - li.previous_claimed;
+        if (newThisClaim > remaining) {
+          throw new Error(
+            `"${li.description}" exceeds the remaining contract value`
+          );
+        }
+      }
+
+      if (editTotalThisClaim <= 0) {
+        throw new Error("At least one line item must have an amount");
+      }
+
+      // Update each line item
+      for (const li of lineItems) {
+        const newThisClaim = getEditAmountCents(li.id);
+        const newTotalClaimed = li.previous_claimed + newThisClaim;
+        const newPct =
+          li.contract_value > 0
+            ? Math.round((newTotalClaimed / li.contract_value) * 10000) / 100
+            : 0;
+        const { error } = await supabase
+          .from("claim_line_items")
+          .update({
+            this_claim: newThisClaim,
+            total_claimed: newTotalClaimed,
+            percent_complete: newPct,
+          })
+          .eq("id", li.id);
+        if (error) throw error;
+      }
+
+      // Update the progress claim
+      const { error } = await supabase
+        .from("progress_claims")
+        .update({
+          name: editName || null,
+          period_start: editPeriodStart,
+          period_end: editPeriodEnd,
+          notes: editNotes || null,
+          claimed_amount: editTotalThisClaim,
+        })
+        .eq("id", claim.id);
+      if (error) throw error;
+
+      setIsEditing(false);
+      router.refresh();
+    } catch (err) {
+      setEditError(getErrorMessage(err, "Failed to save changes"));
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const workflowSteps = [
     { key: "draft", label: "Draft", icon: FileText },
     { key: "submitted", label: "Submitted", icon: Send },
@@ -251,7 +377,7 @@ export function ClaimDetail({
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Progress Claim #{claim.claim_number}
+            {claim.name || `Progress Claim #${claim.claim_number}`}
           </h1>
         </div>
         <Badge variant="secondary" className={statusColors[claim.status]}>
@@ -265,41 +391,90 @@ export function ClaimDetail({
           {/* Claim info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Claim Details</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Claim Details</CardTitle>
+                {claim.status === "draft" && !isEditing && (
+                  <Button size="sm" variant="ghost" onClick={() => setIsEditing(true)}>
+                    <Pencil className="mr-2 size-4" />
+                    Edit
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Clock className="size-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Period</p>
-                    <p className="text-sm font-medium">
-                      {formatDate(claim.period_start)} -{" "}
-                      {formatDate(claim.period_end)}
-                    </p>
+              {isEditing ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="edit-name">Claim Name</Label>
+                    <Input
+                      id="edit-name"
+                      placeholder="e.g. January 2026"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-period-start">Period Start</Label>
+                    <Input
+                      id="edit-period-start"
+                      type="date"
+                      value={editPeriodStart}
+                      onChange={(e) => setEditPeriodStart(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-period-end">Period End</Label>
+                    <Input
+                      id="edit-period-end"
+                      type="date"
+                      value={editPeriodEnd}
+                      onChange={(e) => setEditPeriodEnd(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="edit-notes">Notes</Label>
+                    <Input
+                      id="edit-notes"
+                      placeholder="Optional notes"
+                      value={editNotes}
+                      onChange={(e) => setEditNotes(e.target.value)}
+                    />
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <DollarSign className="size-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      Submitted By
-                    </p>
-                    <p className="text-sm font-medium">
-                      {claim.submitted_by_company?.name || "-"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {claim.notes && (
+              ) : (
                 <>
-                  <Separator />
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Notes</p>
-                    <p className="text-sm whitespace-pre-wrap">
-                      {claim.notes}
-                    </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {claim.name && (
+                      <div className="flex items-center gap-3 col-span-2">
+                        <FileText className="size-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Name</p>
+                          <p className="text-sm font-medium">{claim.name}</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <Clock className="size-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Period</p>
+                        <p className="text-sm font-medium">
+                          {formatDate(claim.period_start)} -{" "}
+                          {formatDate(claim.period_end)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
+                  {claim.notes && (
+                    <>
+                      <Separator />
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Notes</p>
+                        <p className="text-sm whitespace-pre-wrap">
+                          {claim.notes}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </CardContent>
@@ -345,57 +520,97 @@ export function ClaimDetail({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {lineItems.map((li) => (
-                      <TableRow key={li.id}>
-                        <TableCell className="font-medium">
-                          {li.description}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(li.contract_value)}
-                        </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
-                          {li.previous_claimed > 0
-                            ? formatCurrency(li.previous_claimed)
-                            : "-"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(li.this_claim)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(li.total_claimed)}
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-muted-foreground">
-                          {li.percent_complete !== null &&
-                          li.percent_complete > 0
-                            ? `${li.percent_complete}%`
-                            : "-"}
-                        </TableCell>
-                        {isCertifying && (
-                          <TableCell className="text-right">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              className="w-28 ml-auto text-right"
-                              value={certifiedAmounts[li.id] ?? ""}
-                              onChange={(e) =>
-                                setCertifiedAmounts({
-                                  ...certifiedAmounts,
-                                  [li.id]: e.target.value,
-                                })
-                              }
-                            />
+                    {lineItems.map((li) => {
+                      const editThisClaim = getEditAmountCents(li.id);
+                      const editRemaining = li.contract_value - li.previous_claimed;
+                      const editExceeds = isEditing && editThisClaim > editRemaining;
+
+                      return (
+                        <TableRow key={li.id}>
+                          <TableCell className="font-medium">
+                            {li.description}
                           </TableCell>
-                        )}
-                        {!isCertifying &&
-                          (claim.status === "certified" ||
-                            claim.status === "paid") && (
-                            <TableCell className="text-right font-medium">
-                              {formatCurrency(li.certified_this_claim)}
+                          <TableCell className="text-right">
+                            {formatCurrency(li.contract_value)}
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {li.previous_claimed > 0
+                              ? formatCurrency(li.previous_claimed)
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {isEditing ? (
+                              <div>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  placeholder="0.00"
+                                  className={`w-28 ml-auto text-right ${
+                                    editExceeds
+                                      ? "border-destructive focus-visible:ring-destructive"
+                                      : ""
+                                  }`}
+                                  value={editAmounts[li.id] ?? ""}
+                                  onChange={(e) =>
+                                    setEditAmounts({
+                                      ...editAmounts,
+                                      [li.id]: e.target.value,
+                                    })
+                                  }
+                                />
+                                {editExceeds && (
+                                  <p className="text-xs text-destructive mt-1">
+                                    Exceeds remaining
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              formatCurrency(li.this_claim)
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {isEditing
+                              ? formatCurrency(li.previous_claimed + editThisClaim)
+                              : formatCurrency(li.total_claimed)}
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-muted-foreground">
+                            {isEditing
+                              ? li.contract_value > 0
+                                ? `${(((li.previous_claimed + editThisClaim) / li.contract_value) * 100).toFixed(0)}%`
+                                : "-"
+                              : li.percent_complete !== null &&
+                                  li.percent_complete > 0
+                                ? `${li.percent_complete}%`
+                                : "-"}
+                          </TableCell>
+                          {isCertifying && (
+                            <TableCell className="text-right">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                className="w-28 ml-auto text-right"
+                                value={certifiedAmounts[li.id] ?? ""}
+                                onChange={(e) =>
+                                  setCertifiedAmounts({
+                                    ...certifiedAmounts,
+                                    [li.id]: e.target.value,
+                                  })
+                                }
+                              />
                             </TableCell>
                           )}
-                      </TableRow>
-                    ))}
+                          {!isCertifying &&
+                            (claim.status === "certified" ||
+                              claim.status === "paid") && (
+                              <TableCell className="text-right font-medium">
+                                {formatCurrency(li.certified_this_claim)}
+                              </TableCell>
+                            )}
+                        </TableRow>
+                      );
+                    })}
                     {/* Totals */}
                     <TableRow className="font-medium border-t-2">
                       <TableCell>Total</TableCell>
@@ -408,14 +623,18 @@ export function ClaimDetail({
                           : "-"}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(totalClaimed)}
+                        {isEditing
+                          ? formatCurrency(editTotalThisClaim)
+                          : formatCurrency(totalClaimed)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(totalTotalClaimed)}
+                        {isEditing
+                          ? formatCurrency(totalPrevious + editTotalThisClaim)
+                          : formatCurrency(totalTotalClaimed)}
                       </TableCell>
                       <TableCell className="text-right text-sm">
                         {totalContractValue > 0
-                          ? `${((totalTotalClaimed / totalContractValue) * 100).toFixed(0)}%`
+                          ? `${(((isEditing ? totalPrevious + editTotalThisClaim : totalTotalClaimed) / totalContractValue) * 100).toFixed(0)}%`
                           : "-"}
                       </TableCell>
                       {(isCertifying ||
@@ -433,6 +652,27 @@ export function ClaimDetail({
                   </TableBody>
                 </Table>
               </div>
+              {isEditing && (
+                <div className="mt-4 space-y-3">
+                  {editError && (
+                    <p className="text-sm text-destructive">{editError}</p>
+                  )}
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditError(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveEdits} disabled={updating}>
+                      {updating ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -548,6 +788,28 @@ export function ClaimDetail({
                     {formatDate(claim.paid_at)}
                   </p>
                 </div>
+              )}
+
+              {claim.status !== "draft" && isAdmin && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium">Revert to Draft</p>
+                    <p className="text-sm text-muted-foreground">
+                      Revert this claim to draft to make changes. This will
+                      clear certification and payment data.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                      onClick={handleRevertToDraft}
+                      disabled={updating}
+                    >
+                      <RotateCcw className="mr-2 size-4" />
+                      Revert to Draft
+                    </Button>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

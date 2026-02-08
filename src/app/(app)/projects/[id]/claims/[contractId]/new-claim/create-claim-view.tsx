@@ -20,13 +20,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -41,17 +34,11 @@ type Contract = Tables<"contracts"> & {
   company: { id: string; name: string } | null;
 };
 
-type Company = {
-  id: string;
-  name: string;
-};
-
 interface CreateClaimViewProps {
   project: { id: string; code: string; name: string };
   contract: Contract;
   items: ContractItem[];
   previouslyClaimed: Record<string, number>;
-  companies: Company[];
 }
 
 function formatCurrency(cents: number): string {
@@ -114,7 +101,6 @@ export function CreateClaimView({
   contract,
   items,
   previouslyClaimed,
-  companies,
 }: CreateClaimViewProps) {
   const router = useRouter();
   const { organisation, profile } = useOrganisation();
@@ -122,9 +108,9 @@ export function CreateClaimView({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState("");
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
-  const [submittedByCompanyId, setSubmittedByCompanyId] = useState("");
   const [notes, setNotes] = useState("");
 
   // Track "this claim" amount per item (in dollars input)
@@ -197,6 +183,20 @@ export function CreateClaimView({
         throw new Error("Enter at least one line item amount");
       }
 
+      // Validate no line item exceeds remaining contract value
+      const exceeding = flatItems
+        .filter((n) => n.children.length === 0)
+        .find((n) => {
+          const thisClaim = getThisClaimCents(n.item.id);
+          const remaining = n.item.contract_value - getPreviousClaimed(n.item.id);
+          return thisClaim > remaining;
+        });
+      if (exceeding) {
+        throw new Error(
+          `"${exceeding.item.description}" exceeds the remaining contract value`
+        );
+      }
+
       // Create the progress claim
       const { data: claim, error: claimError } = await supabase
         .from("progress_claims")
@@ -204,11 +204,11 @@ export function CreateClaimView({
           org_id: organisation.id,
           project_id: project.id,
           contract_id: contract.id,
+          name: name || null,
           period_start: periodStart,
           period_end: periodEnd,
           claimed_amount: totalThisClaim,
           previous_claims_total: totalPrevious,
-          submitted_by_company_id: submittedByCompanyId || null,
           notes: notes || null,
           created_by_user_id: profile.id,
         })
@@ -314,6 +314,16 @@ export function CreateClaimView({
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
+                <Label htmlFor="claim-name">Claim Name</Label>
+                <Input
+                  id="claim-name"
+                  placeholder="e.g. January 2026"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="period-start">Period Start</Label>
                 <Input
                   id="period-start"
@@ -332,24 +342,6 @@ export function CreateClaimView({
                   onChange={(e) => setPeriodEnd(e.target.value)}
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="submitted-by">Submitted By</Label>
-                <Select
-                  value={submittedByCompanyId}
-                  onValueChange={setSubmittedByCompanyId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select company" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companies.map((company) => (
-                      <SelectItem key={company.id} value={company.id}>
-                        {company.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
@@ -446,20 +438,31 @@ export function CreateClaimView({
                           </TableCell>
                           <TableCell className="text-right">
                             {isLeaf ? (
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                placeholder="0.00"
-                                className="w-28 ml-auto text-right"
-                                value={claimAmounts[node.item.id] ?? ""}
-                                onChange={(e) =>
-                                  setClaimAmounts({
-                                    ...claimAmounts,
-                                    [node.item.id]: e.target.value,
-                                  })
-                                }
-                              />
+                              <div>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  placeholder="0.00"
+                                  className={`w-28 ml-auto text-right ${
+                                    thisClaim > contractValue - prevClaimed
+                                      ? "border-destructive focus-visible:ring-destructive"
+                                      : ""
+                                  }`}
+                                  value={claimAmounts[node.item.id] ?? ""}
+                                  onChange={(e) =>
+                                    setClaimAmounts({
+                                      ...claimAmounts,
+                                      [node.item.id]: e.target.value,
+                                    })
+                                  }
+                                />
+                                {thisClaim > contractValue - prevClaimed && (
+                                  <p className="text-xs text-destructive mt-1">
+                                    Exceeds remaining
+                                  </p>
+                                )}
+                              </div>
                             ) : thisClaim > 0 ? (
                               formatCurrency(thisClaim)
                             ) : (

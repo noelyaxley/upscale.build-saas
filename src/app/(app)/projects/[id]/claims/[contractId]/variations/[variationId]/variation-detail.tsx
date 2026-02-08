@@ -13,6 +13,7 @@ import {
   Clock,
   DollarSign,
   FileEdit,
+  Pencil,
   Send,
   User,
   XCircle,
@@ -30,6 +31,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type VariationStatus = Database["public"]["Enums"]["variation_status"];
 
@@ -39,10 +42,20 @@ type Variation = Tables<"variations"> & {
   approved_by: { id: string; full_name: string | null } | null;
 };
 
+type VariationComment = {
+  id: string;
+  variation_id: string;
+  author_user_id: string | null;
+  body: string;
+  created_at: string;
+  author: { id: string; full_name: string | null } | null;
+};
+
 interface VariationDetailProps {
   project: { id: string; code: string; name: string };
   contract: { id: string; name: string; contract_number: number };
   variation: Variation;
+  comments: VariationComment[];
 }
 
 const statusColors: Record<VariationStatus, string> = {
@@ -82,11 +95,53 @@ function formatDate(date: string | null): string {
   });
 }
 
-export function VariationDetail({ project, contract, variation }: VariationDetailProps) {
+export function VariationDetail({ project, contract, variation, comments }: VariationDetailProps) {
   const [updating, setUpdating] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [editDescription, setEditDescription] = useState(variation.description || "");
+  const [newComment, setNewComment] = useState("");
+  const [sending, setSending] = useState(false);
   const router = useRouter();
   const { isAdmin, profile } = useOrganisation();
   const supabase = createClient();
+
+  const handleSaveDescription = async () => {
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("variations")
+        .update({ description: editDescription })
+        .eq("id", variation.id);
+      if (error) throw error;
+      setIsEditingDescription(false);
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to update description:", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleSendComment = async () => {
+    if (!newComment.trim()) return;
+    setSending(true);
+    try {
+      const { error } = await supabase
+        .from("variation_comments")
+        .insert({
+          variation_id: variation.id,
+          author_user_id: profile.id,
+          body: newComment.trim(),
+        });
+      if (error) throw error;
+      setNewComment("");
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to send comment:", err);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const handleStatusChange = async (newStatus: VariationStatus, reason?: string) => {
     setUpdating(true);
@@ -153,9 +208,7 @@ export function VariationDetail({ project, contract, variation }: VariationDetai
               {contract.name}
             </Link>
             <ChevronRight className="size-4" />
-            <span className="font-mono">
-              V-{String(variation.variation_number).padStart(3, "0")}
-            </span>
+            <span>{variation.title}</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight">{variation.title}</h1>
         </div>
@@ -170,12 +223,45 @@ export function VariationDetail({ project, contract, variation }: VariationDetai
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Description</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Description</CardTitle>
+                {!isEditingDescription && (
+                  <Button size="sm" variant="ghost" onClick={() => setIsEditingDescription(true)}>
+                    <Pencil className="mr-2 size-4" />
+                    Edit
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm whitespace-pre-wrap">
-                {variation.description || "No description provided."}
-              </p>
+              {isEditingDescription ? (
+                <div className="space-y-3">
+                  <Textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="min-h-[120px]"
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditingDescription(false);
+                        setEditDescription(variation.description || "");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button size="sm" onClick={handleSaveDescription} disabled={updating}>
+                      {updating ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm whitespace-pre-wrap">
+                  {variation.description || "No description provided."}
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -190,6 +276,68 @@ export function VariationDetail({ project, contract, variation }: VariationDetai
               </CardContent>
             </Card>
           )}
+
+          {/* Comments */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Comments ({comments.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {comments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No comments yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment) => {
+                    const initials = (comment.author?.full_name || "?")
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase();
+                    return (
+                      <div key={comment.id} className="flex gap-3">
+                        <Avatar className="size-8">
+                          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                              {comment.author?.full_name || "Unknown"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(comment.created_at)}
+                            </span>
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap">{comment.body}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <Separator />
+              <div className="flex gap-3">
+                <Textarea
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={handleSendComment}
+                  disabled={sending || !newComment.trim()}
+                >
+                  <Send className="mr-2 size-4" />
+                  {sending ? "Sending..." : "Send"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Workflow */}
           <Card>

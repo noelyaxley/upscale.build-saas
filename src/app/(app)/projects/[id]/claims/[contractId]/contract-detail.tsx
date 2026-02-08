@@ -333,6 +333,17 @@ export function ContractDetail({
   };
 
   const handleDeleteItem = async (itemId: string, description: string) => {
+    // Check if item has been claimed against
+    const { count } = await supabase
+      .from("claim_line_items")
+      .select("id", { count: "exact", head: true })
+      .eq("contract_item_id", itemId);
+    if (count && count > 0) {
+      window.alert(
+        `Cannot delete "${description}" — it has been referenced in ${count} progress claim(s). Delete the claim(s) first to unlock this item.`
+      );
+      return;
+    }
     if (!window.confirm(`Delete item "${description}"?`)) return;
     try {
       const { error } = await supabase
@@ -346,11 +357,62 @@ export function ContractDetail({
     }
   };
 
+  const handleDeleteVariation = async (variation: Variation) => {
+    // Check if variation's linked contract_item has been claimed
+    const linkedItem = items.find((i) => i.variation_id === variation.id);
+    if (linkedItem) {
+      const { count } = await supabase
+        .from("claim_line_items")
+        .select("id", { count: "exact", head: true })
+        .eq("contract_item_id", linkedItem.id);
+      if (count && count > 0) {
+        window.alert(
+          `Cannot delete variation "${variation.title}" — its schedule item has been claimed in ${count} progress claim(s). Delete the claim(s) first.`
+        );
+        return;
+      }
+    }
+    if (!window.confirm(`Delete variation "${variation.title}"?`)) return;
+    try {
+      // Delete linked contract item first
+      if (linkedItem) {
+        await supabase.from("contract_items").delete().eq("id", linkedItem.id);
+      }
+      const { error } = await supabase
+        .from("variations")
+        .delete()
+        .eq("id", variation.id);
+      if (error) throw error;
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to delete variation:", err);
+    }
+  };
+
+  const handleDeleteClaim = async (claim: Claim) => {
+    if (
+      !window.confirm(
+        `Delete claim ${claim.name || `PC-${String(claim.claim_number).padStart(3, "0")}`}? This will also delete all its line items.`
+      )
+    )
+      return;
+    try {
+      const { error } = await supabase
+        .from("progress_claims")
+        .delete()
+        .eq("id", claim.id);
+      if (error) throw error;
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to delete claim:", err);
+    }
+  };
+
   const handleAddVariationAsItem = async (variation: Variation) => {
     try {
       const { error } = await supabase.from("contract_items").insert({
         contract_id: contract.id,
-        description: `V-${String(variation.variation_number).padStart(3, "0")}: ${variation.title}`,
+        description: variation.title,
         contract_value: variation.cost_impact ?? 0,
         variation_id: variation.id,
         sort_order: items.length,
@@ -765,7 +827,6 @@ export function ContractDetail({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[80px]">No.</TableHead>
                       <TableHead>Title</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">
@@ -784,20 +845,13 @@ export function ContractDetail({
                       );
                       return (
                         <TableRow key={variation.id}>
-                          <TableCell>
+                          <TableCell className="font-medium">
                             <Link
                               href={`/projects/${project.id}/claims/${contract.id}/variations/${variation.id}`}
-                              className="font-mono text-sm font-medium hover:underline"
+                              className="hover:underline"
                             >
-                              V-
-                              {String(variation.variation_number).padStart(
-                                3,
-                                "0"
-                              )}
+                              {variation.title}
                             </Link>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {variation.title}
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -816,12 +870,8 @@ export function ContractDetail({
                               : "-"}
                           </TableCell>
                           <TableCell>
-                            {variation.status === "approved" ? (
-                              alreadyLinked ? (
-                                <Badge variant="outline" className="text-xs">
-                                  Added
-                                </Badge>
-                              ) : (
+                            <div className="flex items-center gap-1">
+                              {variation.status === "approved" && !alreadyLinked && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -832,8 +882,25 @@ export function ContractDetail({
                                   <Plus className="mr-1 size-3" />
                                   Add as Item
                                 </Button>
-                              )
-                            ) : null}
+                              )}
+                              {variation.status === "approved" && alreadyLinked && (
+                                <Badge variant="outline" className="text-xs">
+                                  Added
+                                </Badge>
+                              )}
+                              {isAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive"
+                                  onClick={() =>
+                                    handleDeleteVariation(variation)
+                                  }
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -854,14 +921,20 @@ export function ContractDetail({
                     {claims.length} claim{claims.length !== 1 ? "s" : ""}
                   </CardDescription>
                 </div>
-                <Button size="sm" asChild>
-                  <Link
-                    href={`/projects/${project.id}/claims/${contract.id}/new-claim`}
-                  >
-                    <Plus className="mr-2 size-4" />
-                    New Claim
-                  </Link>
-                </Button>
+                {contract.status === "active" ? (
+                  <Button size="sm" asChild>
+                    <Link
+                      href={`/projects/${project.id}/claims/${contract.id}/new-claim`}
+                    >
+                      <Plus className="mr-2 size-4" />
+                      New Claim
+                    </Link>
+                  </Button>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Contract must be active
+                  </p>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -880,11 +953,12 @@ export function ContractDetail({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[80px]">No.</TableHead>
+                      <TableHead>Name</TableHead>
                       <TableHead>Period</TableHead>
-                      <TableHead>Submitted By</TableHead>
                       <TableHead className="text-right">Claimed</TableHead>
                       <TableHead className="text-right">Certified</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead className="w-[80px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -899,14 +973,14 @@ export function ContractDetail({
                             {String(claim.claim_number).padStart(3, "0")}
                           </Link>
                         </TableCell>
+                        <TableCell className="font-medium">
+                          {claim.name || "-"}
+                        </TableCell>
                         <TableCell>
                           <p className="text-sm">
                             {formatDate(claim.period_start)} -{" "}
                             {formatDate(claim.period_end)}
                           </p>
-                        </TableCell>
-                        <TableCell>
-                          {claim.submitted_by_company?.name || "-"}
                         </TableCell>
                         <TableCell className="text-right font-medium">
                           {formatCurrency(claim.claimed_amount)}
@@ -923,6 +997,18 @@ export function ContractDetail({
                           >
                             {claimStatusLabels[claim.status]}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive"
+                              onClick={() => handleDeleteClaim(claim)}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
