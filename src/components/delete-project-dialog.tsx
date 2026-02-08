@@ -38,7 +38,7 @@ export function DeleteProjectDialog({
   const supabase = createClient();
 
   const handleDelete = async () => {
-    if (confirmation !== project.code) {
+    if (confirmation !== project.name) {
       setError("Project code does not match");
       return;
     }
@@ -85,18 +85,19 @@ export function DeleteProjectDialog({
         <div className="space-y-4 py-4">
           <p className="text-sm text-muted-foreground">
             This will permanently delete the project{" "}
-            <strong>{project.name}</strong> and all associated data including
-            documents, defects, and other records.
+            <strong>{project.name}</strong> and all its content including
+            contracts, claims, variations, documents, site diary entries, and
+            all other records.
           </p>
           <div className="space-y-2">
             <Label htmlFor="confirm-code">
-              Type <strong>{project.code}</strong> to confirm
+              Type <strong>{project.name}</strong> to confirm
             </Label>
             <Input
               id="confirm-code"
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
-              placeholder={project.code}
+              placeholder={project.name}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -112,7 +113,7 @@ export function DeleteProjectDialog({
           <Button
             variant="destructive"
             onClick={handleDelete}
-            disabled={loading || confirmation !== project.code}
+            disabled={loading || confirmation !== project.name}
           >
             {loading ? "Deleting..." : "Delete Project"}
           </Button>
