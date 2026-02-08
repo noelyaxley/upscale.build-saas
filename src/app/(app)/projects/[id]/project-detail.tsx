@@ -1,29 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
   ArrowLeft,
+  BarChart3,
   Building2,
+  Calculator,
   Calendar,
   ChevronRight,
+  ClipboardCheck,
   ClipboardList,
   Clock,
   DollarSign,
   FileText,
+  GanttChart,
+  Gavel,
+  Home,
   MapPin,
   MessageSquarePlus,
   Pencil,
   Receipt,
+  Share2,
   Shield,
   Trash2,
-  BarChart3,
-  Calculator,
-  ClipboardCheck,
-  GanttChart,
-  Gavel,
-  Home,
-  Share2,
   UserCheck,
 } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -67,6 +68,30 @@ type TeamMember = {
   id: string;
   full_name: string | null;
 };
+
+const projectModules: {
+  slug: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  bg: string;
+  text: string;
+}[] = [
+  { slug: "documents", label: "Documents", description: "Drawings, specs, and project files", icon: FileText, bg: "bg-primary/10", text: "text-primary" },
+  { slug: "rfis", label: "RFIs", description: "Requests for Information", icon: MessageSquarePlus, bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-600 dark:text-blue-400" },
+  { slug: "defects", label: "Defects", description: "Track and manage defects", icon: AlertTriangle, bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-600 dark:text-red-400" },
+  { slug: "risks", label: "Risks & Opportunities", description: "Monitor project risks", icon: Shield, bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-600 dark:text-purple-400" },
+  { slug: "eot", label: "Extension of Time", description: "Time extension claims", icon: Clock, bg: "bg-indigo-100 dark:bg-indigo-900/30", text: "text-indigo-600 dark:text-indigo-400" },
+  { slug: "claims", label: "Contracts", description: "Payment submissions", icon: Receipt, bg: "bg-emerald-100 dark:bg-emerald-900/30", text: "text-emerald-600 dark:text-emerald-400" },
+  { slug: "site-diary", label: "Site Diary", description: "Daily site records", icon: ClipboardList, bg: "bg-cyan-100 dark:bg-cyan-900/30", text: "text-cyan-600 dark:text-cyan-400" },
+  { slug: "tenders", label: "Tenders", description: "Contractor tender management", icon: Gavel, bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-600 dark:text-orange-400" },
+  { slug: "programmes", label: "Programmes", description: "Programme schedule & timeline", icon: GanttChart, bg: "bg-sky-100 dark:bg-sky-900/30", text: "text-sky-600 dark:text-sky-400" },
+  { slug: "submittals", label: "Submittals", description: "Shop drawings & material approvals", icon: ClipboardCheck, bg: "bg-violet-100 dark:bg-violet-900/30", text: "text-violet-600 dark:text-violet-400" },
+  { slug: "lot-sales", label: "Lot Sales", description: "Unit inventory & sales tracking", icon: Home, bg: "bg-rose-100 dark:bg-rose-900/30", text: "text-rose-600 dark:text-rose-400" },
+  { slug: "sales-agents", label: "Sales Agents", description: "Agent management & commissions", icon: UserCheck, bg: "bg-pink-100 dark:bg-pink-900/30", text: "text-pink-600 dark:text-pink-400" },
+  { slug: "feasibility", label: "Feasibility", description: "Development appraisal tool", icon: Calculator, bg: "bg-lime-100 dark:bg-lime-900/30", text: "text-lime-600 dark:text-lime-400" },
+  { slug: "reports", label: "Reports", description: "Project reporting dashboard", icon: BarChart3, bg: "bg-fuchsia-100 dark:bg-fuchsia-900/30", text: "text-fuchsia-600 dark:text-fuchsia-400" },
+];
 
 const stageColors: Record<string, string> = {
   preconstruction: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -269,244 +294,29 @@ export function ProjectDetail({
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <Link
-              href={`/projects/${project.id}/documents`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                  <FileText className="size-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Documents</p>
-                  <p className="text-xs text-muted-foreground">
-                    Drawings, specs, and project files
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/rfis`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                  <MessageSquarePlus className="size-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <p className="font-medium">RFIs</p>
-                  <p className="text-xs text-muted-foreground">
-                    Requests for Information
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/defects`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-                  <AlertTriangle className="size-5 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Defects</p>
-                  <p className="text-xs text-muted-foreground">
-                    Track and manage defects
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/risks`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                  <Shield className="size-5 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Risks & Opportunities</p>
-                  <p className="text-xs text-muted-foreground">
-                    Monitor project risks
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/eot`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
-                  <Clock className="size-5 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Extension of Time</p>
-                  <p className="text-xs text-muted-foreground">
-                    Time extension claims
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/claims`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                  <Receipt className="size-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Contracts</p>
-                  <p className="text-xs text-muted-foreground">
-                    Payment submissions
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/site-diary`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
-                  <ClipboardList className="size-5 text-cyan-600 dark:text-cyan-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Site Diary</p>
-                  <p className="text-xs text-muted-foreground">
-                    Daily site records
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/tenders`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                  <Gavel className="size-5 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Tenders</p>
-                  <p className="text-xs text-muted-foreground">
-                    Contractor tender management
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/programmes`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/30">
-                  <GanttChart className="size-5 text-sky-600 dark:text-sky-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Programmes</p>
-                  <p className="text-xs text-muted-foreground">
-                    Programme schedule & timeline
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/submittals`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
-                  <ClipboardCheck className="size-5 text-violet-600 dark:text-violet-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Submittals</p>
-                  <p className="text-xs text-muted-foreground">
-                    Shop drawings & material approvals
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/lot-sales`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-rose-100 dark:bg-rose-900/30">
-                  <Home className="size-5 text-rose-600 dark:text-rose-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Lot Sales</p>
-                  <p className="text-xs text-muted-foreground">
-                    Unit inventory & sales tracking
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/sales-agents`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-pink-100 dark:bg-pink-900/30">
-                  <UserCheck className="size-5 text-pink-600 dark:text-pink-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Sales Agents</p>
-                  <p className="text-xs text-muted-foreground">
-                    Agent management & commissions
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/feasibility`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-lime-100 dark:bg-lime-900/30">
-                  <Calculator className="size-5 text-lime-600 dark:text-lime-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Feasibility</p>
-                  <p className="text-xs text-muted-foreground">
-                    Development appraisal tool
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/reports`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/30">
-                  <BarChart3 className="size-5 text-fuchsia-600 dark:text-fuchsia-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Reports</p>
-                  <p className="text-xs text-muted-foreground">
-                    Project reporting dashboard
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
+            {projectModules.map((mod) => {
+              const Icon = mod.icon;
+              return (
+                <Link
+                  key={mod.slug}
+                  href={`/projects/${project.id}/${mod.slug}`}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex size-10 items-center justify-center rounded-lg ${mod.bg}`}>
+                      <Icon className={`size-5 ${mod.text}`} />
+                    </div>
+                    <div>
+                      <p className="font-medium">{mod.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {mod.description}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-5 text-muted-foreground" />
+                </Link>
+              );
+            })}
           </CardContent>
         </Card>
       </div>
