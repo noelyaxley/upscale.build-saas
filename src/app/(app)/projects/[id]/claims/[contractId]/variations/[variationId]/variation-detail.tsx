@@ -14,6 +14,7 @@ import {
   DollarSign,
   FileEdit,
   Pencil,
+  RotateCcw,
   Send,
   User,
   XCircle,
@@ -30,6 +31,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -99,11 +102,24 @@ export function VariationDetail({ project, contract, variation, comments }: Vari
   const [updating, setUpdating] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(variation.description || "");
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [editTitle, setEditTitle] = useState(variation.title);
+  const [editCostImpact, setEditCostImpact] = useState(
+    ((variation.cost_impact ?? 0) / 100).toString()
+  );
+  const [editTimeImpact, setEditTimeImpact] = useState(
+    (variation.time_impact ?? 0).toString()
+  );
   const [newComment, setNewComment] = useState("");
   const [sending, setSending] = useState(false);
   const router = useRouter();
   const { isAdmin, profile } = useOrganisation();
   const supabase = createClient();
+
+  const canEdit =
+    variation.status === "draft" ||
+    variation.status === "submitted" ||
+    variation.status === "under_review";
 
   const handleSaveDescription = async () => {
     setUpdating(true);
@@ -117,6 +133,53 @@ export function VariationDetail({ project, contract, variation, comments }: Vari
       router.refresh();
     } catch (err) {
       console.error("Failed to update description:", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleSaveDetails = async () => {
+    setUpdating(true);
+    try {
+      const costCents = editCostImpact
+        ? Math.round(parseFloat(editCostImpact) * 100)
+        : 0;
+      const timeDays = editTimeImpact ? parseInt(editTimeImpact, 10) : 0;
+
+      const { error } = await supabase
+        .from("variations")
+        .update({
+          title: editTitle,
+          cost_impact: costCents,
+          time_impact: timeDays,
+        })
+        .eq("id", variation.id);
+      if (error) throw error;
+      setIsEditingDetails(false);
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to update variation:", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleUnapprove = async () => {
+    if (!window.confirm("Revert this variation to Under Review? This will clear the approval.")) return;
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("variations")
+        .update({
+          status: "under_review" as VariationStatus,
+          approved_at: null,
+          approved_by_user_id: null,
+        })
+        .eq("id", variation.id);
+      if (error) throw error;
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to unapprove variation:", err);
     } finally {
       setUpdating(false);
     }
@@ -210,11 +273,27 @@ export function VariationDetail({ project, contract, variation, comments }: Vari
             <ChevronRight className="size-4" />
             <span>{variation.title}</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">{variation.title}</h1>
+          {isEditingDetails ? (
+            <Input
+              className="text-2xl font-bold h-auto py-1"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+            />
+          ) : (
+            <h1 className="text-2xl font-bold tracking-tight">{variation.title}</h1>
+          )}
         </div>
-        <Badge variant="secondary" className={statusColors[variation.status]}>
-          {statusLabels[variation.status]}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {canEdit && !isEditingDetails && (
+            <Button size="sm" variant="ghost" onClick={() => setIsEditingDetails(true)}>
+              <Pencil className="mr-2 size-4" />
+              Edit
+            </Button>
+          )}
+          <Badge variant="secondary" className={statusColors[variation.status]}>
+            {statusLabels[variation.status]}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -458,13 +537,31 @@ export function VariationDetail({ project, contract, variation, comments }: Vari
               )}
 
               {variation.status === "approved" && (
-                <div className="text-center py-4">
-                  <CheckCircle className="mx-auto size-8 text-green-500" />
-                  <p className="mt-2 text-sm font-medium">Variation Approved</p>
-                  <p className="text-xs text-muted-foreground">
-                    Approved on {formatDate(variation.approved_at)} by{" "}
-                    {variation.approved_by?.full_name || "Unknown"}
-                  </p>
+                <div className="space-y-4">
+                  <div className="text-center py-4">
+                    <CheckCircle className="mx-auto size-8 text-green-500" />
+                    <p className="mt-2 text-sm font-medium">Variation Approved</p>
+                    <p className="text-xs text-muted-foreground">
+                      Approved on {formatDate(variation.approved_at)} by{" "}
+                      {variation.approved_by?.full_name || "Unknown"}
+                    </p>
+                  </div>
+                  {isAdmin && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Revert to review to modify the variation details.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                        onClick={handleUnapprove}
+                        disabled={updating}
+                      >
+                        <RotateCcw className="mr-2 size-4" />
+                        Unapprove
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -491,42 +588,92 @@ export function VariationDetail({ project, contract, variation, comments }: Vari
               <CardTitle className="text-base">Impact</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <DollarSign className="size-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Cost Impact</p>
-                  <p
-                    className={`text-lg font-bold ${
-                      (variation.cost_impact ?? 0) > 0
-                        ? "text-red-600"
-                        : (variation.cost_impact ?? 0) < 0
-                        ? "text-green-600"
-                        : ""
-                    }`}
-                  >
-                    {(variation.cost_impact ?? 0) > 0 ? "+" : ""}
-                    {formatCurrency(variation.cost_impact ?? 0)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Calendar className="size-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Time Impact</p>
-                  <p
-                    className={`text-lg font-bold ${
-                      (variation.time_impact ?? 0) > 0
-                        ? "text-red-600"
-                        : (variation.time_impact ?? 0) < 0
-                        ? "text-green-600"
-                        : ""
-                    }`}
-                  >
-                    {(variation.time_impact ?? 0) > 0 ? "+" : ""}
-                    {variation.time_impact ?? 0} days
-                  </p>
-                </div>
-              </div>
+              {isEditingDetails ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-cost">Cost Impact ($)</Label>
+                    <Input
+                      id="edit-cost"
+                      type="number"
+                      step="0.01"
+                      value={editCostImpact}
+                      onChange={(e) => setEditCostImpact(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-time">Time Impact (days)</Label>
+                    <Input
+                      id="edit-time"
+                      type="number"
+                      step="1"
+                      value={editTimeImpact}
+                      onChange={(e) => setEditTimeImpact(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setIsEditingDetails(false);
+                        setEditTitle(variation.title);
+                        setEditCostImpact(((variation.cost_impact ?? 0) / 100).toString());
+                        setEditTimeImpact((variation.time_impact ?? 0).toString());
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={handleSaveDetails}
+                      disabled={updating || !editTitle.trim()}
+                    >
+                      {updating ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="size-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Cost Impact</p>
+                      <p
+                        className={`text-lg font-bold ${
+                          (variation.cost_impact ?? 0) > 0
+                            ? "text-red-600"
+                            : (variation.cost_impact ?? 0) < 0
+                            ? "text-green-600"
+                            : ""
+                        }`}
+                      >
+                        {(variation.cost_impact ?? 0) > 0 ? "+" : ""}
+                        {formatCurrency(variation.cost_impact ?? 0)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="size-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Time Impact</p>
+                      <p
+                        className={`text-lg font-bold ${
+                          (variation.time_impact ?? 0) > 0
+                            ? "text-red-600"
+                            : (variation.time_impact ?? 0) < 0
+                            ? "text-green-600"
+                            : ""
+                        }`}
+                      >
+                        {(variation.time_impact ?? 0) > 0 ? "+" : ""}
+                        {variation.time_impact ?? 0} days
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
