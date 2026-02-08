@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, type ReactNode } from "react";
-import { Upload, X, File } from "lucide-react";
+import { Upload, X, File as FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +13,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+
+const MAX_TOTAL_SIZE = 250 * 1024 * 1024; // 250MB
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 interface DropboxUploadDialogProps {
   projectId: string;
@@ -31,34 +39,52 @@ export function DropboxUploadDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const totalSize = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+  const sizeExceeded = totalSize > MAX_TOTAL_SIZE;
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...files]);
+      setError(null);
     }
+    // Reset input so the same files can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile) {
-      setError("Please select a file to upload");
+    if (selectedFiles.length === 0) {
+      setError("Please select at least one file to upload");
+      return;
+    }
+    if (sizeExceeded) {
+      setError("Total file size exceeds 250MB limit");
       return;
     }
 
     setLoading(true);
     setError(null);
-    setProgress(30);
+    setProgress(0);
 
     try {
       const formData = new FormData();
-      formData.append("file", selectedFile);
+      for (const file of selectedFiles) {
+        formData.append("files", file);
+      }
       formData.append("projectId", projectId);
       if (subfolder) formData.append("subfolder", subfolder);
 
-      setProgress(50);
+      setUploadStatus(`Uploading ${selectedFiles.length} file${selectedFiles.length > 1 ? "s" : ""}...`);
+      setProgress(20);
 
       const res = await fetch("/api/dropbox/upload", {
         method: "POST",
@@ -71,12 +97,14 @@ export function DropboxUploadDialog({
       }
 
       setProgress(100);
+      setUploadStatus("Done!");
       setOpen(false);
-      setSelectedFile(null);
+      setSelectedFiles([]);
       setProgress(0);
+      setUploadStatus("");
       onUploaded();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload file");
+      setError(err instanceof Error ? err.message : "Failed to upload files");
     } finally {
       setLoading(false);
     }
@@ -86,9 +114,10 @@ export function DropboxUploadDialog({
     if (!newOpen && loading) return;
     setOpen(newOpen);
     if (!newOpen) {
-      setSelectedFile(null);
+      setSelectedFiles([]);
       setError(null);
       setProgress(0);
+      setUploadStatus("");
     }
   };
 
@@ -100,7 +129,7 @@ export function DropboxUploadDialog({
           <DialogHeader>
             <DialogTitle>Upload to Dropbox</DialogTitle>
             <DialogDescription>
-              Upload a file to the linked Dropbox folder
+              Upload files to the linked Dropbox folder (max 250MB total)
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -111,46 +140,58 @@ export function DropboxUploadDialog({
               <input
                 ref={fileInputRef}
                 type="file"
+                multiple
                 className="hidden"
                 onChange={handleFileSelect}
               />
-              {selectedFile ? (
-                <div className="flex items-center justify-center gap-2">
-                  <File className="size-8 text-primary" />
-                  <div className="text-left">
-                    <p className="font-medium">{selectedFile.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedFile(null);
-                    }}
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Upload className="mx-auto size-8 text-muted-foreground" />
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Click to select a file
-                  </p>
-                </>
-              )}
+              <Upload className="mx-auto size-8 text-muted-foreground" />
+              <p className="mt-2 text-sm text-muted-foreground">
+                Click to select files
+              </p>
             </div>
+
+            {selectedFiles.length > 0 && (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {selectedFiles.map((file, i) => (
+                  <div
+                    key={`${file.name}-${i}`}
+                    className="flex items-center gap-2 rounded-md border px-3 py-2"
+                  >
+                    <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="flex-1 truncate text-sm">{file.name}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {formatSize(file.size)}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(i);
+                      }}
+                    >
+                      <X className="size-3" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                  <span>
+                    {selectedFiles.length} file{selectedFiles.length !== 1 ? "s" : ""}
+                  </span>
+                  <span className={sizeExceeded ? "text-destructive font-medium" : ""}>
+                    {formatSize(totalSize)} / 250 MB
+                  </span>
+                </div>
+              </div>
+            )}
 
             {loading && (
               <div className="space-y-2">
                 <Progress value={progress} />
                 <p className="text-xs text-center text-muted-foreground">
-                  Uploading to Dropbox...
+                  {uploadStatus}
                 </p>
               </div>
             )}
@@ -166,8 +207,13 @@ export function DropboxUploadDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !selectedFile}>
-              {loading ? "Uploading..." : "Upload"}
+            <Button
+              type="submit"
+              disabled={loading || selectedFiles.length === 0 || sizeExceeded}
+            >
+              {loading
+                ? "Uploading..."
+                : `Upload ${selectedFiles.length > 0 ? selectedFiles.length : ""} file${selectedFiles.length !== 1 ? "s" : ""}`}
             </Button>
           </DialogFooter>
         </form>

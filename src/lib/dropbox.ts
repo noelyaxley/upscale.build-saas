@@ -197,6 +197,54 @@ export async function uploadFile(
   return res.json() as Promise<DropboxEntry>;
 }
 
+export async function createFolder(
+  accessToken: string,
+  path: string
+): Promise<DropboxEntry> {
+  const res = await fetch(
+    "https://api.dropboxapi.com/2/files/create_folder_v2",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ path, autorename: false }),
+    }
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Dropbox create_folder failed: ${text}`);
+  }
+  const data = await res.json();
+  return data.metadata as DropboxEntry;
+}
+
+export async function moveEntry(
+  accessToken: string,
+  fromPath: string,
+  toPath: string
+): Promise<DropboxEntry> {
+  const res = await fetch("https://api.dropboxapi.com/2/files/move_v2", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from_path: fromPath,
+      to_path: toPath,
+      autorename: false,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Dropbox move failed: ${text}`);
+  }
+  const data = await res.json();
+  return data.metadata as DropboxEntry;
+}
+
 export async function getTemporaryLink(
   accessToken: string,
   path: string

@@ -271,12 +271,15 @@ export function ContractDetail({
   );
 
   // Financial summary
-  const totalItemsValue = items.reduce((sum, i) => sum + i.contract_value, 0);
+  const originalItemsValue = items
+    .filter((i) => !i.variation_id)
+    .reduce((sum, i) => sum + i.contract_value, 0);
   const approvedVariations = variations.filter((v) => v.status === "approved");
-  const variationsValue = approvedVariations
-    .filter((v) => !linkedVariationIds.has(v.id))
-    .reduce((sum, v) => sum + (v.cost_impact ?? 0), 0);
-  const adjustedValue = totalItemsValue + variationsValue;
+  const variationsValue = approvedVariations.reduce(
+    (sum, v) => sum + (v.cost_impact ?? 0),
+    0
+  );
+  const adjustedValue = originalItemsValue + variationsValue;
   const unapprovedVariationsValue = variations
     .filter((v) => v.status === "draft" || v.status === "submitted" || v.status === "under_review")
     .reduce((sum, v) => sum + (v.cost_impact ?? 0), 0);
@@ -766,7 +769,7 @@ export function ContractDetail({
                     <TableRow className="font-medium border-t-2">
                       <TableCell>Total</TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(totalItemsValue)}
+                        {formatCurrency(adjustedValue)}
                       </TableCell>
                       <TableCell className="text-right">
                         {totalClaimed > 0
@@ -774,11 +777,11 @@ export function ContractDetail({
                           : "-"}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(totalItemsValue - totalClaimed)}
+                        {formatCurrency(adjustedValue - totalClaimed)}
                       </TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground">
-                        {totalItemsValue > 0
-                          ? `${((totalClaimed / totalItemsValue) * 100).toFixed(0)}%`
+                        {adjustedValue > 0
+                          ? `${((totalClaimed / adjustedValue) * 100).toFixed(0)}%`
                           : "-"}
                       </TableCell>
                       <TableCell />
@@ -1178,7 +1181,7 @@ export function ContractDetail({
                     Contract Value
                   </p>
                   <p className="text-lg font-bold">
-                    {formatCurrency(totalItemsValue)}
+                    {formatCurrency(originalItemsValue)}
                   </p>
                 </div>
               </div>

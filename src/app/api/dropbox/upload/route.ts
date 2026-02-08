@@ -2,16 +2,31 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getValidAccessToken, uploadFile } from "@/lib/dropbox";
 
+const MAX_TOTAL_SIZE = 250 * 1024 * 1024; // 250MB
+
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const file = formData.get("file") as File | null;
+  const files = formData.getAll("files") as File[];
+  // Backwards-compatible: also accept single "file" key
+  const singleFile = formData.get("file") as File | null;
+  if (singleFile && files.length === 0) {
+    files.push(singleFile);
+  }
   const projectId = formData.get("projectId") as string | null;
   const subfolder = (formData.get("subfolder") as string) || "";
 
-  if (!file || !projectId) {
+  if (files.length === 0 || !projectId) {
     return NextResponse.json(
-      { error: "file and projectId are required" },
+      { error: "At least one file and projectId are required" },
       { status: 400 }
+    );
+  }
+
+  const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+  if (totalSize > MAX_TOTAL_SIZE) {
+    return NextResponse.json(
+      { error: "Total upload size exceeds 250MB limit" },
+      { status: 413 }
     );
   }
 
@@ -31,7 +46,10 @@ export async function POST(request: Request) {
     .single();
 
   if (!connection || !connection.dropbox_folder_path) {
-    return NextResponse.json({ error: "No Dropbox folder linked" }, { status: 404 });
+    return NextResponse.json(
+      { error: "No Dropbox folder linked" },
+      { status: 404 }
+    );
   }
 
   try {
@@ -39,14 +57,19 @@ export async function POST(request: Request) {
     const basePath = subfolder
       ? `${connection.dropbox_folder_path}/${subfolder}`
       : connection.dropbox_folder_path;
-    const uploadPath = `${basePath}/${file.name}`;
 
-    const arrayBuffer = await file.arrayBuffer();
+    const entries = [];
+    for (const file of files) {
+      const uploadPath = `${basePath}/${file.name}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const entry = await uploadFile(accessToken, uploadPath, arrayBuffer);
+      entries.push(entry);
+    }
 
-    const entry = await uploadFile(accessToken, uploadPath, arrayBuffer);
-    return NextResponse.json({ entry });
+    return NextResponse.json({ entries });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to upload file";
+    const message =
+      err instanceof Error ? err.message : "Failed to upload files";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

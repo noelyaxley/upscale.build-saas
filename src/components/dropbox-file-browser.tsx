@@ -1,18 +1,40 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ChevronRight,
   Download,
   File,
   FileText,
   Folder,
+  FolderInput,
+  FolderPlus,
   Image,
   Loader2,
+  MoreHorizontal,
+  Pencil,
   RefreshCw,
   Upload,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -72,46 +94,361 @@ export function DropboxFileBrowser({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const lastClickedRef = useRef<string | null>(null);
+
+  // Drag and drop
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [moving, setMoving] = useState(false);
+
+  // New folder dialog
+  const [newFolderOpen, setNewFolderOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [newFolderLoading, setNewFolderLoading] = useState(false);
+  const [newFolderError, setNewFolderError] = useState<string | null>(null);
+
+  // Rename dialog
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameEntry, setRenameEntry] = useState<DropboxEntry | null>(null);
+  const [renameName, setRenameName] = useState("");
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
+
+  // Move-to dialog
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+  const [moveDialogPath, setMoveDialogPath] = useState("");
+  const [moveDialogEntries, setMoveDialogEntries] = useState<DropboxEntry[]>(
+    []
+  );
+  const [moveDialogLoading, setMoveDialogLoading] = useState(false);
+  const [moveLoading, setMoveLoading] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
+
   const pathParts = subpath ? subpath.split("/").filter(Boolean) : [];
 
-  const fetchEntries = useCallback(async (sub: string) => {
-    setLoading(true);
-    setError(null);
+  const allEntries = [
+    ...entries.filter((e) => e[".tag"] === "folder"),
+    ...entries.filter((e) => e[".tag"] === "file"),
+  ];
+
+  const folders = entries.filter((e) => e[".tag"] === "folder");
+  const files = entries.filter((e) => e[".tag"] === "file");
+
+  // ── Fetch entries ──
+
+  const fetchEntries = useCallback(
+    async (sub: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({ projectId });
+        if (sub) params.set("subpath", sub);
+        const res = await fetch(`/api/dropbox/list?${params}`);
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to load files");
+        }
+        const data = await res.json();
+        setEntries(data.entries);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load files");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [projectId]
+  );
+
+  useEffect(() => {
+    fetchEntries(subpath);
+  }, [subpath, fetchEntries]);
+
+  // ── Navigation ──
+
+  const navigateToFolder = (entry: DropboxEntry) => {
+    const relativePath = entry.path_display
+      .slice(dropboxFolderPath.length)
+      .replace(/^\//, "");
+    setSubpath(relativePath);
+    setSelectedIds(new Set());
+  };
+
+  const navigateToSubpath = (sub: string) => {
+    setSubpath(sub);
+    setSelectedIds(new Set());
+  };
+
+  // ── Selection ──
+
+  const toggleSelection = (
+    id: string,
+    e: React.MouseEvent | React.PointerEvent
+  ) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+
+      if (e.shiftKey && lastClickedRef.current) {
+        // Range select
+        const ids = allEntries.map((en) => en.id);
+        const from = ids.indexOf(lastClickedRef.current);
+        const to = ids.indexOf(id);
+        if (from !== -1 && to !== -1) {
+          const [start, end] = from < to ? [from, to] : [to, from];
+          for (let i = start; i <= end; i++) {
+            next.add(ids[i]);
+          }
+        }
+      } else if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+
+      lastClickedRef.current = id;
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === allEntries.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allEntries.map((e) => e.id)));
+    }
+  };
+
+  const selectedEntries = allEntries.filter((e) => selectedIds.has(e.id));
+
+  // ── Move (shared handler for drag-drop & move dialog) ──
+
+  const moveSelectedTo = async (destinationPath: string) => {
+    const paths = selectedEntries.map((e) => e.path_display);
+    if (paths.length === 0) return;
+
+    setMoving(true);
+    try {
+      const res = await fetch("/api/dropbox/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          entries: paths,
+          destinationFolder: destinationPath,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to move files");
+      }
+      setSelectedIds(new Set());
+      fetchEntries(subpath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to move files");
+    } finally {
+      setMoving(false);
+    }
+  };
+
+  // ── Drag & Drop ──
+
+  const handleDragStart = (e: React.DragEvent, entry: DropboxEntry) => {
+    // If dragging an unselected item, select only it
+    if (!selectedIds.has(entry.id)) {
+      setSelectedIds(new Set([entry.id]));
+    }
+
+    const dragging = selectedIds.has(entry.id) ? selectedEntries : [entry];
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify(dragging.map((en) => en.path_display))
+    );
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, entry: DropboxEntry) => {
+    if (entry[".tag"] !== "folder" || selectedIds.has(entry.id)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverId(entry.id);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverId(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetFolder: DropboxEntry) => {
+    e.preventDefault();
+    setDragOverId(null);
+    if (targetFolder[".tag"] !== "folder" || selectedIds.has(targetFolder.id))
+      return;
+
+    try {
+      const paths = JSON.parse(
+        e.dataTransfer.getData("application/json")
+      ) as string[];
+      if (paths.length === 0) return;
+
+      setMoving(true);
+      const res = await fetch("/api/dropbox/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          entries: paths,
+          destinationFolder: targetFolder.path_display,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to move files");
+      }
+      setSelectedIds(new Set());
+      fetchEntries(subpath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to move files");
+    } finally {
+      setMoving(false);
+    }
+  };
+
+  // ── Create Folder ──
+
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFolderName.trim()) return;
+
+    setNewFolderLoading(true);
+    setNewFolderError(null);
+    try {
+      const res = await fetch("/api/dropbox/create-folder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          subfolder: subpath,
+          folderName: newFolderName.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create folder");
+      }
+      setNewFolderOpen(false);
+      setNewFolderName("");
+      fetchEntries(subpath);
+    } catch (err) {
+      setNewFolderError(
+        err instanceof Error ? err.message : "Failed to create folder"
+      );
+    } finally {
+      setNewFolderLoading(false);
+    }
+  };
+
+  // ── Rename ──
+
+  const openRename = (entry: DropboxEntry) => {
+    setRenameEntry(entry);
+    setRenameName(entry.name);
+    setRenameError(null);
+    setRenameOpen(true);
+  };
+
+  const handleRename = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renameEntry || !renameName.trim()) return;
+
+    setRenameLoading(true);
+    setRenameError(null);
+    try {
+      const res = await fetch("/api/dropbox/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          fromPath: renameEntry.path_display,
+          newName: renameName.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to rename");
+      }
+      setRenameOpen(false);
+      setRenameEntry(null);
+      setRenameName("");
+      fetchEntries(subpath);
+    } catch (err) {
+      setRenameError(
+        err instanceof Error ? err.message : "Failed to rename"
+      );
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
+  // ── Move To Dialog ──
+
+  const openMoveDialog = () => {
+    setMoveDialogPath("");
+    setMoveError(null);
+    setMoveDialogOpen(true);
+    fetchMoveDialogEntries("");
+  };
+
+  const fetchMoveDialogEntries = async (sub: string) => {
+    setMoveDialogLoading(true);
     try {
       const params = new URLSearchParams({ projectId });
       if (sub) params.set("subpath", sub);
       const res = await fetch(`/api/dropbox/list?${params}`);
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to load files");
+        throw new Error(data.error || "Failed to load folders");
       }
       const data = await res.json();
-      setEntries(data.entries);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load files");
+      setMoveDialogEntries(
+        (data.entries as DropboxEntry[]).filter((e) => e[".tag"] === "folder")
+      );
+    } catch {
+      setMoveDialogEntries([]);
     } finally {
-      setLoading(false);
+      setMoveDialogLoading(false);
     }
-  }, [projectId]);
-
-  useEffect(() => {
-    fetchEntries(subpath);
-  }, [subpath, fetchEntries]);
-
-  const navigateToFolder = (entry: DropboxEntry) => {
-    // Calculate subpath relative to the project's dropbox folder
-    const relativePath = entry.path_display
-      .slice(dropboxFolderPath.length)
-      .replace(/^\//, "");
-    setSubpath(relativePath);
   };
 
-  const navigateToSubpath = (sub: string) => {
-    setSubpath(sub);
+  const moveDialogNavigate = (sub: string) => {
+    setMoveDialogPath(sub);
+    fetchMoveDialogEntries(sub);
   };
 
-  const folders = entries.filter((e) => e[".tag"] === "folder");
-  const files = entries.filter((e) => e[".tag"] === "file");
+  const moveDialogPathParts = moveDialogPath
+    ? moveDialogPath.split("/").filter(Boolean)
+    : [];
+
+  const currentMoveDestination = moveDialogPath
+    ? `${dropboxFolderPath}/${moveDialogPath}`
+    : dropboxFolderPath;
+
+  const currentMoveDestinationLabel = moveDialogPath
+    ? moveDialogPathParts[moveDialogPathParts.length - 1]
+    : "Root";
+
+  const handleMoveConfirm = async () => {
+    setMoveLoading(true);
+    setMoveError(null);
+    try {
+      await moveSelectedTo(currentMoveDestination);
+      setMoveDialogOpen(false);
+    } catch (err) {
+      setMoveError(err instanceof Error ? err.message : "Failed to move");
+    } finally {
+      setMoveLoading(false);
+    }
+  };
+
+  // ── Render ──
 
   return (
     <div className="space-y-4">
@@ -153,8 +490,22 @@ export function DropboxFileBrowser({
             onClick={() => fetchEntries(subpath)}
             disabled={loading}
           >
-            <RefreshCw className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`}
+            />
             Refresh
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setNewFolderName("");
+              setNewFolderError(null);
+              setNewFolderOpen(true);
+            }}
+          >
+            <FolderPlus className="mr-2 size-4" />
+            New Folder
           </Button>
           <DropboxUploadDialog
             projectId={projectId}
@@ -168,6 +519,35 @@ export function DropboxFileBrowser({
           </DropboxUploadDialog>
         </div>
       </div>
+
+      {/* Selection toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-md border bg-muted/50 px-3 py-2">
+          <span className="text-sm font-medium">
+            {selectedIds.size} selected
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={openMoveDialog}
+            disabled={moving}
+          >
+            <FolderInput className="mr-2 size-4" />
+            Move to...
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            <X className="mr-2 size-4" />
+            Clear
+          </Button>
+          {moving && (
+            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+          )}
+        </div>
+      )}
 
       {/* Content */}
       {loading ? (
@@ -197,6 +577,16 @@ export function DropboxFileBrowser({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[40px]">
+                <Checkbox
+                  checked={
+                    allEntries.length > 0 &&
+                    selectedIds.size === allEntries.length
+                  }
+                  onCheckedChange={selectAll}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Size</TableHead>
               <TableHead>Modified</TableHead>
@@ -204,27 +594,79 @@ export function DropboxFileBrowser({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {folders.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell>
-                  <button
-                    type="button"
-                    onClick={() => navigateToFolder(entry)}
-                    className="flex items-center gap-2 hover:underline"
-                  >
-                    <Folder className="size-4 text-primary" />
-                    <span className="font-medium">{entry.name}</span>
-                  </button>
-                </TableCell>
-                <TableCell>-</TableCell>
-                <TableCell>-</TableCell>
-                <TableCell />
-              </TableRow>
-            ))}
+            {folders.map((entry) => {
+              const isSelected = selectedIds.has(entry.id);
+              const isDropTarget = dragOverId === entry.id;
+              return (
+                <TableRow
+                  key={entry.id}
+                  draggable={isSelected}
+                  onDragStart={(e) => handleDragStart(e, entry)}
+                  onDragOver={(e) => handleDragOver(e, entry)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, entry)}
+                  className={`${isSelected ? "bg-primary/5" : ""} ${isDropTarget ? "ring-2 ring-inset ring-primary bg-primary/10" : ""}`}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={isSelected}
+                      onClick={(e) => toggleSelection(entry.id, e)}
+                      onCheckedChange={() => {}}
+                      aria-label={`Select ${entry.name}`}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <button
+                      type="button"
+                      onClick={() => navigateToFolder(entry)}
+                      className="flex items-center gap-2 hover:underline"
+                    >
+                      <Folder className="size-4 text-primary" />
+                      <span className="font-medium">{entry.name}</span>
+                    </button>
+                  </TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8"
+                        >
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openRename(entry)}>
+                          <Pencil className="mr-2 size-4" />
+                          Rename
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {files.map((entry) => {
               const FileIcon = getFileIcon(entry.name);
+              const isSelected = selectedIds.has(entry.id);
               return (
-                <TableRow key={entry.id}>
+                <TableRow
+                  key={entry.id}
+                  draggable={isSelected}
+                  onDragStart={(e) => handleDragStart(e, entry)}
+                  className={isSelected ? "bg-primary/5" : ""}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={isSelected}
+                      onClick={(e) => toggleSelection(entry.id, e)}
+                      onCheckedChange={() => {}}
+                      aria-label={`Select ${entry.name}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <FileIcon className="size-4 text-muted-foreground" />
@@ -235,7 +677,12 @@ export function DropboxFileBrowser({
                   <TableCell>{formatDate(entry.server_modified)}</TableCell>
                   <TableCell>
                     {entry.temporary_link && (
-                      <Button variant="ghost" size="icon" className="size-8" asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        asChild
+                      >
                         <a
                           href={entry.temporary_link}
                           target="_blank"
@@ -252,6 +699,197 @@ export function DropboxFileBrowser({
           </TableBody>
         </Table>
       )}
+
+      {/* New Folder Dialog */}
+      <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <form onSubmit={handleCreateFolder}>
+            <DialogHeader>
+              <DialogTitle>New Folder</DialogTitle>
+              <DialogDescription>
+                Create a new folder in the current directory
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="folder-name">Folder name</Label>
+                <Input
+                  id="folder-name"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="New folder"
+                  autoFocus
+                />
+              </div>
+              {newFolderError && (
+                <p className="text-sm text-destructive">{newFolderError}</p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setNewFolderOpen(false)}
+                disabled={newFolderLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={newFolderLoading || !newFolderName.trim()}
+              >
+                {newFolderLoading ? "Creating..." : "Create"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Dialog */}
+      <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <form onSubmit={handleRename}>
+            <DialogHeader>
+              <DialogTitle>Rename Folder</DialogTitle>
+              <DialogDescription>
+                Enter a new name for &ldquo;{renameEntry?.name}&rdquo;
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="rename-name">Name</Label>
+                <Input
+                  id="rename-name"
+                  value={renameName}
+                  onChange={(e) => setRenameName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              {renameError && (
+                <p className="text-sm text-destructive">{renameError}</p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRenameOpen(false)}
+                disabled={renameLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  renameLoading ||
+                  !renameName.trim() ||
+                  renameName === renameEntry?.name
+                }
+              >
+                {renameLoading ? "Renaming..." : "Rename"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Move To Dialog */}
+      <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Move to folder</DialogTitle>
+            <DialogDescription>
+              Move {selectedIds.size} item{selectedIds.size !== 1 ? "s" : ""} to
+              a folder
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {/* Breadcrumbs */}
+            <nav className="flex items-center gap-1 text-sm">
+              <button
+                type="button"
+                onClick={() => moveDialogNavigate("")}
+                className="text-muted-foreground hover:text-foreground hover:underline"
+              >
+                Root
+              </button>
+              {moveDialogPathParts.map((part, i) => {
+                const sub = moveDialogPathParts.slice(0, i + 1).join("/");
+                const isLast = i === moveDialogPathParts.length - 1;
+                return (
+                  <span key={sub} className="flex items-center gap-1">
+                    <ChevronRight className="size-4 text-muted-foreground" />
+                    {isLast ? (
+                      <span className="font-medium">{part}</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => moveDialogNavigate(sub)}
+                        className="text-muted-foreground hover:text-foreground hover:underline"
+                      >
+                        {part}
+                      </button>
+                    )}
+                  </span>
+                );
+              })}
+            </nav>
+
+            {/* Folder list */}
+            <div className="max-h-64 overflow-y-auto rounded-md border">
+              {moveDialogLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : moveDialogEntries.length === 0 ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  No subfolders
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {moveDialogEntries.map((entry) => {
+                    // Compute relative subpath for navigation
+                    const relativePath = entry.path_display
+                      .slice(dropboxFolderPath.length)
+                      .replace(/^\//, "");
+                    return (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        onClick={() => moveDialogNavigate(relativePath)}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted/50"
+                      >
+                        <Folder className="size-4 text-primary" />
+                        <span>{entry.name}</span>
+                        <ChevronRight className="ml-auto size-4 text-muted-foreground" />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {moveError && (
+              <p className="text-sm text-destructive">{moveError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setMoveDialogOpen(false)}
+              disabled={moveLoading}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleMoveConfirm} disabled={moveLoading}>
+              {moveLoading
+                ? "Moving..."
+                : `Move to ${currentMoveDestinationLabel}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
