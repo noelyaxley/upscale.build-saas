@@ -1,288 +1,625 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { useCallback, useMemo, useReducer, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Calculator,
-  ChevronRight,
+  MapPin,
   DollarSign,
-  Plus,
-  Save,
-  TrendingUp,
+  ShoppingCart,
+  Landmark,
+  BarChart3,
+  FileSpreadsheet,
 } from "lucide-react";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { CreateScenarioDialog } from "@/components/create-scenario-dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type {
+  FeasibilityState,
+  FeasibilityAction,
+  LandLot,
+  LineItem,
+  SalesUnit,
+  DebtFacility,
+  DebtLoan,
+  EquityPartner,
+  GstStatus,
+  RateType,
+  SaleStatus,
+  LoanType,
+  LvrMethod,
+} from "@/lib/feasibility/types";
+import { computeSummary } from "@/lib/feasibility/calculations";
+import { ScenarioHeader } from "./components/scenario-header";
+import { LandTab } from "./components/land-tab";
+import { CostsTab } from "./components/costs-tab";
+import { SalesTab } from "./components/sales-tab";
+import { FundingTab } from "./components/funding-tab";
+import { SummaryTab } from "./components/summary-tab";
+import { FinancialsTab } from "./components/financials-tab";
 
 type Scenario = Tables<"feasibility_scenarios">;
+
+// Map DB row to typed domain objects
+function mapLandLot(row: Record<string, unknown>): LandLot {
+  return {
+    id: row.id as string,
+    scenario_id: row.scenario_id as string,
+    name: (row.name as string) ?? "Lot",
+    land_size_m2: row.land_size_m2 as number | null,
+    address: row.address as string | null,
+    suburb: row.suburb as string | null,
+    state: row.state as string | null,
+    postcode: row.postcode as string | null,
+    entity_gst_registered: (row.entity_gst_registered as boolean) ?? false,
+    land_purchase_gst_included:
+      (row.land_purchase_gst_included as boolean) ?? false,
+    margin_scheme_applied: (row.margin_scheme_applied as boolean) ?? false,
+    land_rate: (row.land_rate as number) ?? 0,
+    purchase_price: (row.purchase_price as number) ?? 0,
+    deposit_amount: (row.deposit_amount as number) ?? 0,
+    deposit_pct: (row.deposit_pct as number) ?? 10,
+    sort_order: (row.sort_order as number) ?? 0,
+  };
+}
+
+function mapLineItem(row: Record<string, unknown>): LineItem {
+  return {
+    id: row.id as string,
+    scenario_id: row.scenario_id as string,
+    section: row.section as LineItem["section"],
+    tab_name: (row.tab_name as string) ?? "Default",
+    land_lot_id: row.land_lot_id as string | null,
+    parent_entity_id: row.parent_entity_id as string | null,
+    name: (row.name as string) ?? "Item",
+    quantity: (row.quantity as number) ?? 1,
+    rate_type: (row.rate_type as RateType) ?? "$ Amount",
+    rate: (row.rate as number) ?? 0,
+    gst_status: (row.gst_status as GstStatus) ?? "exclusive",
+    amount_ex_gst: (row.amount_ex_gst as number) ?? 0,
+    cashflow_start_month: row.cashflow_start_month as number | null,
+    cashflow_span_months: (row.cashflow_span_months as number) ?? 1,
+    sort_order: (row.sort_order as number) ?? 0,
+  };
+}
+
+function mapSalesUnit(row: Record<string, unknown>): SalesUnit {
+  return {
+    id: row.id as string,
+    scenario_id: row.scenario_id as string,
+    tab_name: (row.tab_name as string) ?? "Residential",
+    name: (row.name as string) ?? "Unit",
+    status: (row.status as SaleStatus) ?? "unsold",
+    bedrooms: (row.bedrooms as number) ?? 0,
+    bathrooms: (row.bathrooms as number) ?? 0,
+    car_spaces: (row.car_spaces as number) ?? 0,
+    area_m2: row.area_m2 as number | null,
+    sale_price: (row.sale_price as number) ?? 0,
+    gst_status: (row.gst_status as GstStatus) ?? "exclusive",
+    amount_ex_gst: (row.amount_ex_gst as number) ?? 0,
+    sort_order: (row.sort_order as number) ?? 0,
+  };
+}
+
+function mapDebtFacility(row: Record<string, unknown>): DebtFacility {
+  return {
+    id: row.id as string,
+    scenario_id: row.scenario_id as string,
+    name: (row.name as string) ?? "Facility",
+    priority: (row.priority as string) ?? "senior",
+    calculation_type: (row.calculation_type as string) ?? "manual",
+    term_months: (row.term_months as number) ?? 24,
+    lvr_method: (row.lvr_method as LvrMethod) ?? "tdc",
+    lvr_pct: (row.lvr_pct as number) ?? 65,
+    interest_rate: (row.interest_rate as number) ?? 0,
+    total_facility: (row.total_facility as number) ?? 0,
+    interest_provision: (row.interest_provision as number) ?? 0,
+    sort_order: (row.sort_order as number) ?? 0,
+  };
+}
+
+function mapDebtLoan(row: Record<string, unknown>): DebtLoan {
+  return {
+    id: row.id as string,
+    scenario_id: row.scenario_id as string,
+    name: (row.name as string) ?? "Loan",
+    principal_amount: (row.principal_amount as number) ?? 0,
+    interest_rate: (row.interest_rate as number) ?? 0,
+    payment_period: (row.payment_period as string) ?? "monthly",
+    term_months: (row.term_months as number) ?? 12,
+    loan_type: (row.loan_type as LoanType) ?? "interest_only",
+    sort_order: (row.sort_order as number) ?? 0,
+  };
+}
+
+function mapEquityPartner(row: Record<string, unknown>): EquityPartner {
+  return {
+    id: row.id as string,
+    scenario_id: row.scenario_id as string,
+    name: (row.name as string) ?? "Partner",
+    is_developer_equity: (row.is_developer_equity as boolean) ?? false,
+    distribution_type: (row.distribution_type as string) ?? "proportional",
+    equity_amount: (row.equity_amount as number) ?? 0,
+    return_percentage: (row.return_percentage as number) ?? 0,
+    sort_order: (row.sort_order as number) ?? 0,
+  };
+}
+
+function scenarioToFields(
+  s: Scenario
+): FeasibilityState["scenario"] {
+  return {
+    id: s.id,
+    name: s.name,
+    project_id: s.project_id,
+    org_id: s.org_id,
+    development_type:
+      (s as Record<string, unknown>).development_type as string ?? "residential",
+    project_length_months:
+      (s as Record<string, unknown>).project_length_months as number ?? 24,
+    project_lots:
+      (s as Record<string, unknown>).project_lots as number ?? 1,
+    start_date:
+      (s as Record<string, unknown>).start_date as string | null ?? null,
+    state: (s as Record<string, unknown>).state as string ?? "NSW",
+    site_area: s.site_area,
+    fsr: s.fsr,
+    max_height: s.max_height,
+    zoning: s.zoning,
+    gfa: s.gfa,
+    nsa: s.nsa,
+    efficiency: s.efficiency,
+    sale_rate: s.sale_rate,
+    total_revenue: s.total_revenue,
+    site_cost: s.site_cost,
+    construction_cost: s.construction_cost,
+    professional_fees: s.professional_fees,
+    statutory_fees: s.statutory_fees,
+    finance_costs: s.finance_costs,
+    marketing_costs: s.marketing_costs,
+    contingency: s.contingency,
+    total_costs: s.total_costs,
+    profit: s.profit,
+    profit_on_cost: s.profit_on_cost,
+    notes: s.notes,
+  };
+}
+
+function feasibilityReducer(
+  state: FeasibilityState,
+  action: FeasibilityAction
+): FeasibilityState {
+  switch (action.type) {
+    case "LOAD_ALL":
+      return action.payload;
+
+    case "UPDATE_SCENARIO":
+      return {
+        ...state,
+        scenario: { ...state.scenario, ...action.payload },
+      };
+
+    case "ADD_LAND_LOT":
+      return { ...state, landLots: [...state.landLots, action.payload] };
+    case "UPDATE_LAND_LOT":
+      return {
+        ...state,
+        landLots: state.landLots.map((l) =>
+          l.id === action.payload.id
+            ? { ...l, ...action.payload.changes }
+            : l
+        ),
+      };
+    case "REMOVE_LAND_LOT":
+      return {
+        ...state,
+        landLots: state.landLots.filter((l) => l.id !== action.payload),
+        lineItems: state.lineItems.filter(
+          (i) => i.land_lot_id !== action.payload
+        ),
+      };
+
+    case "ADD_LINE_ITEM":
+      return { ...state, lineItems: [...state.lineItems, action.payload] };
+    case "UPDATE_LINE_ITEM":
+      return {
+        ...state,
+        lineItems: state.lineItems.map((i) =>
+          i.id === action.payload.id
+            ? { ...i, ...action.payload.changes }
+            : i
+        ),
+      };
+    case "REMOVE_LINE_ITEM":
+      return {
+        ...state,
+        lineItems: state.lineItems.filter((i) => i.id !== action.payload),
+      };
+
+    case "ADD_SALES_UNIT":
+      return { ...state, salesUnits: [...state.salesUnits, action.payload] };
+    case "UPDATE_SALES_UNIT":
+      return {
+        ...state,
+        salesUnits: state.salesUnits.map((u) =>
+          u.id === action.payload.id
+            ? { ...u, ...action.payload.changes }
+            : u
+        ),
+      };
+    case "REMOVE_SALES_UNIT":
+      return {
+        ...state,
+        salesUnits: state.salesUnits.filter((u) => u.id !== action.payload),
+      };
+
+    case "ADD_DEBT_FACILITY":
+      return {
+        ...state,
+        debtFacilities: [...state.debtFacilities, action.payload],
+      };
+    case "UPDATE_DEBT_FACILITY":
+      return {
+        ...state,
+        debtFacilities: state.debtFacilities.map((f) =>
+          f.id === action.payload.id
+            ? { ...f, ...action.payload.changes }
+            : f
+        ),
+      };
+    case "REMOVE_DEBT_FACILITY":
+      return {
+        ...state,
+        debtFacilities: state.debtFacilities.filter(
+          (f) => f.id !== action.payload
+        ),
+      };
+
+    case "ADD_DEBT_LOAN":
+      return { ...state, debtLoans: [...state.debtLoans, action.payload] };
+    case "UPDATE_DEBT_LOAN":
+      return {
+        ...state,
+        debtLoans: state.debtLoans.map((l) =>
+          l.id === action.payload.id
+            ? { ...l, ...action.payload.changes }
+            : l
+        ),
+      };
+    case "REMOVE_DEBT_LOAN":
+      return {
+        ...state,
+        debtLoans: state.debtLoans.filter((l) => l.id !== action.payload),
+      };
+
+    case "ADD_EQUITY_PARTNER":
+      return {
+        ...state,
+        equityPartners: [...state.equityPartners, action.payload],
+      };
+    case "UPDATE_EQUITY_PARTNER":
+      return {
+        ...state,
+        equityPartners: state.equityPartners.map((e) =>
+          e.id === action.payload.id
+            ? { ...e, ...action.payload.changes }
+            : e
+        ),
+      };
+    case "REMOVE_EQUITY_PARTNER":
+      return {
+        ...state,
+        equityPartners: state.equityPartners.filter(
+          (e) => e.id !== action.payload
+        ),
+      };
+
+    default:
+      return state;
+  }
+}
 
 interface FeasibilityViewProps {
   project: { id: string; code: string; name: string };
   scenarios: Scenario[];
+  activeScenarioId: string | null;
+  initialLandLots: Record<string, unknown>[];
+  initialLineItems: Record<string, unknown>[];
+  initialSalesUnits: Record<string, unknown>[];
+  initialDebtFacilities: Record<string, unknown>[];
+  initialDebtLoans: Record<string, unknown>[];
+  initialEquityPartners: Record<string, unknown>[];
 }
 
-function formatCurrency(cents: number): string {
-  if (cents === 0) return "$0";
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
+function buildInitialState(
+  scenarios: Scenario[],
+  activeScenarioId: string | null,
+  initialLandLots: Record<string, unknown>[],
+  initialLineItems: Record<string, unknown>[],
+  initialSalesUnits: Record<string, unknown>[],
+  initialDebtFacilities: Record<string, unknown>[],
+  initialDebtLoans: Record<string, unknown>[],
+  initialEquityPartners: Record<string, unknown>[]
+): FeasibilityState {
+  const scenario = scenarios.find((s) => s.id === activeScenarioId);
+  const emptyScenario: FeasibilityState["scenario"] = {
+    id: "",
+    name: "",
+    project_id: "",
+    org_id: "",
+    development_type: "residential",
+    project_length_months: 24,
+    project_lots: 1,
+    start_date: null,
+    state: "NSW",
+    site_area: null,
+    fsr: null,
+    max_height: null,
+    zoning: null,
+    gfa: null,
+    nsa: null,
+    efficiency: null,
+    sale_rate: null,
+    total_revenue: null,
+    site_cost: null,
+    construction_cost: null,
+    professional_fees: null,
+    statutory_fees: null,
+    finance_costs: null,
+    marketing_costs: null,
+    contingency: null,
+    total_costs: null,
+    profit: null,
+    profit_on_cost: null,
+    notes: null,
+  };
+
+  return {
+    scenario: scenario ? scenarioToFields(scenario) : emptyScenario,
+    landLots: initialLandLots.map(mapLandLot),
+    lineItems: initialLineItems.map(mapLineItem),
+    salesUnits: initialSalesUnits.map(mapSalesUnit),
+    debtFacilities: initialDebtFacilities.map(mapDebtFacility),
+    debtLoans: initialDebtLoans.map(mapDebtLoan),
+    equityPartners: initialEquityPartners.map(mapEquityPartner),
+  };
 }
-
-function centsToDisplay(cents: number | null): string {
-  if (!cents) return "";
-  return (cents / 100).toString();
-}
-
-function displayToCents(val: string): number {
-  if (!val) return 0;
-  return Math.round(parseFloat(val) * 100);
-}
-
-const costColors = [
-  { label: "Site Acquisition", key: "siteCost", color: "bg-red-500" },
-  { label: "Construction", key: "constructionCost", color: "bg-orange-500" },
-  { label: "Professional Fees", key: "professionalFees", color: "bg-amber-500" },
-  { label: "Statutory Fees", key: "statutoryFees", color: "bg-yellow-500" },
-  { label: "Finance", key: "financeCosts", color: "bg-lime-500" },
-  { label: "Marketing", key: "marketingCosts", color: "bg-green-500" },
-  { label: "Contingency", key: "contingency", color: "bg-teal-500" },
-] as const;
-
-type CostKey = (typeof costColors)[number]["key"];
-
-interface FormState {
-  siteArea: string;
-  fsr: string;
-  maxHeight: string;
-  zoning: string;
-  efficiency: string;
-  saleRate: string;
-  siteCost: string;
-  constructionCost: string;
-  professionalFees: string;
-  statutoryFees: string;
-  financeCosts: string;
-  marketingCosts: string;
-  contingency: string;
-}
-
-const emptyForm: FormState = {
-  siteArea: "",
-  fsr: "",
-  maxHeight: "",
-  zoning: "",
-  efficiency: "80",
-  saleRate: "",
-  siteCost: "",
-  constructionCost: "",
-  professionalFees: "",
-  statutoryFees: "",
-  financeCosts: "",
-  marketingCosts: "",
-  contingency: "",
-};
 
 export function FeasibilityView({
   project,
   scenarios,
+  activeScenarioId,
+  initialLandLots,
+  initialLineItems,
+  initialSalesUnits,
+  initialDebtFacilities,
+  initialDebtLoans,
+  initialEquityPartners,
 }: FeasibilityViewProps) {
   const router = useRouter();
   const supabase = createClient();
-
-  const [selectedId, setSelectedId] = useState<string>("");
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<FormState>(emptyForm);
 
-  // Derived calculations
-  const siteArea = parseFloat(form.siteArea) || 0;
-  const fsr = parseFloat(form.fsr) || 0;
-  const efficiency = parseFloat(form.efficiency) || 80;
-  const saleRate = displayToCents(form.saleRate); // cents per sqm
-
-  const gfa = siteArea * fsr;
-  const nsa = gfa * (efficiency / 100);
-  const totalRevenue = Math.round(nsa * saleRate); // cents
-
-  const costs: Record<CostKey, number> = {
-    siteCost: displayToCents(form.siteCost),
-    constructionCost: displayToCents(form.constructionCost),
-    professionalFees: displayToCents(form.professionalFees),
-    statutoryFees: displayToCents(form.statutoryFees),
-    financeCosts: displayToCents(form.financeCosts),
-    marketingCosts: displayToCents(form.marketingCosts),
-    contingency: displayToCents(form.contingency),
-  };
-
-  const totalCosts = Object.values(costs).reduce((a, b) => a + b, 0);
-  const profit = totalRevenue - totalCosts;
-  const profitOnCost = totalCosts > 0 ? (profit / totalCosts) * 100 : 0;
-
-  // Load scenario into form
-  const loadScenario = useCallback(
-    (scenario: Scenario) => {
-      setForm({
-        siteArea: scenario.site_area ? String(scenario.site_area) : "",
-        fsr: scenario.fsr ? String(scenario.fsr) : "",
-        maxHeight: scenario.max_height ? String(scenario.max_height) : "",
-        zoning: scenario.zoning || "",
-        efficiency: scenario.efficiency ? String(scenario.efficiency) : "80",
-        saleRate: centsToDisplay(scenario.sale_rate),
-        siteCost: centsToDisplay(scenario.site_cost),
-        constructionCost: centsToDisplay(scenario.construction_cost),
-        professionalFees: centsToDisplay(scenario.professional_fees),
-        statutoryFees: centsToDisplay(scenario.statutory_fees),
-        financeCosts: centsToDisplay(scenario.finance_costs),
-        marketingCosts: centsToDisplay(scenario.marketing_costs),
-        contingency: centsToDisplay(scenario.contingency),
-      });
-    },
-    []
+  const [state, dispatch] = useReducer(
+    feasibilityReducer,
+    undefined,
+    () =>
+      buildInitialState(
+        scenarios,
+        activeScenarioId,
+        initialLandLots,
+        initialLineItems,
+        initialSalesUnits,
+        initialDebtFacilities,
+        initialDebtLoans,
+        initialEquityPartners
+      )
   );
 
-  // When selecting a scenario
-  const handleSelectScenario = (id: string) => {
-    setSelectedId(id);
-    if (id === "new") {
-      setForm(emptyForm);
-      setSelectedId("");
-      return;
-    }
-    const scenario = scenarios.find((s) => s.id === id);
-    if (scenario) loadScenario(scenario);
-  };
+  const summary = useMemo(() => computeSummary(state), [state]);
 
-  // Load first scenario on mount
-  useEffect(() => {
-    if (scenarios.length > 0 && !selectedId) {
-      setSelectedId(scenarios[0].id);
-      loadScenario(scenarios[0]);
-    }
-  }, [scenarios, selectedId, loadScenario]);
+  const handleSelectScenario = useCallback(
+    (id: string) => {
+      router.push(`/projects/${project.id}/feasibility?scenario=${id}`);
+    },
+    [router, project.id]
+  );
 
-  // Save to DB
-  const handleSave = async () => {
-    if (!selectedId) return;
+  const handleSave = useCallback(async () => {
+    if (!state.scenario.id) return;
     setSaving(true);
+
     try {
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+
+      // 1. Update scenario
+      await supabase
         .from("feasibility_scenarios")
         .update({
-          site_area: parseFloat(form.siteArea) || null,
-          fsr: parseFloat(form.fsr) || null,
-          max_height: parseFloat(form.maxHeight) || null,
-          zoning: form.zoning || null,
-          efficiency: parseFloat(form.efficiency) || 80,
-          gfa: gfa || null,
-          nsa: nsa || null,
-          sale_rate: saleRate || 0,
-          total_revenue: totalRevenue,
-          site_cost: costs.siteCost,
-          construction_cost: costs.constructionCost,
-          professional_fees: costs.professionalFees,
-          statutory_fees: costs.statutoryFees,
-          finance_costs: costs.financeCosts,
-          marketing_costs: costs.marketingCosts,
-          contingency: costs.contingency,
-          total_costs: totalCosts,
-          profit,
-          profit_on_cost: Math.round(profitOnCost * 100) / 100,
-        })
-        .eq("id", selectedId);
+          development_type: state.scenario.development_type,
+          project_length_months: state.scenario.project_length_months,
+          project_lots: state.scenario.project_lots,
+          start_date: state.scenario.start_date,
+          state: state.scenario.state,
+          // Update legacy cache fields from summary
+          total_revenue: summary.totalRevenue,
+          site_cost: summary.landCost,
+          construction_cost: summary.constructionCosts,
+          professional_fees: summary.professionalFees,
+          statutory_fees: summary.devFees,
+          finance_costs: summary.totalFundingCosts,
+          contingency: summary.contingencyCosts,
+          total_costs: summary.totalCosts,
+          profit: summary.profit,
+          profit_on_cost:
+            Math.round(summary.profitOnCost * 100) / 100,
+        } as Record<string, unknown>)
+        .eq("id", state.scenario.id);
 
-      if (error) throw error;
+      // 2. Delete-reinsert all child tables
+      const scenarioId = state.scenario.id;
+
+      // Delete existing children
+      await Promise.all([
+        db.from("feasibility_land_lots").delete().eq("scenario_id", scenarioId).then(),
+        db.from("feasibility_line_items").delete().eq("scenario_id", scenarioId).then(),
+        db.from("feasibility_sales_units").delete().eq("scenario_id", scenarioId).then(),
+        db.from("feasibility_debt_facilities").delete().eq("scenario_id", scenarioId).then(),
+        db.from("feasibility_debt_loans").delete().eq("scenario_id", scenarioId).then(),
+        db.from("feasibility_equity_partners").delete().eq("scenario_id", scenarioId).then(),
+      ]);
+
+      // Insert new children (only if arrays are non-empty)
+      const inserts: Promise<unknown>[] = [];
+
+      if (state.landLots.length > 0) {
+        inserts.push(
+          db.from("feasibility_land_lots").insert(
+            state.landLots.map((l, i) => ({
+              id: l.id,
+              scenario_id: scenarioId,
+              name: l.name,
+              land_size_m2: l.land_size_m2,
+              address: l.address,
+              suburb: l.suburb,
+              state: l.state,
+              postcode: l.postcode,
+              entity_gst_registered: l.entity_gst_registered,
+              land_purchase_gst_included: l.land_purchase_gst_included,
+              margin_scheme_applied: l.margin_scheme_applied,
+              land_rate: l.land_rate,
+              purchase_price: l.purchase_price,
+              deposit_amount: l.deposit_amount,
+              deposit_pct: l.deposit_pct,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.lineItems.length > 0) {
+        inserts.push(
+          db.from("feasibility_line_items").insert(
+            state.lineItems.map((item, i) => ({
+              id: item.id,
+              scenario_id: scenarioId,
+              section: item.section,
+              tab_name: item.tab_name,
+              land_lot_id: item.land_lot_id,
+              parent_entity_id: item.parent_entity_id,
+              name: item.name,
+              quantity: item.quantity,
+              rate_type: item.rate_type,
+              rate: item.rate,
+              gst_status: item.gst_status,
+              amount_ex_gst: item.amount_ex_gst,
+              cashflow_start_month: item.cashflow_start_month,
+              cashflow_span_months: item.cashflow_span_months,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.salesUnits.length > 0) {
+        inserts.push(
+          db.from("feasibility_sales_units").insert(
+            state.salesUnits.map((u, i) => ({
+              id: u.id,
+              scenario_id: scenarioId,
+              tab_name: u.tab_name,
+              name: u.name,
+              status: u.status,
+              bedrooms: u.bedrooms,
+              bathrooms: u.bathrooms,
+              car_spaces: u.car_spaces,
+              area_m2: u.area_m2,
+              sale_price: u.sale_price,
+              gst_status: u.gst_status,
+              amount_ex_gst: u.amount_ex_gst,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.debtFacilities.length > 0) {
+        inserts.push(
+          db.from("feasibility_debt_facilities").insert(
+            state.debtFacilities.map((f, i) => ({
+              id: f.id,
+              scenario_id: scenarioId,
+              name: f.name,
+              priority: f.priority,
+              calculation_type: f.calculation_type,
+              term_months: f.term_months,
+              lvr_method: f.lvr_method,
+              lvr_pct: f.lvr_pct,
+              interest_rate: f.interest_rate,
+              total_facility: f.total_facility,
+              interest_provision: f.interest_provision,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.debtLoans.length > 0) {
+        inserts.push(
+          db.from("feasibility_debt_loans").insert(
+            state.debtLoans.map((l, i) => ({
+              id: l.id,
+              scenario_id: scenarioId,
+              name: l.name,
+              principal_amount: l.principal_amount,
+              interest_rate: l.interest_rate,
+              payment_period: l.payment_period,
+              term_months: l.term_months,
+              loan_type: l.loan_type,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.equityPartners.length > 0) {
+        inserts.push(
+          db.from("feasibility_equity_partners").insert(
+            state.equityPartners.map((e, i) => ({
+              id: e.id,
+              scenario_id: scenarioId,
+              name: e.name,
+              is_developer_equity: e.is_developer_equity,
+              distribution_type: e.distribution_type,
+              equity_amount: e.equity_amount,
+              return_percentage: e.return_percentage,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      await Promise.all(inserts);
       router.refresh();
     } finally {
       setSaving(false);
     }
-  };
-
-  const updateField = (key: keyof FormState, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Cost breakdown percentages for bar chart
-  const costEntries = costColors.map((c) => ({
-    ...c,
-    value: costs[c.key],
-    pct: totalCosts > 0 ? (costs[c.key] / totalCosts) * 100 : 0,
-  }));
+  }, [state, summary, supabase, router]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Feasibility</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {project.name}
-          </h1>
-        </div>
-      </div>
+      <ScenarioHeader
+        project={project}
+        scenarios={scenarios.map((s) => ({ id: s.id, name: s.name }))}
+        selectedId={activeScenarioId ?? ""}
+        onSelectScenario={handleSelectScenario}
+        onSave={handleSave}
+        saving={saving}
+      />
 
-      {/* Scenario controls */}
-      <div className="flex items-center gap-3">
-        <Select value={selectedId} onValueChange={handleSelectScenario}>
-          <SelectTrigger className="w-[240px]">
-            <SelectValue placeholder="Select scenario" />
-          </SelectTrigger>
-          <SelectContent>
-            {scenarios.map((s) => (
-              <SelectItem key={s.id} value={s.id}>
-                {s.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <CreateScenarioDialog projectId={project.id}>
-          <Button variant="outline" size="sm">
-            <Plus className="mr-2 size-4" />
-            New Scenario
-          </Button>
-        </CreateScenarioDialog>
-        {selectedId && (
-          <Button size="sm" onClick={handleSave} disabled={saving}>
-            <Save className="mr-2 size-4" />
-            {saving ? "Saving..." : "Save"}
-          </Button>
-        )}
-      </div>
-
-      {scenarios.length === 0 && !selectedId ? (
+      {scenarios.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Calculator className="mx-auto size-12 text-muted-foreground/50" />
@@ -295,396 +632,57 @@ export function FeasibilityView({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Left Panel — Inputs */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Calculator className="size-4 text-lime-500" />
-                  Site Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs">Site Area (sqm)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form.siteArea}
-                      onChange={(e) => updateField("siteArea", e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">FSR</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form.fsr}
-                      onChange={(e) => updateField("fsr", e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Max Height (m)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form.maxHeight}
-                      onChange={(e) => updateField("maxHeight", e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Zoning</Label>
-                    <Input
-                      value={form.zoning}
-                      onChange={(e) => updateField("zoning", e.target.value)}
-                      placeholder="e.g. R4"
-                    />
-                  </div>
-                </div>
+        <Tabs defaultValue="land">
+          <TabsList variant="line">
+            <TabsTrigger value="land">
+              <MapPin className="mr-1.5 size-3.5" />
+              Land
+            </TabsTrigger>
+            <TabsTrigger value="costs">
+              <DollarSign className="mr-1.5 size-3.5" />
+              Costs
+            </TabsTrigger>
+            <TabsTrigger value="sales">
+              <ShoppingCart className="mr-1.5 size-3.5" />
+              Sales
+            </TabsTrigger>
+            <TabsTrigger value="funding">
+              <Landmark className="mr-1.5 size-3.5" />
+              Funding
+            </TabsTrigger>
+            <TabsTrigger value="summary">
+              <BarChart3 className="mr-1.5 size-3.5" />
+              Summary
+            </TabsTrigger>
+            <TabsTrigger value="financials">
+              <FileSpreadsheet className="mr-1.5 size-3.5" />
+              Financials
+            </TabsTrigger>
+          </TabsList>
 
-                <Separator />
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-xs">GFA (sqm)</Label>
-                    <div className="mt-1 rounded-md bg-muted px-3 py-2 text-sm font-medium">
-                      {gfa.toFixed(1)}
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Efficiency %</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      max="100"
-                      value={form.efficiency}
-                      onChange={(e) =>
-                        updateField("efficiency", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">NSA (sqm)</Label>
-                    <div className="mt-1 rounded-md bg-muted px-3 py-2 text-sm font-medium">
-                      {nsa.toFixed(1)}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <DollarSign className="size-4 text-lime-500" />
-                  Revenue
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs">Sale Rate ($/sqm)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.saleRate}
-                      onChange={(e) => updateField("saleRate", e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Total Revenue</Label>
-                    <div className="mt-1 rounded-md bg-muted px-3 py-2 text-sm font-bold text-emerald-600">
-                      {formatCurrency(totalRevenue)}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <DollarSign className="size-4 text-lime-500" />
-                  Costs
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs">Site Acquisition ($)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.siteCost}
-                      onChange={(e) => updateField("siteCost", e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Construction ($)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.constructionCost}
-                      onChange={(e) =>
-                        updateField("constructionCost", e.target.value)
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Professional Fees ($)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.professionalFees}
-                      onChange={(e) =>
-                        updateField("professionalFees", e.target.value)
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Statutory Fees ($)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.statutoryFees}
-                      onChange={(e) =>
-                        updateField("statutoryFees", e.target.value)
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Finance ($)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.financeCosts}
-                      onChange={(e) =>
-                        updateField("financeCosts", e.target.value)
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Marketing ($)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.marketingCosts}
-                      onChange={(e) =>
-                        updateField("marketingCosts", e.target.value)
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Contingency ($)</Label>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={form.contingency}
-                      onChange={(e) =>
-                        updateField("contingency", e.target.value)
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Total Costs</Label>
-                    <div className="mt-1 rounded-md bg-muted px-3 py-2 text-sm font-bold text-red-600">
-                      {formatCurrency(totalCosts)}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Panel — Summary */}
-          <div className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid gap-4 grid-cols-2">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    GRV (Revenue)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-emerald-600">
-                    {formatCurrency(totalRevenue)}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total Costs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-red-600">
-                    {formatCurrency(totalCosts)}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Profit
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p
-                    className={`text-2xl font-bold ${profit >= 0 ? "text-emerald-600" : "text-red-600"}`}
-                  >
-                    {formatCurrency(profit)}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                    <TrendingUp className="size-4" />
-                    Profit on Cost
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p
-                    className={`text-2xl font-bold ${profitOnCost >= 0 ? "text-emerald-600" : "text-red-600"}`}
-                  >
-                    {profitOnCost.toFixed(1)}%
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Cost Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Cost Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {totalCosts > 0 ? (
-                  <>
-                    {/* Stacked bar */}
-                    <div className="flex h-8 w-full overflow-hidden rounded-md">
-                      {costEntries
-                        .filter((c) => c.pct > 0)
-                        .map((c) => (
-                          <div
-                            key={c.key}
-                            className={`${c.color} transition-all`}
-                            style={{ width: `${c.pct}%` }}
-                            title={`${c.label}: ${formatCurrency(c.value)} (${c.pct.toFixed(1)}%)`}
-                          />
-                        ))}
-                    </div>
-                    {/* Legend */}
-                    <div className="grid grid-cols-2 gap-2">
-                      {costEntries
-                        .filter((c) => c.value > 0)
-                        .map((c) => (
-                          <div
-                            key={c.key}
-                            className="flex items-center gap-2 text-sm"
-                          >
-                            <div
-                              className={`size-3 rounded-sm ${c.color}`}
-                            />
-                            <span className="text-muted-foreground">
-                              {c.label}
-                            </span>
-                            <span className="ml-auto font-medium">
-                              {c.pct.toFixed(0)}%
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </>
-                ) : (
-                  <p className="py-4 text-center text-sm text-muted-foreground">
-                    Enter costs to see breakdown
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Revenue vs Cost Comparison */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  Revenue vs Cost
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {totalRevenue > 0 || totalCosts > 0 ? (
-                  <>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">Revenue</span>
-                        <span className="font-medium">
-                          {formatCurrency(totalRevenue)}
-                        </span>
-                      </div>
-                      <div className="h-6 w-full rounded-md bg-muted overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 rounded-md transition-all"
-                          style={{
-                            width: `${Math.min(100, totalRevenue > 0 && totalCosts > 0 ? (totalRevenue / Math.max(totalRevenue, totalCosts)) * 100 : totalRevenue > 0 ? 100 : 0)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">
-                          Total Costs
-                        </span>
-                        <span className="font-medium">
-                          {formatCurrency(totalCosts)}
-                        </span>
-                      </div>
-                      <div className="h-6 w-full rounded-md bg-muted overflow-hidden">
-                        <div
-                          className="h-full bg-red-500 rounded-md transition-all"
-                          style={{
-                            width: `${Math.min(100, totalCosts > 0 && totalRevenue > 0 ? (totalCosts / Math.max(totalRevenue, totalCosts)) * 100 : totalCosts > 0 ? 100 : 0)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <p className="py-4 text-center text-sm text-muted-foreground">
-                    Enter values to see comparison
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+          <TabsContent value="land">
+            <LandTab state={state} dispatch={dispatch} summary={summary} />
+          </TabsContent>
+          <TabsContent value="costs">
+            <CostsTab state={state} dispatch={dispatch} summary={summary} />
+          </TabsContent>
+          <TabsContent value="sales">
+            <SalesTab state={state} dispatch={dispatch} summary={summary} />
+          </TabsContent>
+          <TabsContent value="funding">
+            <FundingTab state={state} dispatch={dispatch} summary={summary} />
+          </TabsContent>
+          <TabsContent value="summary">
+            <SummaryTab summary={summary} />
+          </TabsContent>
+          <TabsContent value="financials">
+            <FinancialsTab
+              state={state}
+              dispatch={dispatch}
+              summary={summary}
+            />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
