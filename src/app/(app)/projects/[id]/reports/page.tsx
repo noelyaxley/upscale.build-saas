@@ -25,7 +25,6 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
   const [
     variationsResult,
     claimsResult,
-    consultantsResult,
     tendersResult,
     tasksResult,
     submittalsResult,
@@ -43,12 +42,6 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
     supabase
       .from("progress_claims")
       .select("id, status, claimed_amount, certified_amount")
-      .eq("project_id", id),
-    supabase
-      .from("consultants")
-      .select(
-        "id, status, budget, contract_value, consultant_phases(id, fee, variations, disbursements, amount_paid)"
-      )
       .eq("project_id", id),
     supabase
       .from("tenders")
@@ -93,7 +86,6 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
       project={project}
       variations={variationsResult.data ?? []}
       claims={claimsResult.data ?? []}
-      consultants={consultantsResult.data ?? []}
       tenders={tendersResult.data ?? []}
       tasks={tasksResult.data ?? []}
       submittals={submittalsResult.data ?? []}

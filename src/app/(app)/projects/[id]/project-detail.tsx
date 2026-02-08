@@ -17,7 +17,6 @@ import {
   Receipt,
   Shield,
   Trash2,
-  Users,
   BarChart3,
   Calculator,
   ClipboardCheck,
@@ -364,7 +363,7 @@ export function ProjectDetail({
                   <Receipt className="size-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Progress Claims</p>
+                  <p className="font-medium">Contracts</p>
                   <p className="text-xs text-muted-foreground">
                     Payment submissions
                   </p>
@@ -384,23 +383,6 @@ export function ProjectDetail({
                   <p className="font-medium">Site Diary</p>
                   <p className="text-xs text-muted-foreground">
                     Daily site records
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-            <Link
-              href={`/projects/${project.id}/consultants`}
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900/30">
-                  <Users className="size-5 text-teal-600 dark:text-teal-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Consultants</p>
-                  <p className="text-xs text-muted-foreground">
-                    Professional services & procurement
                   </p>
                 </div>
               </div>

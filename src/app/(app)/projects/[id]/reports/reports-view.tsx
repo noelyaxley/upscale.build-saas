@@ -37,19 +37,6 @@ interface ReportsViewProps {
     claimed_amount: number | null;
     certified_amount: number | null;
   }[];
-  consultants: {
-    id: string;
-    status: string;
-    budget: number | null;
-    contract_value: number | null;
-    consultant_phases: {
-      id: string;
-      fee: number;
-      variations: number;
-      disbursements: number;
-      amount_paid: number;
-    }[];
-  }[];
   tenders: {
     id: string;
     status: string;
@@ -184,7 +171,6 @@ export function ReportsView({
   project,
   variations,
   claims,
-  consultants,
   tenders,
   tasks,
   submittals,
@@ -196,9 +182,6 @@ export function ReportsView({
   diaryEntries,
 }: ReportsViewProps) {
   // === Overview computations ===
-  const activeConsultants = consultants.filter(
-    (c) => c.status === "engaged"
-  ).length;
   const openTenders = tenders.filter(
     (t) => t.status === "open" || t.status === "evaluation"
   ).length;
@@ -256,17 +239,6 @@ export function ReportsView({
   );
   const totalCertified = claims.reduce(
     (sum, c) => sum + (c.certified_amount ?? 0),
-    0
-  );
-
-  const totalConsultantBudget = consultants.reduce(
-    (sum, c) => sum + (c.budget ?? 0),
-    0
-  );
-  const totalConsultantPaid = consultants.reduce(
-    (sum, c) =>
-      sum +
-      c.consultant_phases.reduce((ps, p) => ps + (p.amount_paid ?? 0), 0),
     0
   );
 
@@ -401,7 +373,6 @@ export function ReportsView({
           <div className="grid gap-4 md:grid-cols-4">
             <StatCard label="Total Variations" value={variations.length} />
             <StatCard label="Total Claims" value={claims.length} />
-            <StatCard label="Active Consultants" value={activeConsultants} />
             <StatCard label="Open Tenders" value={openTenders} />
             <StatCard label="Lots Sold" value={`${lotsSoldPct}%`} />
             <StatCard
@@ -482,31 +453,6 @@ export function ReportsView({
                       label: "Total Certified",
                       value: totalCertified,
                       color: "bg-blue-500",
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <DollarSign className="size-4 text-fuchsia-500" />
-                  Consultants: Budget vs Paid
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ComparisonBars
-                  items={[
-                    {
-                      label: "Total Budget",
-                      value: totalConsultantBudget,
-                      color: "bg-teal-500",
-                    },
-                    {
-                      label: "Total Paid",
-                      value: totalConsultantPaid,
-                      color: "bg-orange-500",
                     },
                   ]}
                 />
