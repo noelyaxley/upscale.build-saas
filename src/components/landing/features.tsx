@@ -14,37 +14,37 @@ const features = [
     icon: DollarSign,
     title: "Progress Claims & Variations",
     description:
-      "Submit and certify payment claims period by period. Track variations from draft through to approval with full cost and time impact visibility.",
+      "Know exactly where your money is going. Submit and certify payment claims each period, track variations with full cost impact, and reduce disputes before they start.",
   },
   {
     icon: Scale,
     title: "Feasibility & Lot Sales",
     description:
-      "Model development scenarios with land costs, revenue, debt, and equity. Manage lot inventory from available through to settlement with agent commissions.",
+      "Run the numbers on potential developments in minutes, not days. Model land costs, revenue, debt, and equity so you can move quickly and with confidence as opportunities arise.",
   },
   {
     icon: BookOpen,
     title: "Site Diary",
     description:
-      "Record daily site conditions — weather, labour by trade, equipment, visitors, and work summaries. One entry per project per day, ready for reporting.",
+      "Capture what happens on site, every day. Record weather, labour, equipment, visitors, and work summaries in one place — ready when you need it for reporting or disputes.",
   },
   {
     icon: ClipboardList,
     title: "Tenders & Procurement",
     description:
-      "Issue tender packages by trade, collect contractor submissions, evaluate bids, and award — all tracked from draft through to completion.",
+      "Simplify contractor procurement from start to finish. Issue packages, collect and compare bids, and award contracts — all captured so nothing falls through the cracks.",
   },
   {
     icon: FileText,
     title: "Submittals & RFIs",
     description:
-      "Manage shop drawings, product data, and samples through a structured review workflow. Track RFIs from submission to close-out.",
+      "Keep documentation flowing. Manage shop drawings, product data, and samples through a clear review workflow so your team stays coordinated and approvals don't stall.",
   },
   {
     icon: CalendarRange,
     title: "Programme & EOT",
     description:
-      "Plan project schedules with hierarchical tasks and dependencies. Log extension of time claims with days requested, approved, and date impacts.",
+      "Stay on top of your programme. Plan schedules with task dependencies, and track extension of time claims so you always know the impact on your delivery dates.",
   },
 ];
 
@@ -55,9 +55,9 @@ export function Features() {
         <SectionIntro
           icon={Sparkles}
           badge="Features"
-          heading="Every workflow, one platform"
-          highlightWord="one platform"
-          subtitle="Purpose-built modules for construction — not a generic project tool with workarounds bolted on."
+          heading="Everything in one place"
+          highlightWord="one place"
+          subtitle="Purpose-built for property development — not a generic project tool with workarounds bolted on."
         />
 
         {/* 2-column bento grid with shared borders */}

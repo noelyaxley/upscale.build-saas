@@ -11,34 +11,34 @@ import {
 
 const faqs = [
   {
-    question: "What types of projects does Upscale.Build support?",
+    question: "What types of projects is UpScale built for?",
     answer:
-      "Residential, commercial, civil, and mixed-use developments. The platform covers the full lifecycle — from feasibility analysis and DA through construction, lot sales, and settlement.",
+      "Residential, commercial, and mixed-use property developments — from dual-occupancies and townhouses through to large-scale apartment and commercial projects. The platform covers the full lifecycle, from feasibility and site acquisition through to construction, lot sales, and settlement.",
   },
   {
-    question: "How do progress claims and variations work?",
+    question: "How does UpScale help me manage project costs?",
     answer:
-      "Each contract has its own claim and variation register. Submit claims period by period with line-item breakdowns, track claimed vs certified amounts, and manage variations from draft through to approval with cost and time impact recorded.",
+      "Every project expense is tracked in one place. Submit and certify progress claims each period, manage variations with full cost impact, and see upcoming expenses on a timeline so you can actively manage cash flow. No more chasing invoices or reconciling spreadsheets.",
   },
   {
-    question: "Can I run development feasibility scenarios?",
+    question: "Can I test whether a development stacks up financially?",
     answer:
-      "Yes. The feasibility module lets you model land acquisition costs, construction costs with GST, sales revenue by unit type, debt facilities, loans, and equity partners. Compare scenarios side by side and export summaries for investors.",
+      "Yes. The feasibility tool lets you model land costs, construction costs, sales revenue, debt, and equity — all the core components of a full development feasibility. Run the numbers in minutes so you can move quickly and with confidence as opportunities come up.",
   },
   {
-    question: "How does the Client Portal work?",
+    question: "Can my team and consultants collaborate on the platform?",
     answer:
-      "Generate a secure, token-based link for any external stakeholder — investors, consultants, or buyers. They get read-only access to relevant project information without needing an Upscale.Build account. Links can be set to expire.",
+      "Absolutely. Invite your project managers, site team, and consultants to work from one shared environment. You can also share read-only views with investors or buyers via the Client Portal — they don't need an account to access it.",
   },
   {
-    question: "Is my data secure?",
+    question: "Is my project data secure?",
     answer:
-      "All data is encrypted at rest and in transit. Row-level security policies ensure each organisation can only access their own data. Every user is scoped to their organisation with role-based permissions (admin or member).",
+      "Yes. All data is encrypted and each organisation's information is completely separated. Your team members have role-based access, so people only see what's relevant to them. You stay in control of who can view and edit your projects.",
   },
   {
-    question: "Can I manage tenders and contractor procurement?",
+    question: "How does tendering and procurement work?",
     answer:
-      "Yes. Create tender packages by trade, collect and compare contractor submissions, evaluate bids, and award — all tracked with a status workflow from draft through to awarded or cancelled.",
+      "Create tender packages by trade, issue them to contractors, collect and compare submissions, and award — all from one place. It simplifies the procurement process so you can move to contract award with confidence that all the key information has been captured.",
   },
 ];
 
@@ -51,7 +51,7 @@ export function Faq() {
           badge="FAQ"
           heading="Frequently asked questions"
           highlightWord="questions"
-          subtitle="Get clarity, instantly."
+          subtitle="Common questions about getting started with UpScale."
         />
 
         <div className="overflow-hidden rounded-lg border border-black/[0.08] bg-card">

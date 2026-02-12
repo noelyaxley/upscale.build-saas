@@ -13,8 +13,8 @@ export function CtaBanner() {
 
           <div className="relative flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
             <h2 className="text-xl font-medium text-background sm:text-2xl">
-              Stop managing projects in spreadsheets.
-              <br className="hidden sm:block" /> Start delivering with Upscale.Build.
+              Make property development more accessible,
+              <br className="hidden sm:block" /> stress free, and profitable.
             </h2>
             <Button
               asChild

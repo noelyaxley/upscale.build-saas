@@ -10,29 +10,29 @@ import {
 } from "lucide-react";
 
 const stats = [
-  { label: "Active Projects", value: "12", icon: FolderKanban },
-  { label: "Total Budget", value: "$48.2M", icon: DollarSign },
-  { label: "Open Claims", value: "8", icon: ClipboardList },
+  { label: "Active Projects", value: "4", icon: FolderKanban },
+  { label: "Total Budget", value: "$12.8M", icon: DollarSign },
+  { label: "Open Claims", value: "3", icon: ClipboardList },
   { label: "On Schedule", value: "92%", icon: TrendingUp },
 ];
 
 const projects = [
   {
-    name: "Westfield Tower",
+    name: "Bayside Townhouses",
     stage: "Construction",
-    budget: "$18.5M",
+    budget: "$4.2M",
     progress: 68,
   },
   {
-    name: "Harbour Residences",
+    name: "Parkview Residences",
     stage: "Fitout",
-    budget: "$12.3M",
+    budget: "$5.8M",
     progress: 85,
   },
   {
-    name: "Metro Station Upgrade",
+    name: "Elm Street Duplex",
     stage: "Design",
-    budget: "$9.8M",
+    budget: "$1.4M",
     progress: 32,
   },
 ];

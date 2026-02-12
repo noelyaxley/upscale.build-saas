@@ -21,13 +21,14 @@ export function Hero() {
           </div>
 
           <h1 className="mb-6 text-4xl font-medium tracking-[-0.02em] leading-[1.05] sm:text-5xl lg:text-[64px]">
-            The Operating System for{" "}
-            <span className="text-primary">Construction</span>
+            Property Development{" "}
+            <span className="text-primary">Made Simple</span>
           </h1>
 
-          <p className="mb-8 max-w-[400px] text-base text-muted-foreground">
-            Progress claims, variations, site diaries, tenders, feasibility, and
-            lot sales — everything your team needs from DA to settlement.
+          <p className="mb-8 max-w-[420px] text-base text-muted-foreground">
+            One platform to run feasibilities, manage costs, collaborate with
+            your team, and deliver projects with confidence — from site
+            acquisition to settlement.
           </p>
 
           <div className="flex gap-4">

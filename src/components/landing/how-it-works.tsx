@@ -11,19 +11,19 @@ const steps = [
     icon: FolderPlus,
     title: "Set Up Your Project",
     description:
-      "Create a project, set the stage and budget, and invite your team. Organisation-level multi-tenancy keeps everything scoped and secure.",
+      "Create a project, set your budget, and define the key details. Everything is organised under your company so your team always knows where to look.",
   },
   {
     icon: UsersRound,
-    title: "Assign Roles & Permissions",
+    title: "Invite Your Team",
     description:
-      "Add PMs, site managers, and consultants with role-based access. Share read-only views with clients via the Client Portal — no account required.",
+      "Add your project managers, site team, and consultants. Share read-only views with investors or buyers via the Client Portal — no account required.",
   },
   {
     icon: BarChart3,
-    title: "Run Your Workflows",
+    title: "Manage With Confidence",
     description:
-      "Process claims, issue tenders, log site diaries, track variations, and manage lot sales — all from a single dashboard per project.",
+      "Process claims, issue tenders, log site diaries, and track costs — all from one dashboard. One source of truth for your entire project team.",
   },
 ];
 
@@ -36,7 +36,7 @@ export function HowItWorks() {
           badge="How It Works"
           heading="Up and running in minutes"
           highlightWord="minutes"
-          subtitle="Create your first project and start managing claims, budgets, and teams today."
+          subtitle="From sign-up to managing your first project — it only takes a few minutes to get started."
         />
 
         <div className="grid gap-6 sm:grid-cols-3">

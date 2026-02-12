@@ -4,9 +4,9 @@ export function TestimonialQuote() {
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <blockquote className="text-2xl font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]">
-            &ldquo;We ran our first feasibility, issued tenders, and processed
-            three months of progress claims in the same week we signed up.
-            Nothing else in market comes close.&rdquo;
+            &ldquo;We used to run feasibilities in spreadsheets and manage
+            everything from our inbox. Now the whole team works from one
+            platform — and we move faster with more confidence.&rdquo;
           </blockquote>
           <div className="mt-8">
             <p className="text-lg font-medium">James Mitchell</p>

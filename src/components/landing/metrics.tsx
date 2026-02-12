@@ -3,22 +3,22 @@ import { TrendingUp } from "lucide-react";
 
 const metrics = [
   {
-    value: "60%",
-    label: "Fewer claim disputes",
+    value: "5 min",
+    label: "Fast feasibility",
     description:
-      "Structured progress claim workflows with line-item breakdowns and certified amounts reduce back-and-forth between contractors and principals.",
+      "Run the numbers on a potential development in under five minutes. Know whether a deal stacks up before you commit — so you can move quickly as opportunities arise.",
   },
   {
-    value: "3x",
-    label: "Faster feasibility",
+    value: "1",
+    label: "Single source of truth",
     description:
-      "Model land costs, sales revenue, debt, and equity across multiple scenarios in minutes — not days of spreadsheet wrangling.",
+      "Every project, budget, claim, and document in one place. No more chasing spreadsheets across email threads or miscommunication between your team.",
   },
   {
-    value: "100%",
-    label: "Portfolio visibility",
+    value: "24/7",
+    label: "Complete visibility",
     description:
-      "Every project, budget, variation, and claim in one dashboard. No more chasing spreadsheets across email threads.",
+      "See the status of every active project from one dashboard. Track costs, manage cash flow, and preempt upcoming expenses — so nothing catches you off guard.",
   },
 ];
 
@@ -29,8 +29,8 @@ export function Metrics() {
         <SectionIntro
           icon={TrendingUp}
           badge="By The Numbers"
-          heading="Built to eliminate the spreadsheet"
-          highlightWord="eliminate"
+          heading="Built to replace the spreadsheet"
+          highlightWord="replace"
         />
 
         {/* Shared-border metric cards */}
