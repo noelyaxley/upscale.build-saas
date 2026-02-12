@@ -13,7 +13,8 @@ import {
 
 const navLinks = [
   { href: "#features", label: "Features" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "#how-it-works", label: "How It Works" },
+  { href: "#faq", label: "FAQ" },
 ];
 
 export function MobileNav() {

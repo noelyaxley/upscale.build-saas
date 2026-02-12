@@ -3,10 +3,11 @@ import {
   FileText,
   DollarSign,
   Users,
-  AlertTriangle,
-  BarChart3,
+  BookOpen,
+  CalendarRange,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionIntro } from "./section-intro";
+import { Sparkles } from "lucide-react";
 
 const features = [
   {
@@ -14,68 +15,72 @@ const features = [
     title: "Project Tracking",
     description:
       "Monitor project stages from preconstruction through to completion. Track status, milestones, and deliverables in real time.",
+    span: "sm:col-span-2",
   },
   {
     icon: FileText,
     title: "Document Control",
     description:
       "Centralise drawings, specs, RFIs, and submittals. Version control and approvals built in.",
+    span: "",
   },
   {
     icon: DollarSign,
     title: "Budget Management",
     description:
       "Track budgets, variations, and cost-to-complete across all your projects with real-time financial visibility.",
+    span: "",
   },
   {
     icon: Users,
     title: "Team Collaboration",
     description:
       "Assign roles, manage permissions, and keep your entire project team aligned with shared workflows.",
+    span: "sm:col-span-2",
   },
   {
-    icon: AlertTriangle,
-    title: "Defect Management",
+    icon: BookOpen,
+    title: "Site Diary",
     description:
-      "Log, assign, and close out defects efficiently. Photo capture, status tracking, and reporting included.",
+      "Record daily site activity — weather, labour, equipment, visitors, and work summaries. Photo capture and reporting included.",
+    span: "",
   },
   {
-    icon: BarChart3,
-    title: "Reporting",
+    icon: CalendarRange,
+    title: "Programme & Scheduling",
     description:
-      "Generate project reports, financial summaries, and progress dashboards for stakeholders and clients.",
+      "Plan and track project programmes with Gantt-style task management, dependencies, and progress tracking across your portfolio.",
+    span: "sm:col-span-2",
   },
 ];
 
 export function Features() {
   return (
-    <section id="features" className="border-t bg-muted/30 py-20 sm:py-32">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-16 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything you need to deliver projects
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Purpose-built tools for construction project management. No
-            workarounds, no spreadsheets.
-          </p>
-        </div>
+    <section id="features" className="border-t border-border py-20 sm:py-24">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <SectionIntro
+          icon={Sparkles}
+          badge="Features"
+          heading="Everything you need to deliver projects"
+          highlightWord="deliver"
+          subtitle="Purpose-built tools for construction project management. No workarounds, no spreadsheets."
+        />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           {features.map((feature) => (
-            <Card key={feature.title} className="border-0 shadow-none bg-transparent">
-              <CardHeader>
-                <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                  <feature.icon className="size-5 text-primary" />
-                </div>
-                <CardTitle className="text-lg">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {feature.description}
-                </p>
-              </CardContent>
-            </Card>
+            <div
+              key={feature.title}
+              className={`group rounded-xl border border-border bg-card p-6 transition-shadow hover:shadow-md ${feature.span}`}
+            >
+              {/* Decorative illustration area */}
+              <div className="mb-5 flex h-32 items-center justify-center rounded-lg bg-muted/50">
+                <feature.icon className="size-10 text-primary/60 transition-colors group-hover:text-primary" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {feature.description}
+              </p>
+            </div>
           ))}
         </div>
       </div>

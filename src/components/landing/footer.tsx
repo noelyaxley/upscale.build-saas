@@ -1,60 +1,67 @@
 import Link from "next/link";
 import { HardHat } from "lucide-react";
 
-const footerLinks = {
-  Product: [
-    { label: "Features", href: "#features" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "Changelog", href: "#" },
-  ],
-  Company: [
-    { label: "About", href: "#" },
-    { label: "Contact", href: "mailto:hello@upscale.build" },
-  ],
-  Legal: [
-    { label: "Privacy", href: "#" },
-    { label: "Terms", href: "#" },
-  ],
-};
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "How It Works", href: "#how-it-works" },
+  { label: "FAQ", href: "#faq" },
+  { label: "Contact", href: "mailto:hello@upscale.build" },
+];
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/30">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-              <HardHat className="size-5 text-primary" />
-              Upscale.Build
-            </Link>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Construction project management built for modern teams.
-            </p>
-          </div>
+    <footer className="bg-foreground text-background">
+      <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8">
+        {/* Large watermark icon */}
+        <div className="mb-12 flex justify-center">
+          <HardHat className="size-20 text-background/10" />
+        </div>
 
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category}>
-              <h3 className="text-sm font-semibold">{category}</h3>
-              <ul className="mt-3 space-y-2">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+        {/* Nav links */}
+        <nav className="mb-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-sm text-background/60 transition-colors hover:text-background"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Social icons placeholder */}
+        <div className="mb-10 flex items-center justify-center gap-4">
+          {["X", "Li", "Gh"].map((label) => (
+            <div
+              key={label}
+              className="flex size-9 items-center justify-center rounded-full border border-background/20 text-xs text-background/40"
+            >
+              {label}
             </div>
           ))}
         </div>
 
-        <div className="mt-12 border-t pt-8">
-          <p className="text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Upscale.Build. All rights reserved.
+        {/* Bottom row */}
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-background/10 pt-8 sm:flex-row">
+          <p className="text-sm text-background/50">
+            &copy; {new Date().getFullYear()} Upscale.Build. All rights
+            reserved.
           </p>
+          <div className="flex gap-6">
+            <Link
+              href="#"
+              className="text-sm text-background/50 transition-colors hover:text-background"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="#"
+              className="text-sm text-background/50 transition-colors hover:text-background"
+            >
+              Terms
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
