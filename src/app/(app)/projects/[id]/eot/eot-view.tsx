@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   Calendar,
   CheckCircle,
-  ChevronRight,
   Clock,
   FileText,
   Plus,
@@ -37,6 +35,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateEotDialog } from "@/components/create-eot-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type EotStatus = Database["public"]["Enums"]["eot_status"];
 
@@ -116,22 +117,14 @@ export function EotView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Extension of Time</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Extension of Time" },
+        ]}
+      >
         <CreateEotDialog
           projectId={project.id}
           companies={companies}
@@ -142,66 +135,14 @@ export function EotView({
             New EOT
           </Button>
         </CreateEotDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <FileText className="size-4 text-blue-500" />
-              Total EOTs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalEots}</p>
-            <p className="text-xs text-muted-foreground">{pendingCount} pending</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Clock className="size-4 text-yellow-500" />
-              Days Claimed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalDaysClaimed}</p>
-            <p className="text-xs text-muted-foreground">across all EOTs</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CheckCircle className="size-4 text-green-500" />
-              Days Approved
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalDaysApproved}</p>
-            <p className="text-xs text-muted-foreground">
-              {approvedCount} EOT{approvedCount !== 1 ? "s" : ""} approved
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Calendar className="size-4 text-purple-500" />
-              Completion Date
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-bold">
-              {formatDate(project.end_date)}
-            </p>
-            {totalDaysApproved > 0 && (
-              <p className="text-xs text-muted-foreground">
-                +{totalDaysApproved} days approved
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <StatCard icon={FileText} label="Total EOTs" value={totalEots} iconClassName="text-blue-500" />
+        <StatCard icon={Clock} label="Days Claimed" value={totalDaysClaimed} iconClassName="text-yellow-500" />
+        <StatCard icon={CheckCircle} label="Days Approved" value={totalDaysApproved} iconClassName="text-green-500" />
+        <StatCard icon={Calendar} label="Completion Date" value={formatDate(project.end_date)} iconClassName="text-purple-500" />
       </div>
 
       <Card>
@@ -231,13 +172,11 @@ export function EotView({
         </CardHeader>
         <CardContent>
           {eots.length === 0 ? (
-            <div className="py-8 text-center">
-              <Clock className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">No EOTs found</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Create an extension of time claim
-              </p>
-            </div>
+            <EmptyState
+              icon={Clock}
+              title="No EOTs found"
+              description="Create an extension of time claim"
+            />
           ) : (
             <Table>
               <TableHeader>

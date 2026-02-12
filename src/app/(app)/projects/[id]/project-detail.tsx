@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
-  ArrowLeft,
   BarChart3,
   Building2,
   Calculator,
@@ -45,6 +44,7 @@ import { DeleteProjectDialog } from "@/components/delete-project-dialog";
 import { ProjectMembersList } from "@/components/project-members-list";
 import { ProjectActivityFeed } from "@/components/project-activity-feed";
 import { ProjectActionItems } from "@/components/project-action-items";
+import { PageHeader } from "@/components/page-header";
 
 type Project = Tables<"projects">;
 type Company = Tables<"companies">;
@@ -156,26 +156,23 @@ export function ProjectDetail({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard">
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm text-muted-foreground">
-              {project.code}
-            </span>
+      <PageHeader
+        backHref="/dashboard"
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code },
+        ]}
+        badge={
+          <>
             <Badge variant="secondary" className={stageColors[project.stage]}>
               {formatStage(project.stage)}
             </Badge>
             <Badge variant="outline" className={statusColors[project.status]}>
               {formatStatus(project.status)}
             </Badge>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+          </>
+        }
+      >
         {isAdmin && (
           <div className="flex items-center gap-2">
             <SharePortalDialog projectId={project.id}>
@@ -198,13 +195,13 @@ export function ProjectDetail({
             </DeleteProjectDialog>
           </div>
         )}
-      </div>
+      </PageHeader>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="card-hover-lift border-black/[0.08]">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Building2 className="size-4 text-muted-foreground" />
+              <Building2 className="size-4 text-primary" />
               Client
             </CardTitle>
           </CardHeader>
@@ -222,22 +219,22 @@ export function ProjectDetail({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover-lift border-black/[0.08]">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <DollarSign className="size-4 text-muted-foreground" />
+              <DollarSign className="size-4 text-primary" />
               Budget
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(project.budget ?? 0)}</p>
+            <p className="text-2xl font-medium tabular-nums">{formatCurrency(project.budget ?? 0)}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover-lift border-black/[0.08]">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Calendar className="size-4 text-muted-foreground" />
+              <Calendar className="size-4 text-primary" />
               Timeline
             </CardTitle>
           </CardHeader>
@@ -255,10 +252,10 @@ export function ProjectDetail({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover-lift border-black/[0.08]">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <MapPin className="size-4 text-muted-foreground" />
+              <MapPin className="size-4 text-primary" />
               Location
             </CardTitle>
           </CardHeader>
@@ -300,7 +297,7 @@ export function ProjectDetail({
                 <Link
                   key={mod.slug}
                   href={`/projects/${project.id}/${mod.slug}`}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between rounded-lg border border-black/[0.08] p-3 card-hover-lift"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`flex size-10 items-center justify-center rounded-lg ${mod.bg}`}>

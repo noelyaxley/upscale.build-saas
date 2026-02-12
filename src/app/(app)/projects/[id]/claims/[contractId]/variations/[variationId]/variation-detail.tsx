@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ArrowRight,
   Building2,
   Calendar,
   CheckCircle,
-  ChevronRight,
   Clock,
   DollarSign,
   FileEdit,
@@ -19,6 +16,7 @@ import {
   User,
   XCircle,
 } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
@@ -251,50 +249,28 @@ export function VariationDetail({ project, contract, variation, comments }: Vari
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/claims/${contract.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link href={`/projects/${project.id}/claims`} className="hover:underline">
-              Progress Claims
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link href={`/projects/${project.id}/claims/${contract.id}`} className="hover:underline">
-              {contract.name}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>{variation.title}</span>
-          </div>
-          {isEditingDetails ? (
-            <Input
-              className="text-2xl font-bold h-auto py-1"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-            />
-          ) : (
-            <h1 className="text-2xl font-bold tracking-tight">{variation.title}</h1>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {canEdit && !isEditingDetails && (
-            <Button size="sm" variant="ghost" onClick={() => setIsEditingDetails(true)}>
-              <Pencil className="mr-2 size-4" />
-              Edit
-            </Button>
-          )}
+      <PageHeader
+        backHref={`/projects/${project.id}/claims/${contract.id}`}
+        title={variation.title}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Progress Claims", href: `/projects/${project.id}/claims` },
+          { label: contract.name, href: `/projects/${project.id}/claims/${contract.id}` },
+          { label: variation.title },
+        ]}
+        badge={
           <Badge variant="secondary" className={statusColors[variation.status]}>
             {statusLabels[variation.status]}
           </Badge>
-        </div>
-      </div>
+        }
+      >
+        {canEdit && !isEditingDetails && (
+          <Button size="sm" variant="ghost" onClick={() => setIsEditingDetails(true)}>
+            <Pencil className="mr-2 size-4" />
+            Edit
+          </Button>
+        )}
+      </PageHeader>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}
@@ -590,6 +566,14 @@ export function VariationDetail({ project, contract, variation, comments }: Vari
             <CardContent className="space-y-4">
               {isEditingDetails ? (
                 <>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-title">Title</Label>
+                    <Input
+                      id="edit-title"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-cost">Cost Impact ($)</Label>
                     <Input

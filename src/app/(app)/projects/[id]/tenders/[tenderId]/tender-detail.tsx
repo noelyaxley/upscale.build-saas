@@ -1,14 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ArrowRight,
   Award,
   Calendar,
-  ChevronRight,
   DollarSign,
   FileText,
   Gavel,
@@ -20,6 +17,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -259,38 +257,20 @@ export function TenderDetail({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/tenders`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/tenders`}
-              className="hover:underline"
-            >
-              Tenders
-            </Link>
-            <ChevronRight className="size-4" />
-            <span className="font-mono">
-              T-{String(tender.tender_number).padStart(3, "0")}
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{tender.title}</h1>
-        </div>
-        <Badge variant="secondary" className={statusColors[tender.status]}>
-          {statusLabels[tender.status]}
-        </Badge>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}/tenders`}
+        title={tender.title}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Tenders", href: `/projects/${project.id}/tenders` },
+          { label: `T-${String(tender.tender_number).padStart(3, "0")}` },
+        ]}
+        badge={
+          <Badge variant="secondary" className={statusColors[tender.status]}>
+            {statusLabels[tender.status]}
+          </Badge>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}

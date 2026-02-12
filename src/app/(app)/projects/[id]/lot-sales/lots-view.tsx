@@ -3,11 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   Bath,
   Bed,
   Car,
-  ChevronRight,
   Home,
   Layers,
   Plus,
@@ -30,6 +28,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CreateLotDialog } from "@/components/create-lot-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type LotStatus = Database["public"]["Enums"]["lot_status"];
 
@@ -116,92 +117,29 @@ export function LotsView({ project, lots, statusFilter }: LotsViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Lot Sales</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {project.name}
-          </h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Lot Sales" },
+        ]}
+      >
         <CreateLotDialog projectId={project.id}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             Add Lot
           </Button>
         </CreateLotDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Home className="size-4 text-rose-500" />
-              Total Units
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{allLots.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Home className="size-4 text-rose-500" />
-              Available
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{availableCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Home className="size-4 text-rose-500" />
-              Sold
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{soldCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Home className="size-4 text-rose-500" />
-              Sold %
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{soldPercent}%</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Home className="size-4 text-rose-500" />
-              Total Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
-          </CardContent>
-        </Card>
+        <StatCard icon={Home} label="Total Units" value={allLots.length} iconClassName="text-rose-500" />
+        <StatCard icon={Home} label="Available" value={availableCount} iconClassName="text-rose-500" />
+        <StatCard icon={Home} label="Sold" value={soldCount} iconClassName="text-rose-500" />
+        <StatCard icon={Home} label="Sold %" value={`${soldPercent}%`} iconClassName="text-rose-500" />
+        <StatCard icon={Home} label="Total Revenue" value={formatCurrency(totalRevenue)} iconClassName="text-rose-500" />
       </div>
 
       <Card>
@@ -231,15 +169,11 @@ export function LotsView({ project, lots, statusFilter }: LotsViewProps) {
         </CardHeader>
         <CardContent>
           {lots.length === 0 ? (
-            <div className="py-8 text-center">
-              <Home className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No lots found
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add lots to track your property inventory
-              </p>
-            </div>
+            <EmptyState
+              icon={Home}
+              title="No lots found"
+              description="Add lots to track your property inventory"
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {lots.map((lot) => (
@@ -300,7 +234,7 @@ export function LotsView({ project, lots, statusFilter }: LotsViewProps) {
                         <span className="text-sm text-muted-foreground">
                           {formatArea(lot.total_area ? Number(lot.total_area) : null)}
                         </span>
-                        <span className="text-lg font-bold">
+                        <span className="text-lg font-bold tabular-nums">
                           {formatCurrency(lot.list_price)}
                         </span>
                       </div>

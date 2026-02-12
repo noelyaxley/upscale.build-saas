@@ -1,4 +1,5 @@
 import { SectionIntro } from "./section-intro";
+import { AnimatedSection } from "./animated-section";
 import {
   Layers,
   FolderPlus,
@@ -40,21 +41,23 @@ export function HowItWorks() {
         />
 
         <div className="grid gap-6 sm:grid-cols-3">
-          {steps.map((step) => (
-            <div key={step.title} className="flex flex-col gap-6 p-6">
-              {/* Image area with radial vignette */}
-              <div className="relative flex h-[260px] items-center justify-center overflow-hidden rounded-lg bg-muted/50">
-                <div className="radial-fade flex size-full items-center justify-center">
-                  <step.icon className="size-16 text-primary/40" />
+          {steps.map((step, i) => (
+            <AnimatedSection key={step.title} delay={i * 0.15}>
+              <div className="flex flex-col gap-6 p-6">
+                {/* Image area with grid-line background */}
+                <div className="relative flex h-[260px] items-center justify-center overflow-hidden rounded-lg bg-muted/50">
+                  <div className="grid-line-bg flex size-full items-center justify-center">
+                    <step.icon className="size-16 text-primary/40" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="mb-2 text-lg font-medium">{step.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {step.description}
+                  </p>
                 </div>
               </div>
-              <div>
-                <h3 className="mb-2 text-lg font-medium">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
-            </div>
+            </AnimatedSection>
           ))}
         </div>
       </div>

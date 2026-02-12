@@ -1,13 +1,14 @@
 "use client";
 
 import { SectionIntro } from "./section-intro";
-import { HelpCircle, Building2 } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { AnimatedSection } from "./animated-section";
 
 const faqs = [
   {
@@ -54,9 +55,8 @@ export function Faq() {
           subtitle="Common questions about getting started with UpScale."
         />
 
-        <div className="overflow-hidden rounded-lg border border-black/[0.08] bg-card">
-          <div className="grid sm:grid-cols-[1fr_auto]">
-            {/* Accordion column */}
+        <AnimatedSection>
+          <div className="overflow-hidden rounded-lg border border-black/[0.08] bg-card">
             <div className="p-6 sm:p-8">
               <Accordion type="single" collapsible className="w-full">
                 {faqs.map((faq, i) => (
@@ -75,15 +75,8 @@ export function Faq() {
                 ))}
               </Accordion>
             </div>
-
-            {/* Illustration column */}
-            <div className="hidden border-l border-black/[0.08] sm:flex sm:w-[340px] sm:items-center sm:justify-center">
-              <div className="dot-grid flex size-full items-center justify-center">
-                <Building2 className="size-24 text-primary/15" />
-              </div>
-            </div>
           </div>
-        </div>
+        </AnimatedSection>
       </div>
     </section>
   );

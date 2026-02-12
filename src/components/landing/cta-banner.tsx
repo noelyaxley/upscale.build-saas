@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { RollingButton } from "./rolling-button";
 
 export function CtaBanner() {
   return (
@@ -16,16 +14,7 @@ export function CtaBanner() {
               Make property development more accessible,
               <br className="hidden sm:block" /> stress free, and profitable.
             </h2>
-            <Button
-              asChild
-              variant="secondary"
-              className="shrink-0 rounded-full"
-            >
-              <Link href="/signup">
-                Start Free
-                <ArrowRight className="ml-1 size-4" />
-              </Link>
-            </Button>
+            <RollingButton text="Start Free" href="/signup" />
           </div>
         </div>
       </div>

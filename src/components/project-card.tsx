@@ -56,7 +56,7 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, isAdmin }: ProjectCardProps) {
   return (
-    <Card className="relative transition-shadow hover:shadow-md">
+    <Card className="relative card-hover-lift border-black/[0.08]">
       <Link href={`/projects/${project.id}`} className="absolute inset-0" />
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
@@ -113,7 +113,7 @@ export function ProjectCard({ project, isAdmin }: ProjectCardProps) {
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Budget</span>
-          <span className="font-medium">{formatCurrency(project.budget ?? 0)}</span>
+          <span className="font-medium tabular-nums">{formatCurrency(project.budget ?? 0)}</span>
         </div>
         {project.address && (
           <div className="flex items-start gap-1 text-sm text-muted-foreground">

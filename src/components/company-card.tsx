@@ -26,7 +26,7 @@ interface CompanyCardProps {
 export function CompanyCard({ company }: CompanyCardProps) {
   return (
     <Link href={`/companies/${company.id}`}>
-      <Card className="transition-shadow hover:shadow-md">
+      <Card className="card-hover-lift border-black/[0.08]">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="truncate text-base">{company.name}</CardTitle>

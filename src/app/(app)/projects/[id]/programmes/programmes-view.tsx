@@ -4,8 +4,6 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  ChevronRight,
   GanttChart as GanttChartIcon,
   Plus,
 } from "lucide-react";
@@ -27,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { CreateTaskDialog } from "@/components/create-task-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
 import { TaskListPanel } from "./task-list-panel";
 import { GanttChart } from "./gantt-chart";
 import {
@@ -131,27 +131,14 @@ export function ProgrammesView({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Programmes</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {project.name}
-          </h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Programmes" },
+        ]}
+      >
         <Select
           value={zoom}
           onValueChange={(v) => setZoom(v as ZoomLevel)}
@@ -171,32 +158,22 @@ export function ProgrammesView({
             Add Task
           </Button>
         </CreateTaskDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <GanttChartIcon className="size-4 text-sky-500" />
-              Total Tasks
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalTasks}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <GanttChartIcon className="size-4 text-sky-500" />
+        <StatCard icon={GanttChartIcon} label="Total Tasks" value={totalTasks} iconClassName="text-sky-500" />
+        <Card className="card-hover-lift border-black/[0.08]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Overall Progress
             </CardTitle>
+            <GanttChartIcon className="size-4 text-sky-500" />
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
               <Progress value={overallProgress} className="flex-1" />
-              <span className="text-sm font-medium">{overallProgress}%</span>
+              <span className="text-sm font-medium tabular-nums">{overallProgress}%</span>
             </div>
           </CardContent>
         </Card>

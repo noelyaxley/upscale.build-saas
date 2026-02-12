@@ -14,6 +14,7 @@ import {
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   FeasibilityState,
@@ -630,17 +631,11 @@ export function FeasibilityView({
       />
 
       {scenarios.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Calculator className="mx-auto size-12 text-muted-foreground/50" />
-            <p className="mt-2 text-sm text-muted-foreground">
-              No scenarios yet
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Create a scenario to start your feasibility analysis
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Calculator}
+          title="No scenarios yet"
+          description="Create a scenario to start your feasibility analysis"
+        />
       ) : (
         <Tabs defaultValue="land">
           <TabsList variant="line">

@@ -145,6 +145,25 @@
   -webkit-mask-image: radial-gradient(50% 50% at 50% 50%, rgb(0,0,0) 57%, rgba(0,0,0,0.85) 76%, rgba(0,0,0,0) 100%);
 }
 
+.grid-line-bg {
+  background-image:
+    linear-gradient(to right, oklch(0.145 0 0 / 5%) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.145 0 0 / 5%) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.card-hover-lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.1);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

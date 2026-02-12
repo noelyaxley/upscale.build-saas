@@ -1,14 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   CheckCircle,
-  ChevronRight,
   Clock,
   DollarSign,
   FileText,
@@ -16,6 +13,7 @@ import {
   RotateCcw,
   Send,
 } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { getErrorMessage } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
@@ -343,47 +341,21 @@ export function ClaimDetail({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/claims/${contract.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/claims`}
-              className="hover:underline"
-            >
-              Progress Claims
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/claims/${contract.id}`}
-              className="hover:underline"
-            >
-              CT-{String(contract.contract_number).padStart(3, "0")}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span className="font-mono">
-              PC-{String(claim.claim_number).padStart(3, "0")}
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {claim.name || `Progress Claim #${claim.claim_number}`}
-          </h1>
-        </div>
-        <Badge variant="secondary" className={statusColors[claim.status]}>
-          {statusLabels[claim.status]}
-        </Badge>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}/claims/${contract.id}`}
+        title={claim.name || `Progress Claim #${claim.claim_number}`}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Progress Claims", href: `/projects/${project.id}/claims` },
+          { label: `CT-${String(contract.contract_number).padStart(3, "0")}`, href: `/projects/${project.id}/claims/${contract.id}` },
+          { label: `PC-${String(claim.claim_number).padStart(3, "0")}` },
+        ]}
+        badge={
+          <Badge variant="secondary" className={statusColors[claim.status]}>
+            {statusLabels[claim.status]}
+          </Badge>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}

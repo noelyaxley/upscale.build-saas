@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Calendar,
   CheckCircle,
-  ChevronRight,
   CircleDot,
   Clock,
   FileText,
@@ -18,6 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
+import { PageHeader } from "@/components/page-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -213,40 +211,20 @@ export function SubmittalDetail({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/submittals`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/submittals`}
-              className="hover:underline"
-            >
-              Submittals
-            </Link>
-            <ChevronRight className="size-4" />
-            <span className="font-mono">
-              S-{String(submittal.submittal_number).padStart(3, "0")}
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {submittal.title}
-          </h1>
-        </div>
-        <Badge variant="secondary" className={statusColors[submittal.status]}>
-          {statusLabels[submittal.status]}
-        </Badge>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}/submittals`}
+        title={submittal.title}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Submittals", href: `/projects/${project.id}/submittals` },
+          { label: `S-${String(submittal.submittal_number).padStart(3, "0")}` },
+        ]}
+        badge={
+          <Badge variant="secondary" className={statusColors[submittal.status]}>
+            {statusLabels[submittal.status]}
+          </Badge>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}

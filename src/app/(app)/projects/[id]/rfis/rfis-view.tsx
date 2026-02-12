@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   Calendar,
-  ChevronRight,
   CircleDot,
   MessageSquarePlus,
   User,
@@ -36,6 +34,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateRFIDialog } from "@/components/create-rfi-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type RFI = Tables<"rfis"> & {
   originator: { id: string; full_name: string | null } | null;
@@ -99,62 +100,27 @@ export function RFIsView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>RFIs</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "RFIs" },
+        ]}
+      >
         <CreateRFIDialog projectId={project.id} members={members}>
           <Button size="sm">
             <MessageSquarePlus className="mr-2 size-4" />
             New RFI
           </Button>
         </CreateRFIDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Open
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{openCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Draft
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{draftCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Closed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{closedCount}</p>
-          </CardContent>
-        </Card>
+        <StatCard icon={MessageSquarePlus} label="Open" value={openCount} iconClassName="text-blue-500" />
+        <StatCard icon={MessageSquarePlus} label="Draft" value={draftCount} />
+        <StatCard icon={MessageSquarePlus} label="Closed" value={closedCount} iconClassName="text-green-500" />
       </div>
 
       <Card>
@@ -181,15 +147,11 @@ export function RFIsView({
         </CardHeader>
         <CardContent>
           {rfis.length === 0 ? (
-            <div className="py-8 text-center">
-              <MessageSquarePlus className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No RFIs yet
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Create an RFI to start tracking requests for information
-              </p>
-            </div>
+            <EmptyState
+              icon={MessageSquarePlus}
+              title="No RFIs yet"
+              description="Create an RFI to start tracking requests for information"
+            />
           ) : (
             <Table>
               <TableHeader>

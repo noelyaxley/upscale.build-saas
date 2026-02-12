@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
-  ChevronRight,
   DollarSign,
   Gavel,
   Plus,
@@ -35,6 +33,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateTenderDialog } from "@/components/create-tender-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type TenderStatus = Database["public"]["Enums"]["tender_status"];
 
@@ -122,80 +123,28 @@ export function TendersView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Tenders</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Tenders" },
+        ]}
+      >
         <CreateTenderDialog projectId={project.id}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             New Tender
           </Button>
         </CreateTenderDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Gavel className="size-4 text-orange-500" />
-              Total Tenders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{tenders.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Gavel className="size-4 text-orange-500" />
-              Open
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{openCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <DollarSign className="size-4 text-orange-500" />
-              Estimated Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalEstimated)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <DollarSign className="size-4 text-orange-500" />
-              Awarded Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalAwarded)}
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard icon={Gavel} label="Total Tenders" value={tenders.length} />
+        <StatCard icon={Gavel} label="Open" value={openCount} />
+        <StatCard icon={DollarSign} label="Estimated Value" value={formatCurrency(totalEstimated)} />
+        <StatCard icon={DollarSign} label="Awarded Value" value={formatCurrency(totalAwarded)} />
       </div>
 
       <Card>
@@ -224,15 +173,11 @@ export function TendersView({
         </CardHeader>
         <CardContent>
           {tenders.length === 0 ? (
-            <div className="py-8 text-center">
-              <Gavel className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No tenders found
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Create a tender package to start procurement
-              </p>
-            </div>
+            <EmptyState
+              icon={Gavel}
+              title="No tenders found"
+              description="Create a tender package to start procurement"
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -269,7 +214,7 @@ export function TendersView({
                     </TableCell>
                     <TableCell>{tender.trade}</TableCell>
                     <TableCell>{formatDate(tender.due_date)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right tabular-nums">
                       {formatCurrency(tender.estimated_value ?? 0)}
                     </TableCell>
                     <TableCell className="text-center">
@@ -278,7 +223,7 @@ export function TendersView({
                     <TableCell>
                       {tender.awarded_company?.name || "-"}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right tabular-nums">
                       {tender.awarded_amount
                         ? formatCurrency(tender.awarded_amount)
                         : "-"}

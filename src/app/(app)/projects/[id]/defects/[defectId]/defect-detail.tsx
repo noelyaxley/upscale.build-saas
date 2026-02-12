@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
-  ArrowLeft,
   ArrowRight,
   Building2,
   Calendar,
   Camera,
   CheckCircle,
-  ChevronRight,
   Clock,
   ImagePlus,
   MapPin,
@@ -22,6 +19,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -215,30 +213,20 @@ export function DefectDetail({ project, defect, companies }: DefectDetailProps) 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/defects`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link href={`/projects/${project.id}/defects`} className="hover:underline">
-              Defects
-            </Link>
-            <ChevronRight className="size-4" />
-            <span className="font-mono">D-{String(defect.defect_number).padStart(3, "0")}</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{defect.name}</h1>
-        </div>
-        <Badge variant="secondary" className={statusColors[defect.status]}>
-          {statusLabels[defect.status]}
-        </Badge>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}/defects`}
+        title={defect.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Defects", href: `/projects/${project.id}/defects` },
+          { label: `D-${String(defect.defect_number).padStart(3, "0")}` },
+        ]}
+        badge={
+          <Badge variant="secondary" className={statusColors[defect.status]}>
+            {statusLabels[defect.status]}
+          </Badge>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}

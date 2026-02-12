@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft, ChevronRight, Plus, Save } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
 import {
   Select,
   SelectContent,
@@ -36,35 +36,21 @@ export function ScenarioHeader({
 }: ScenarioHeaderProps) {
   return (
     <>
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Feasibility</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">
-              {project.name}
-            </h1>
-            {developmentType && (
-              <Badge variant="secondary" className="text-xs">
-                {DEVELOPMENT_TYPE_LABELS[developmentType]}
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Feasibility" },
+        ]}
+        badge={
+          developmentType ? (
+            <Badge variant="secondary" className="text-xs">
+              {DEVELOPMENT_TYPE_LABELS[developmentType]}
+            </Badge>
+          ) : undefined
+        }
+      />
 
       <div className="flex items-center gap-3">
         <Select value={selectedId} onValueChange={onSelectScenario}>

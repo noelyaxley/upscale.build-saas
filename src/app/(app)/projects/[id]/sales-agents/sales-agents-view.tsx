@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import {
-  ArrowLeft,
-  ChevronRight,
   DollarSign,
   Plus,
   UserCheck,
@@ -26,6 +24,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateAgentDialog } from "@/components/create-agent-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type Agent = {
   id: string;
@@ -73,72 +74,27 @@ export function SalesAgentsView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Sales Agents</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {project.name}
-          </h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Sales Agents" },
+        ]}
+      >
         <CreateAgentDialog projectId={project.id}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             Add Agent
           </Button>
         </CreateAgentDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <UserCheck className="size-4 text-pink-500" />
-              Total Agents
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{agents.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <UserCheck className="size-4 text-pink-500" />
-              Total Sales
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalSales}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <DollarSign className="size-4 text-pink-500" />
-              Total Commission
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalCommission)}
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard icon={UserCheck} label="Total Agents" value={agents.length} iconClassName="text-pink-500" />
+        <StatCard icon={UserCheck} label="Total Sales" value={totalSales} iconClassName="text-pink-500" />
+        <StatCard icon={DollarSign} label="Total Commission" value={formatCurrency(totalCommission)} iconClassName="text-pink-500" />
       </div>
 
       <Card>
@@ -150,15 +106,11 @@ export function SalesAgentsView({
         </CardHeader>
         <CardContent>
           {agents.length === 0 ? (
-            <div className="py-8 text-center">
-              <UserCheck className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No sales agents registered
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add agents to track sales commissions
-              </p>
-            </div>
+            <EmptyState
+              icon={UserCheck}
+              title="No sales agents registered"
+              description="Add agents to track sales commissions"
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -199,7 +151,7 @@ export function SalesAgentsView({
                           {stats?.sales_count ?? 0}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium tabular-nums">
                         {formatCurrency(stats?.total_commission ?? 0)}
                       </TableCell>
                     </TableRow>

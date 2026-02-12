@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  ArrowLeft,
   Building2,
   FolderKanban,
   Mail,
@@ -15,6 +14,7 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
 import {
   Card,
   CardContent,
@@ -64,20 +64,19 @@ export function CompanyDetail({ company, projects }: CompanyDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/companies">
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={typeColors[company.type]}>
-              {formatType(company.type)}
-            </Badge>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{company.name}</h1>
-        </div>
+      <PageHeader
+        backHref="/companies"
+        title={company.name}
+        breadcrumbs={[
+          { label: "Companies", href: "/companies" },
+          { label: company.name },
+        ]}
+        badge={
+          <Badge variant="secondary" className={typeColors[company.type]}>
+            {formatType(company.type)}
+          </Badge>
+        }
+      >
         {isAdmin && (
           <div className="flex items-center gap-2">
             <EditCompanyDialog company={company}>
@@ -94,7 +93,7 @@ export function CompanyDetail({ company, projects }: CompanyDetailProps) {
             </DeleteCompanyDialog>
           </div>
         )}
-      </div>
+      </PageHeader>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>

@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  ChevronRight,
   Cloud,
   CloudRain,
   CloudSun,
@@ -22,6 +19,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -278,32 +276,15 @@ export function DiaryEntryDetail({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/site-diary`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/site-diary`}
-              className="hover:underline"
-            >
-              Site Diary
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>{formatDate(entry.entry_date)}</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {formatDate(entry.entry_date)}
-          </h1>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}/site-diary`}
+        title={formatDate(entry.entry_date)}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Site Diary", href: `/projects/${project.id}/site-diary` },
+          { label: formatDate(entry.entry_date) },
+        ]}
+      />
 
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-4">

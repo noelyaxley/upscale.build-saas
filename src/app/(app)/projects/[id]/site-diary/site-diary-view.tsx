@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  ArrowLeft,
   Calendar,
   ChevronRight,
   Cloud,
@@ -28,6 +27,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateDiaryEntryDialog } from "@/components/create-diary-entry-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type WeatherCondition = Database["public"]["Enums"]["weather_condition"];
 
@@ -109,79 +111,28 @@ export function SiteDiaryView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Site Diary</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Site Diary" },
+        ]}
+      >
         <CreateDiaryEntryDialog projectId={project.id} companies={companies}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             New Entry
           </Button>
         </CreateDiaryEntryDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Calendar className="size-4 text-blue-500" />
-              Total Entries
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{entries.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Users className="size-4 text-green-500" />
-              Labor Records
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalWorkers}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <HardHat className="size-4 text-yellow-500" />
-              Safety Incidents
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalIncidents}</p>
-            {totalIncidents === 0 && (
-              <p className="text-xs text-green-600">No incidents reported</p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Truck className="size-4 text-orange-500" />
-              Delay Hours
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalDelayHours.toFixed(1)}h</p>
-          </CardContent>
-        </Card>
+        <StatCard icon={Calendar} label="Total Entries" value={entries.length} iconClassName="text-blue-500" />
+        <StatCard icon={Users} label="Labor Records" value={totalWorkers} iconClassName="text-green-500" />
+        <StatCard icon={HardHat} label="Safety Incidents" value={totalIncidents} iconClassName="text-yellow-500" />
+        <StatCard icon={Truck} label="Delay Hours" value={`${totalDelayHours.toFixed(1)}h`} />
       </div>
 
       {/* Diary Entries */}
@@ -194,15 +145,11 @@ export function SiteDiaryView({
         </CardHeader>
         <CardContent>
           {entries.length === 0 ? (
-            <div className="py-8 text-center">
-              <Calendar className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No diary entries yet
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Create your first site diary entry
-              </p>
-            </div>
+            <EmptyState
+              icon={Calendar}
+              title="No diary entries yet"
+              description="Create your first site diary entry"
+            />
           ) : (
             <div className="space-y-6">
               {Object.entries(entriesByMonth).map(([month, monthEntries]) => (

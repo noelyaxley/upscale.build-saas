@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
-  ArrowLeft,
-  ChevronRight,
   Plus,
   Shield,
   Sparkles,
@@ -39,6 +37,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateRiskDialog } from "@/components/create-risk-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type RiskStatus = Database["public"]["Enums"]["risk_status"];
 
@@ -115,68 +116,27 @@ export function RisksView({ project, risks, typeFilter, statusFilter }: RisksVie
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Risks & Opportunities</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Risks & Opportunities" },
+        ]}
+      >
         <CreateRiskDialog projectId={project.id}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             Add Item
           </Button>
         </CreateRiskDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <AlertTriangle className="size-4 text-red-500" />
-              Open Risks
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{riskCount}</p>
-            {highRiskCount > 0 && (
-              <p className="text-xs text-red-500">{highRiskCount} high priority</p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Sparkles className="size-4 text-green-500" />
-              Open Opportunities
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{opportunityCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Shield className="size-4 text-blue-500" />
-              Total Items
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{risks.length}</p>
-          </CardContent>
-        </Card>
+        <StatCard icon={AlertTriangle} label="Open Risks" value={riskCount} iconClassName="text-red-500" />
+        <StatCard icon={Sparkles} label="Open Opportunities" value={opportunityCount} iconClassName="text-green-500" />
+        <StatCard icon={Shield} label="Total Items" value={risks.length} iconClassName="text-blue-500" />
       </div>
 
       <Card>
@@ -215,13 +175,11 @@ export function RisksView({ project, risks, typeFilter, statusFilter }: RisksVie
         </CardHeader>
         <CardContent>
           {risks.length === 0 ? (
-            <div className="py-8 text-center">
-              <Shield className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">No items found</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add risks and opportunities to track them proactively
-              </p>
-            </div>
+            <EmptyState
+              icon={Shield}
+              title="No items found"
+              description="Add risks and opportunities to track them proactively"
+            />
           ) : (
             <Table>
               <TableHeader>

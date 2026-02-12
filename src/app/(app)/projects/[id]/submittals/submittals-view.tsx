@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   Calendar,
-  ChevronRight,
   ClipboardCheck,
   Plus,
 } from "lucide-react";
@@ -35,6 +33,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateSubmittalDialog } from "@/components/create-submittal-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type SubmittalStatus = Database["public"]["Enums"]["submittal_status"];
 
@@ -141,27 +142,14 @@ export function SubmittalsView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Submittals</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {project.name}
-          </h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Submittals" },
+        ]}
+      >
         <CreateSubmittalDialog
           projectId={project.id}
           companies={companies}
@@ -172,54 +160,14 @@ export function SubmittalsView({
             New Submittal
           </Button>
         </CreateSubmittalDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <ClipboardCheck className="size-4 text-violet-500" />
-              Total Submittals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{submittals.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <ClipboardCheck className="size-4 text-violet-500" />
-              Pending Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{pendingCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <ClipboardCheck className="size-4 text-violet-500" />
-              Approved
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{approvedCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <ClipboardCheck className="size-4 text-violet-500" />
-              Action Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{actionCount}</p>
-          </CardContent>
-        </Card>
+        <StatCard icon={ClipboardCheck} label="Total Submittals" value={submittals.length} iconClassName="text-violet-500" />
+        <StatCard icon={ClipboardCheck} label="Pending Review" value={pendingCount} iconClassName="text-violet-500" />
+        <StatCard icon={ClipboardCheck} label="Approved" value={approvedCount} iconClassName="text-violet-500" />
+        <StatCard icon={ClipboardCheck} label="Action Required" value={actionCount} iconClassName="text-violet-500" />
       </div>
 
       <Card>
@@ -255,15 +203,11 @@ export function SubmittalsView({
         </CardHeader>
         <CardContent>
           {submittals.length === 0 ? (
-            <div className="py-8 text-center">
-              <ClipboardCheck className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No submittals found
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Create a submittal to track document reviews
-              </p>
-            </div>
+            <EmptyState
+              icon={ClipboardCheck}
+              title="No submittals found"
+              description="Create a submittal to track document reviews"
+            />
           ) : (
             <Table>
               <TableHeader>

@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
-  ArrowLeft,
   Building2,
   CheckCircle,
-  ChevronRight,
   Clock,
   MapPin,
   Plus,
@@ -38,6 +36,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateDefectDialog } from "@/components/create-defect-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type Defect = Tables<"defects"> & {
   assigned_company: { id: string; name: string } | null;
@@ -103,65 +104,27 @@ export function DefectsView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Defects</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Defects" },
+        ]}
+      >
         <CreateDefectDialog projectId={project.id} companies={companies}>
           <Button size="sm">
             <Plus className="mr-2 size-4" />
             Log Defect
           </Button>
         </CreateDefectDialog>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <AlertTriangle className="size-4 text-red-500" />
-              Open
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{openCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Clock className="size-4 text-yellow-500" />
-              Awaiting Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{inProgressCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CheckCircle className="size-4 text-green-500" />
-              Closed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{closedCount}</p>
-          </CardContent>
-        </Card>
+        <StatCard icon={AlertTriangle} label="Open" value={openCount} iconClassName="text-red-500" />
+        <StatCard icon={Clock} label="Awaiting Review" value={inProgressCount} iconClassName="text-yellow-500" />
+        <StatCard icon={CheckCircle} label="Closed" value={closedCount} iconClassName="text-green-500" />
       </div>
 
       <Card>
@@ -188,15 +151,11 @@ export function DefectsView({
         </CardHeader>
         <CardContent>
           {defects.length === 0 ? (
-            <div className="py-8 text-center">
-              <AlertTriangle className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No defects logged yet
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Log defects to track and manage remediation work
-              </p>
-            </div>
+            <EmptyState
+              icon={AlertTriangle}
+              title="No defects logged yet"
+              description="Log defects to track and manage remediation work"
+            />
           ) : (
             <Table>
               <TableHeader>

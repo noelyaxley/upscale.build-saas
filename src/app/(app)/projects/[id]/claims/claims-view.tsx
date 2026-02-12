@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   BadgeCheck,
   Building2,
-  ChevronRight,
   DollarSign,
   FileText,
   Plus,
@@ -38,6 +36,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateContractDialog } from "@/components/create-contract-dialog";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { EmptyState } from "@/components/empty-state";
 
 type ContractStatus = Database["public"]["Enums"]["contract_status"];
 
@@ -133,22 +134,14 @@ export function ClaimsView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Progress Claims</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Progress Claims" },
+        ]}
+      >
         {isAdmin && (
           <CreateContractDialog projectId={project.id} companies={companies}>
             <Button size="sm">
@@ -157,60 +150,14 @@ export function ClaimsView({
             </Button>
           </CreateContractDialog>
         )}
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <FileText className="size-4 text-blue-500" />
-              Total Contracts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{contracts.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <DollarSign className="size-4 text-yellow-500" />
-              Contract Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalContractValue)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <DollarSign className="size-4 text-blue-500" />
-              Total Claimed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalClaimed)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <BadgeCheck className="size-4 text-green-500" />
-              Total Certified
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalCertified)}
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard icon={FileText} label="Total Contracts" value={contracts.length} iconClassName="text-blue-500" />
+        <StatCard icon={DollarSign} label="Contract Value" value={formatCurrency(totalContractValue)} iconClassName="text-yellow-500" />
+        <StatCard icon={DollarSign} label="Total Claimed" value={formatCurrency(totalClaimed)} iconClassName="text-blue-500" />
+        <StatCard icon={BadgeCheck} label="Total Certified" value={formatCurrency(totalCertified)} iconClassName="text-green-500" />
       </div>
 
       <Card>
@@ -238,15 +185,11 @@ export function ClaimsView({
         </CardHeader>
         <CardContent>
           {contracts.length === 0 ? (
-            <div className="py-8 text-center">
-              <FileText className="mx-auto size-12 text-muted-foreground/50" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                No contracts found
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Create a contract to start tracking progress claims
-              </p>
-            </div>
+            <EmptyState
+              icon={FileText}
+              title="No contracts found"
+              description="Create a contract to start tracking progress claims"
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -303,13 +246,13 @@ export function ClaimsView({
                           {contract.company?.name || "-"}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium tabular-nums">
                         {formatCurrency(contract.contract_value)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right tabular-nums">
                         {claimed > 0 ? formatCurrency(claimed) : "-"}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right tabular-nums">
                         {certified > 0 ? formatCurrency(certified) : "-"}
                       </TableCell>
                       <TableCell className="text-center">

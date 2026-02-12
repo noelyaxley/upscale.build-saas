@@ -1,14 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Bath,
   Bed,
   Car,
-  ChevronRight,
   DollarSign,
   Home,
   Layers,
@@ -17,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Tables, Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -137,40 +135,20 @@ export function LotDetail({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}/lot-sales`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/lot-sales`}
-              className="hover:underline"
-            >
-              Lot Sales
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Lot {lot.lot_number}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">
-              Lot {lot.lot_number}
-            </h1>
-            <Badge variant="secondary" className={statusColors[lot.status]}>
-              {statusLabels[lot.status]}
-            </Badge>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}/lot-sales`}
+        title={`Lot ${lot.lot_number}`}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Lot Sales", href: `/projects/${project.id}/lot-sales` },
+          { label: `Lot ${lot.lot_number}` },
+        ]}
+        badge={
+          <Badge variant="secondary" className={statusColors[lot.status]}>
+            {statusLabels[lot.status]}
+          </Badge>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column - 2/3 */}

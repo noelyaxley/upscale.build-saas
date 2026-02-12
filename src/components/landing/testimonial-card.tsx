@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SectionIntro } from "./section-intro";
 import { MessageSquareQuote, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnimatedSection } from "./animated-section";
 
 const testimonials = [
   {
@@ -52,56 +53,58 @@ export function TestimonialCard() {
           highlightWord="developers and builders"
         />
 
-        <div className="mx-auto max-w-[1000px]">
-          <div className="overflow-hidden rounded-lg border border-black/[0.08] bg-card">
-            <div className="flex flex-col sm:flex-row">
-              {/* Portrait/avatar area */}
-              <div className="flex h-48 shrink-0 items-center justify-center bg-muted/50 sm:h-auto sm:w-[340px]">
-                <div className="flex size-24 items-center justify-center rounded-full bg-primary/10 text-3xl font-medium text-primary">
-                  {testimonial.initials}
-                </div>
-              </div>
-
-              {/* Content area */}
-              <div className="flex flex-1 flex-col justify-between p-8 sm:p-10">
-                <div>
-                  <blockquote className="mb-8 text-lg font-medium leading-[1.1] tracking-[-0.02em] sm:text-2xl">
-                    &ldquo;{testimonial.quote}&rdquo;
-                  </blockquote>
-
-                  <div>
-                    <p className="text-lg font-medium">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {testimonial.title} &middot; {testimonial.company}
-                    </p>
+        <AnimatedSection>
+          <div className="mx-auto max-w-[1000px]">
+            <div className="card-hover-lift overflow-hidden rounded-lg border border-black/[0.08] bg-card">
+              <div className="flex flex-col sm:flex-row">
+                {/* Portrait/avatar area */}
+                <div className="flex h-48 shrink-0 items-center justify-center bg-muted/50 sm:h-auto sm:w-[340px]">
+                  <div className="flex size-24 items-center justify-center rounded-full bg-primary/10 text-3xl font-medium text-primary">
+                    {testimonial.initials}
                   </div>
                 </div>
 
-                {/* Navigation arrows */}
-                <div className="mt-8 flex items-center gap-2 sm:justify-end">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-9 rounded-full border-black/[0.08]"
-                    onClick={prev}
-                    aria-label="Previous testimonial"
-                  >
-                    <ChevronLeft className="size-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-9 rounded-full border-black/[0.08]"
-                    onClick={next}
-                    aria-label="Next testimonial"
-                  >
-                    <ChevronRight className="size-4" />
-                  </Button>
+                {/* Content area */}
+                <div className="flex flex-1 flex-col justify-between p-8 sm:p-10">
+                  <div>
+                    <blockquote className="mb-8 text-lg font-medium leading-[1.1] tracking-[-0.02em] sm:text-2xl">
+                      &ldquo;{testimonial.quote}&rdquo;
+                    </blockquote>
+
+                    <div>
+                      <p className="text-lg font-medium">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {testimonial.title} &middot; {testimonial.company}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Navigation arrows */}
+                  <div className="mt-8 flex items-center gap-2 sm:justify-end">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-9 rounded-full border-black/[0.08]"
+                      onClick={prev}
+                      aria-label="Previous testimonial"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-9 rounded-full border-black/[0.08]"
+                      onClick={next}
+                      aria-label="Next testimonial"
+                    >
+                      <ChevronRight className="size-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </AnimatedSection>
       </div>
     </section>
   );

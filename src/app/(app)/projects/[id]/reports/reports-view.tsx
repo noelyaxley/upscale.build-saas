@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import {
-  ArrowLeft,
   BarChart3,
-  ChevronRight,
   DollarSign,
   GanttChart,
   ShieldCheck,
@@ -24,6 +22,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
 
 type VariationStatus = Database["public"]["Enums"]["variation_status"];
 type SubmittalStatus = Database["public"]["Enums"]["submittal_status"];
@@ -73,29 +73,6 @@ function formatCurrency(cents: number): string {
   }).format(cents / 100);
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          {icon || <BarChart3 className="size-4 text-fuchsia-500" />}
-          {label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-2xl font-bold">{value}</p>
-      </CardContent>
-    </Card>
-  );
-}
 
 function BarChart({
   items,
@@ -337,28 +314,14 @@ export function ReportsView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Reports</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {project.name}
-          </h1>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Reports" },
+        ]}
+      />
 
       <Tabs defaultValue="overview">
         <TabsList>
@@ -371,31 +334,20 @@ export function ReportsView({
         {/* OVERVIEW TAB */}
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-4">
-            <StatCard label="Total Variations" value={variations.length} />
-            <StatCard label="Total Claims" value={claims.length} />
-            <StatCard label="Open Tenders" value={openTenders} />
-            <StatCard label="Lots Sold" value={`${lotsSoldPct}%`} />
-            <StatCard
-              label="Programme Completion"
-              value={`${programmeCompletion}%`}
-              icon={<GanttChart className="size-4 text-fuchsia-500" />}
-            />
-            <StatCard label="Total Defects" value={defects.length} />
-            <StatCard label="EOT Days Approved" value={eotDaysApproved} />
+            <StatCard icon={BarChart3} label="Total Variations" value={variations.length} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Total Claims" value={claims.length} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Open Tenders" value={openTenders} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Lots Sold" value={`${lotsSoldPct}%`} iconClassName="text-fuchsia-500" />
+            <StatCard icon={GanttChart} label="Programme Completion" value={`${programmeCompletion}%`} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Total Defects" value={defects.length} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="EOT Days Approved" value={eotDaysApproved} iconClassName="text-fuchsia-500" />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <StatCard
-              label="Site Diary Entries"
-              value={diaryEntries.length}
-            />
-            <StatCard label="Total Submittals" value={submittals.length} />
-            <StatCard label="Total RFIs" value={rfis.length} />
-            <StatCard
-              label="Risks & Opportunities"
-              value={risks.length}
-              icon={<ShieldCheck className="size-4 text-fuchsia-500" />}
-            />
+            <StatCard icon={BarChart3} label="Site Diary Entries" value={diaryEntries.length} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Total Submittals" value={submittals.length} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Total RFIs" value={rfis.length} iconClassName="text-fuchsia-500" />
+            <StatCard icon={ShieldCheck} label="Risks & Opportunities" value={risks.length} iconClassName="text-fuchsia-500" />
           </div>
         </TabsContent>
 
@@ -489,10 +441,10 @@ export function ReportsView({
         {/* PROGRAMME TAB */}
         <TabsContent value="programme" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-4">
-            <StatCard label="Total Tasks" value={totalTasks} />
-            <StatCard label="Not Started" value={tasksNotStarted} />
-            <StatCard label="In Progress" value={tasksInProgress} />
-            <StatCard label="Complete" value={tasksComplete} />
+            <StatCard icon={BarChart3} label="Total Tasks" value={totalTasks} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Not Started" value={tasksNotStarted} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="In Progress" value={tasksInProgress} iconClassName="text-fuchsia-500" />
+            <StatCard icon={BarChart3} label="Complete" value={tasksComplete} iconClassName="text-fuchsia-500" />
           </div>
 
           <Card>

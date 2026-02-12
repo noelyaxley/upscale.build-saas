@@ -4,7 +4,7 @@ import { getErrorMessage } from "@/lib/utils";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
 import { useOrganisation } from "@/lib/context/organisation";
@@ -263,44 +263,16 @@ export function CreateClaimView({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link
-            href={`/projects/${project.id}/claims/${contract.id}`}
-          >
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href={`/projects/${project.id}`}
-              className="hover:underline"
-            >
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/claims`}
-              className="hover:underline"
-            >
-              Progress Claims
-            </Link>
-            <ChevronRight className="size-4" />
-            <Link
-              href={`/projects/${project.id}/claims/${contract.id}`}
-              className="hover:underline"
-            >
-              CT-{String(contract.contract_number).padStart(3, "0")}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>New Claim</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            New Progress Claim
-          </h1>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/projects/${project.id}/claims/${contract.id}`}
+        title="New Progress Claim"
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Progress Claims", href: `/projects/${project.id}/claims` },
+          { label: `CT-${String(contract.contract_number).padStart(3, "0")}`, href: `/projects/${project.id}/claims/${contract.id}` },
+          { label: "New Claim" },
+        ]}
+      />
 
       <form onSubmit={handleSubmit}>
         {/* Period & Company */}

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ChevronRight,
   Download,
   File,
@@ -49,6 +48,8 @@ import { CreateFolderDialog } from "@/components/create-folder-dialog";
 import { DeleteDocumentDialog } from "@/components/delete-document-dialog";
 import { DropboxFileBrowser } from "@/components/dropbox-file-browser";
 import { DropboxFolderPickerDialog } from "@/components/dropbox-folder-picker-dialog";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 
 type DocumentFolder = Tables<"document_folders">;
 type Document = Tables<"documents"> & {
@@ -140,22 +141,14 @@ export function DocumentsView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${project.id}`}>
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/projects/${project.id}`} className="hover:underline">
-              {project.code}
-            </Link>
-            <ChevronRight className="size-4" />
-            <span>Documents</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-        </div>
+      <PageHeader
+        backHref={`/projects/${project.id}`}
+        title={project.name}
+        breadcrumbs={[
+          { label: project.code, href: `/projects/${project.id}` },
+          { label: "Documents" },
+        ]}
+      >
         <div className="flex items-center gap-2">
           {isAdmin && (
             <>
@@ -180,7 +173,7 @@ export function DocumentsView({
             </>
           )}
         </div>
-      </div>
+      </PageHeader>
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1 text-sm">
@@ -321,17 +314,11 @@ function DocumentsCard({
       </CardHeader>
       <CardContent>
         {folders.length === 0 && documents.length === 0 ? (
-          <div className="py-8 text-center">
-            <Folder className="mx-auto size-12 text-muted-foreground/50" />
-            <p className="mt-2 text-sm text-muted-foreground">
-              No files or folders yet
-            </p>
-            {isAdmin && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Upload documents or create folders to get started
-              </p>
-            )}
-          </div>
+          <EmptyState
+            icon={Folder}
+            title="No files or folders yet"
+            description={isAdmin ? "Upload documents or create folders to get started" : undefined}
+          />
         ) : (
           <Table>
             <TableHeader>

@@ -5,6 +5,9 @@ import { TestimonialQuote } from "@/components/landing/testimonial-quote";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Features } from "@/components/landing/features";
 import { Metrics } from "@/components/landing/metrics";
+import { Pricing } from "@/components/landing/pricing";
+import { Benefits } from "@/components/landing/benefits";
+import { Blog } from "@/components/landing/blog";
 import { Faq } from "@/components/landing/faq";
 import { TestimonialCard } from "@/components/landing/testimonial-card";
 import { CtaBanner } from "@/components/landing/cta-banner";
@@ -21,6 +24,9 @@ export default function Home() {
         <HowItWorks />
         <Features />
         <Metrics />
+        <Pricing />
+        <Benefits />
+        <Blog />
         <Faq />
         <TestimonialCard />
         <CtaBanner />
