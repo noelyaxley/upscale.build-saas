@@ -3,22 +3,22 @@ import { TrendingUp } from "lucide-react";
 
 const metrics = [
   {
-    value: "40%",
-    label: "Reduce delivery time",
+    value: "60%",
+    label: "Fewer claim disputes",
     description:
-      "Teams using Upscale.Build report significantly faster project turnaround compared to spreadsheet-based workflows.",
+      "Structured progress claim workflows with line-item breakdowns and certified amounts reduce back-and-forth between contractors and principals.",
   },
   {
     value: "3x",
-    label: "Boost budget visibility",
+    label: "Faster feasibility",
     description:
-      "Real-time cost tracking gives project managers three times more financial clarity across the portfolio.",
+      "Model land costs, sales revenue, debt, and equity across multiple scenarios in minutes — not days of spreadsheet wrangling.",
   },
   {
-    value: "85%",
-    label: "Speed up onboarding",
+    value: "100%",
+    label: "Portfolio visibility",
     description:
-      "Intuitive design means the majority of team members are actively using the platform within the first week.",
+      "Every project, budget, variation, and claim in one dashboard. No more chasing spreadsheets across email threads.",
   },
 ];
 
@@ -29,8 +29,8 @@ export function Metrics() {
         <SectionIntro
           icon={TrendingUp}
           badge="By The Numbers"
-          heading="Track what matters for real growth"
-          highlightWord="real growth"
+          heading="Built to eliminate the spreadsheet"
+          highlightWord="eliminate"
         />
 
         {/* Shared-border metric cards */}

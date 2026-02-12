@@ -2,7 +2,7 @@ import {
   ClipboardList,
   FileText,
   DollarSign,
-  Users,
+  Scale,
   BookOpen,
   CalendarRange,
   Sparkles,
@@ -11,40 +11,40 @@ import { SectionIntro } from "./section-intro";
 
 const features = [
   {
-    icon: ClipboardList,
-    title: "Project Tracking",
-    description:
-      "Monitor project stages from preconstruction through to completion. Track status, milestones, and deliverables in real time.",
-  },
-  {
-    icon: FileText,
-    title: "Document Control",
-    description:
-      "Centralise drawings, specs, RFIs, and submittals. Version control and approvals built in.",
-  },
-  {
     icon: DollarSign,
-    title: "Budget Management",
+    title: "Progress Claims & Variations",
     description:
-      "Track budgets, variations, and cost-to-complete across all your projects with real-time financial visibility.",
+      "Submit and certify payment claims period by period. Track variations from draft through to approval with full cost and time impact visibility.",
   },
   {
-    icon: Users,
-    title: "Team Collaboration",
+    icon: Scale,
+    title: "Feasibility & Lot Sales",
     description:
-      "Assign roles, manage permissions, and keep your entire project team aligned with shared workflows.",
+      "Model development scenarios with land costs, revenue, debt, and equity. Manage lot inventory from available through to settlement with agent commissions.",
   },
   {
     icon: BookOpen,
     title: "Site Diary",
     description:
-      "Record daily site activity — weather, labour, equipment, visitors, and work summaries. Photo capture and reporting included.",
+      "Record daily site conditions — weather, labour by trade, equipment, visitors, and work summaries. One entry per project per day, ready for reporting.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Tenders & Procurement",
+    description:
+      "Issue tender packages by trade, collect contractor submissions, evaluate bids, and award — all tracked from draft through to completion.",
+  },
+  {
+    icon: FileText,
+    title: "Submittals & RFIs",
+    description:
+      "Manage shop drawings, product data, and samples through a structured review workflow. Track RFIs from submission to close-out.",
   },
   {
     icon: CalendarRange,
-    title: "Programme & Scheduling",
+    title: "Programme & EOT",
     description:
-      "Plan and track project programmes with Gantt-style task management, dependencies, and progress tracking across your portfolio.",
+      "Plan project schedules with hierarchical tasks and dependencies. Log extension of time claims with days requested, approved, and date impacts.",
   },
 ];
 
@@ -55,9 +55,9 @@ export function Features() {
         <SectionIntro
           icon={Sparkles}
           badge="Features"
-          heading="Everything you need to deliver projects"
-          highlightWord="deliver"
-          subtitle="Purpose-built tools for construction project management. No workarounds, no spreadsheets."
+          heading="Every workflow, one platform"
+          highlightWord="one platform"
+          subtitle="Purpose-built modules for construction — not a generic project tool with workarounds bolted on."
         />
 
         {/* 2-column bento grid with shared borders */}

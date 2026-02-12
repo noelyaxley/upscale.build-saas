@@ -15,25 +15,25 @@ export function Hero() {
               New
             </span>
             <span className="text-sm text-foreground">
-              Built for construction teams
+              Feasibility & lot sales now live
             </span>
             <Building2 className="size-3.5 text-muted-foreground" />
           </div>
 
           <h1 className="mb-6 text-4xl font-medium tracking-[-0.02em] leading-[1.05] sm:text-5xl lg:text-[64px]">
-            Manage Construction Projects{" "}
-            <span className="text-primary">with Confidence</span>
+            The Operating System for{" "}
+            <span className="text-primary">Construction</span>
           </h1>
 
-          <p className="mb-8 max-w-[350px] text-base text-muted-foreground">
-            Track progress, control documents, manage budgets, and coordinate
-            teams — all in one platform built for the construction industry.
+          <p className="mb-8 max-w-[400px] text-base text-muted-foreground">
+            Progress claims, variations, site diaries, tenders, feasibility, and
+            lot sales — everything your team needs from DA to settlement.
           </p>
 
           <div className="flex gap-4">
             <Button asChild size="lg" className="rounded-full px-5">
               <Link href="/signup">
-                Get Started Free
+                Start Free
                 <ArrowRight className="ml-1 size-4" />
               </Link>
             </Button>
@@ -43,7 +43,7 @@ export function Hero() {
               size="lg"
               className="rounded-full px-5"
             >
-              <Link href="#features">See Features</Link>
+              <Link href="#features">See How It Works</Link>
             </Button>
           </div>
         </div>

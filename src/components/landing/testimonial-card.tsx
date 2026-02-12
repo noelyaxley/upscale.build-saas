@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const testimonials = [
   {
     quote:
-      "Upscale.Build replaced three separate tools for us. Progress claims, site diaries, and budget tracking — all in one place. Our PMs save hours every week.",
+      "Our PMs used to spend two days a month reconciling claims in Excel. Now they submit, certify, and track variations in Upscale.Build — it takes an afternoon.",
     name: "Sarah Chen",
     title: "Operations Manager",
     company: "Atlas Builders",
@@ -16,7 +16,7 @@ const testimonials = [
   },
   {
     quote:
-      "The feasibility module alone was worth the switch. We can model scenarios in minutes and present to investors with confidence. It's a game changer.",
+      "We model feasibility scenarios with land, debt, equity, and GST in minutes. The board gets a clean summary and we move to the next deal faster.",
     name: "David Park",
     title: "Development Manager",
     company: "Ironbark Projects",
@@ -24,7 +24,7 @@ const testimonials = [
   },
   {
     quote:
-      "We onboarded our entire team in a day. The interface is intuitive, the permissions are flexible, and the client portal keeps our stakeholders happy.",
+      "Site diaries, tender tracking, and the client portal are the three features our team couldn't live without. Everything is in one place, finally.",
     name: "Michelle Torres",
     title: "Project Director",
     company: "Civic Developments",
@@ -48,8 +48,8 @@ export function TestimonialCard() {
         <SectionIntro
           icon={MessageSquareQuote}
           badge="Testimonials"
-          heading="People love building with Upscale"
-          highlightWord="building with"
+          heading="Teams love delivering with Upscale"
+          highlightWord="delivering with"
         />
 
         <div className="mx-auto max-w-[1000px]">

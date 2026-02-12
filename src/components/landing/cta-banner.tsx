@@ -13,8 +13,8 @@ export function CtaBanner() {
 
           <div className="relative flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
             <h2 className="text-xl font-medium text-background sm:text-2xl">
-              Get started with the #1 construction
-              <br className="hidden sm:block" /> project management platform today
+              Stop managing projects in spreadsheets.
+              <br className="hidden sm:block" /> Start delivering with Upscale.Build.
             </h2>
             <Button
               asChild
@@ -22,7 +22,7 @@ export function CtaBanner() {
               className="shrink-0 rounded-full"
             >
               <Link href="/signup">
-                Get Started
+                Start Free
                 <ArrowRight className="ml-1 size-4" />
               </Link>
             </Button>

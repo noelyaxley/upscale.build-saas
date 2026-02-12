@@ -21,7 +21,7 @@ export function LogoStrip() {
     <section className="border-t border-border py-12">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <p className="mb-8 text-center text-sm font-medium text-muted-foreground">
-          Trusted by construction companies across Australia
+          Trusted by developers and builders across Australia
         </p>
         <div className="relative overflow-hidden">
           {/* Gradient masks */}

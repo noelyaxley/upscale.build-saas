@@ -11,34 +11,34 @@ import {
 
 const faqs = [
   {
-    question: "Is Upscale.Build suitable for small construction firms?",
+    question: "What types of projects does Upscale.Build support?",
     answer:
-      "Absolutely. We designed the platform to scale from boutique builders managing a handful of projects to large developers running multi-million dollar portfolios. You only pay for what you use.",
+      "Residential, commercial, civil, and mixed-use developments. The platform covers the full lifecycle — from feasibility analysis and DA through construction, lot sales, and settlement.",
   },
   {
-    question: "Can I import data from spreadsheets?",
+    question: "How do progress claims and variations work?",
     answer:
-      "Yes. You can import project data, budgets, and team lists from CSV and Excel files. Our onboarding team can also help with bulk migration from existing systems.",
+      "Each contract has its own claim and variation register. Submit claims period by period with line-item breakdowns, track claimed vs certified amounts, and manage variations from draft through to approval with cost and time impact recorded.",
   },
   {
-    question: "How does role-based access work?",
+    question: "Can I run development feasibility scenarios?",
     answer:
-      "Organisation admins can invite team members and assign roles with granular permissions. Control who can view, edit, or approve across projects, budgets, documents, and more.",
+      "Yes. The feasibility module lets you model land acquisition costs, construction costs with GST, sales revenue by unit type, debt facilities, loans, and equity partners. Compare scenarios side by side and export summaries for investors.",
   },
   {
-    question: "Is my project data secure?",
+    question: "How does the Client Portal work?",
     answer:
-      "Your data is encrypted at rest and in transit. We use Supabase (backed by AWS) with row-level security policies, ensuring each organisation can only access their own data.",
+      "Generate a secure, token-based link for any external stakeholder — investors, consultants, or buyers. They get read-only access to relevant project information without needing an Upscale.Build account. Links can be set to expire.",
   },
   {
-    question: "Can external consultants or clients access the platform?",
+    question: "Is my data secure?",
     answer:
-      "Yes. Our Client Portal feature lets you generate secure, token-based links for external stakeholders. They get read-only access to relevant project information without needing an account.",
+      "All data is encrypted at rest and in transit. Row-level security policies ensure each organisation can only access their own data. Every user is scoped to their organisation with role-based permissions (admin or member).",
   },
   {
-    question: "What types of projects does the platform support?",
+    question: "Can I manage tenders and contractor procurement?",
     answer:
-      "Upscale.Build supports residential, commercial, civil, and mixed-use developments. The platform handles everything from site diaries and progress claims to feasibility analysis and lot sales.",
+      "Yes. Create tender packages by trade, collect and compare contractor submissions, evaluate bids, and award — all tracked with a status workflow from draft through to awarded or cancelled.",
   },
 ];
 

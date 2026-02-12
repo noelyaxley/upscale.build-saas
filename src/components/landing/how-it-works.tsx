@@ -9,21 +9,21 @@ import {
 const steps = [
   {
     icon: FolderPlus,
-    title: "Create Your Project",
+    title: "Set Up Your Project",
     description:
-      "Set up a new project in seconds. Define the stage, budget, and key dates — everything lives in one place from day one.",
+      "Create a project, set the stage and budget, and invite your team. Organisation-level multi-tenancy keeps everything scoped and secure.",
   },
   {
     icon: UsersRound,
-    title: "Add Your Team",
+    title: "Assign Roles & Permissions",
     description:
-      "Invite team members, assign roles, and set permissions. Everyone sees exactly what they need — nothing more, nothing less.",
+      "Add PMs, site managers, and consultants with role-based access. Share read-only views with clients via the Client Portal — no account required.",
   },
   {
     icon: BarChart3,
-    title: "Start Managing",
+    title: "Run Your Workflows",
     description:
-      "Track progress, manage budgets, control documents, and report to stakeholders. All your workflows in one platform.",
+      "Process claims, issue tenders, log site diaries, track variations, and manage lot sales — all from a single dashboard per project.",
   },
 ];
 
@@ -34,9 +34,9 @@ export function HowItWorks() {
         <SectionIntro
           icon={Layers}
           badge="How It Works"
-          heading="Get started in 3 simple steps"
-          highlightWord="3 simple"
-          subtitle="Three steps to transform how your team delivers projects."
+          heading="Up and running in minutes"
+          highlightWord="minutes"
+          subtitle="Create your first project and start managing claims, budgets, and teams today."
         />
 
         <div className="grid gap-6 sm:grid-cols-3">

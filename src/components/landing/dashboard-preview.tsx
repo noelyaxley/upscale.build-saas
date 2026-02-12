@@ -1,18 +1,18 @@
 import {
   Building2,
   LayoutDashboard,
-  FileText,
   DollarSign,
   Users,
   FolderKanban,
   TrendingUp,
-  Clock,
+  BookOpen,
+  ClipboardList,
 } from "lucide-react";
 
 const stats = [
   { label: "Active Projects", value: "12", icon: FolderKanban },
   { label: "Total Budget", value: "$48.2M", icon: DollarSign },
-  { label: "Team Members", value: "86", icon: Users },
+  { label: "Open Claims", value: "8", icon: ClipboardList },
   { label: "On Schedule", value: "92%", icon: TrendingUp },
 ];
 
@@ -40,10 +40,10 @@ const projects = [
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", active: true },
   { icon: FolderKanban, label: "Projects", active: false },
-  { icon: FileText, label: "Documents", active: false },
-  { icon: DollarSign, label: "Budgets", active: false },
+  { icon: DollarSign, label: "Claims", active: false },
+  { icon: BookOpen, label: "Site Diary", active: false },
+  { icon: ClipboardList, label: "Tenders", active: false },
   { icon: Users, label: "Team", active: false },
-  { icon: Clock, label: "Programme", active: false },
 ];
 
 export function DashboardPreview() {
