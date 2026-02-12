@@ -1,7 +1,7 @@
 "use client";
 
 import { SectionIntro } from "./section-intro";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Building2 } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -40,11 +40,6 @@ const faqs = [
     answer:
       "Upscale.Build supports residential, commercial, civil, and mixed-use developments. The platform handles everything from site diaries and progress claims to feasibility analysis and lot sales.",
   },
-  {
-    question: "Do you offer onboarding support?",
-    answer:
-      "Every new organisation gets a guided onboarding session with our team. We help you set up your first project, configure your team, and make sure you are up and running from day one.",
-  },
 ];
 
 export function Faq() {
@@ -56,22 +51,38 @@ export function Faq() {
           badge="FAQ"
           heading="Frequently asked questions"
           highlightWord="questions"
-          subtitle="Everything you need to know about the platform."
+          subtitle="Get clarity, instantly."
         />
 
-        <div className="mx-auto max-w-2xl">
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`item-${i}`}>
-                <AccordionTrigger className="text-left text-base">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+        <div className="overflow-hidden rounded-lg border border-black/[0.08] bg-card">
+          <div className="grid sm:grid-cols-[1fr_auto]">
+            {/* Accordion column */}
+            <div className="p-6 sm:p-8">
+              <Accordion type="single" collapsible className="w-full">
+                {faqs.map((faq, i) => (
+                  <AccordionItem
+                    key={i}
+                    value={`item-${i}`}
+                    className="border-black/[0.08]"
+                  >
+                    <AccordionTrigger className="text-left text-base font-medium hover:no-underline">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+
+            {/* Illustration column */}
+            <div className="hidden border-l border-black/[0.08] sm:flex sm:w-[340px] sm:items-center sm:justify-center">
+              <div className="dot-grid flex size-full items-center justify-center">
+                <Building2 className="size-24 text-primary/15" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

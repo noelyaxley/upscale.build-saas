@@ -77,7 +77,12 @@ export async function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild variant="outline" size="sm">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="rounded-full border-black/[0.15]"
+            >
               <Link href="/login">Get Started</Link>
             </Button>
           )}

@@ -8,21 +8,18 @@ import {
 
 const steps = [
   {
-    number: 1,
     icon: FolderPlus,
     title: "Create Your Project",
     description:
       "Set up a new project in seconds. Define the stage, budget, and key dates — everything lives in one place from day one.",
   },
   {
-    number: 2,
     icon: UsersRound,
     title: "Add Your Team",
     description:
       "Invite team members, assign roles, and set permissions. Everyone sees exactly what they need — nothing more, nothing less.",
   },
   {
-    number: 3,
     icon: BarChart3,
     title: "Start Managing",
     description:
@@ -37,24 +34,26 @@ export function HowItWorks() {
         <SectionIntro
           icon={Layers}
           badge="How It Works"
-          heading="Get started in minutes"
-          highlightWord="minutes"
-          subtitle="Three simple steps to transform how your team delivers projects."
+          heading="Get started in 3 simple steps"
+          highlightWord="3 simple"
+          subtitle="Three steps to transform how your team delivers projects."
         />
 
-        <div className="grid gap-8 sm:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-3">
           {steps.map((step) => (
-            <div key={step.number} className="text-center">
-              <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-                {step.number}
+            <div key={step.title} className="flex flex-col gap-6 p-6">
+              {/* Image area with radial vignette */}
+              <div className="relative flex h-[260px] items-center justify-center overflow-hidden rounded-lg bg-muted/50">
+                <div className="radial-fade flex size-full items-center justify-center">
+                  <step.icon className="size-16 text-primary/40" />
+                </div>
               </div>
-              <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-xl bg-muted">
-                <step.icon className="size-6 text-primary" />
+              <div>
+                <h3 className="mb-2 text-lg font-medium">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {step.description}
+                </p>
               </div>
-              <h3 className="mb-2 text-lg font-semibold">{step.title}</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {step.description}
-              </p>
             </div>
           ))}
         </div>

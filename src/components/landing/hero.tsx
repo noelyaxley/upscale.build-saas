@@ -1,29 +1,37 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Building2 } from "lucide-react";
+import { DashboardPreview } from "./dashboard-preview";
 
 export function Hero() {
   return (
-    <section className="py-20 sm:py-28">
+    <section className="pt-32 sm:pt-40">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary-light px-4 py-1.5 text-sm font-medium text-primary">
-            <Building2 className="size-3.5" />
-            Built for construction teams
+        {/* Heading area */}
+        <div className="mx-auto flex max-w-3xl flex-col items-center pb-14 text-center">
+          {/* Pill badge with orange "New" inner tag */}
+          <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-2.5 py-1.5 shadow-[0_0.5px_0.5px_-1.5px_rgba(0,0,0,0.2),0_2px_2px_-3px_rgba(0,0,0,0.08)]">
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-white">
+              New
+            </span>
+            <span className="text-sm text-foreground">
+              Built for construction teams
+            </span>
+            <Building2 className="size-3.5 text-muted-foreground" />
           </div>
 
-          <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="mb-6 text-4xl font-medium tracking-[-0.02em] leading-[1.05] sm:text-5xl lg:text-[64px]">
             Manage Construction Projects{" "}
             <span className="text-primary">with Confidence</span>
           </h1>
 
-          <p className="mb-8 max-w-xl text-lg text-muted-foreground">
+          <p className="mb-8 max-w-[350px] text-base text-muted-foreground">
             Track progress, control documents, manage budgets, and coordinate
             teams — all in one platform built for the construction industry.
           </p>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="rounded-full">
+          <div className="flex gap-4">
+            <Button asChild size="lg" className="rounded-full px-5">
               <Link href="/signup">
                 Get Started Free
                 <ArrowRight className="ml-1 size-4" />
@@ -33,10 +41,17 @@ export function Hero() {
               asChild
               variant="outline"
               size="lg"
-              className="rounded-full"
+              className="rounded-full px-5"
             >
               <Link href="#features">See Features</Link>
             </Button>
+          </div>
+        </div>
+
+        {/* Dashboard mockup with dot grid background */}
+        <div className="relative border-t border-border">
+          <div className="dot-grid fade-mask-bottom py-10 sm:py-16">
+            <DashboardPreview />
           </div>
         </div>
       </div>

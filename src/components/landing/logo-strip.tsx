@@ -28,7 +28,7 @@ export function LogoStrip() {
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-background to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-background to-transparent" />
 
-          <div className="animate-scroll flex w-max gap-12">
+          <div className="animate-scroll flex w-max gap-[60px]">
             {/* Duplicated for seamless loop */}
             {[...companies, ...companies].map((company, i) => (
               <div
