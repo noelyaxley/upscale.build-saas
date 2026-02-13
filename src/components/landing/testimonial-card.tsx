@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { SectionIntro } from "./section-intro";
 import { MessageSquareQuote, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ const testimonials = [
     name: "Sarah Chen",
     title: "Operations Manager",
     company: "Atlas Builders",
-    initials: "SC",
   },
   {
     quote:
@@ -21,7 +21,6 @@ const testimonials = [
     name: "David Park",
     title: "Development Manager",
     company: "Ironbark Projects",
-    initials: "DP",
   },
   {
     quote:
@@ -29,7 +28,6 @@ const testimonials = [
     name: "Michelle Torres",
     title: "Project Director",
     company: "Civic Developments",
-    initials: "MT",
   },
 ];
 
@@ -57,11 +55,14 @@ export function TestimonialCard() {
           <div className="mx-auto max-w-[1000px]">
             <div className="card-hover-lift overflow-hidden rounded-lg border border-black/[0.08] bg-card">
               <div className="flex flex-col sm:flex-row">
-                {/* Portrait/avatar area */}
-                <div className="flex h-48 shrink-0 items-center justify-center bg-muted/50 sm:h-auto sm:w-[340px]">
-                  <div className="flex size-24 items-center justify-center rounded-full bg-primary/10 text-3xl font-medium text-primary">
-                    {testimonial.initials}
-                  </div>
+                {/* Portrait image area */}
+                <div className="relative h-48 shrink-0 overflow-hidden bg-muted/50 sm:h-auto sm:w-[340px]">
+                  <Image
+                    src="/images/landing/testimonial-person.jpg"
+                    alt={testimonial.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
 
                 {/* Content area */}

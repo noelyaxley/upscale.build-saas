@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SectionIntro } from "./section-intro";
 import { AnimatedSection } from "./animated-section";
@@ -5,16 +6,19 @@ import { BookOpen } from "lucide-react";
 
 const posts = [
   {
+    image: "/images/landing/blog-trends.png",
     category: "Guide",
     title: "How to run a development feasibility in under 5 minutes",
     date: "Feb 10, 2026",
   },
   {
+    image: "/images/landing/blog-security.png",
     category: "Product",
     title: "Introducing the Client Portal — share project updates without the noise",
     date: "Feb 3, 2026",
   },
   {
+    image: "/images/landing/blog-onboarding.png",
     category: "Industry",
     title: "Why spreadsheets are costing property developers more than they think",
     date: "Jan 28, 2026",
@@ -40,9 +44,13 @@ export function Blog() {
                 href="#"
                 className="card-hover-lift group flex flex-col overflow-hidden rounded-lg border border-black/[0.08] bg-card"
               >
-                {/* Placeholder image area */}
-                <div className="grid-line-bg flex h-48 items-center justify-center bg-muted/30">
-                  <BookOpen className="size-10 text-primary/20 transition-colors group-hover:text-primary/40" />
+                <div className="relative h-48 overflow-hidden bg-muted/30">
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
                 </div>
 
                 <div className="flex flex-1 flex-col p-6">

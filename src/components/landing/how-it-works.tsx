@@ -1,27 +1,23 @@
+import Image from "next/image";
 import { SectionIntro } from "./section-intro";
 import { AnimatedSection } from "./animated-section";
-import {
-  Layers,
-  FolderPlus,
-  UsersRound,
-  BarChart3,
-} from "lucide-react";
+import { Layers } from "lucide-react";
 
 const steps = [
   {
-    icon: FolderPlus,
+    image: "/images/landing/signup-step.png",
     title: "Set Up Your Project",
     description:
       "Create a project, set your budget, and define the key details. Everything is organised under your company so your team always knows where to look.",
   },
   {
-    icon: UsersRound,
+    image: "/images/landing/integrate-step.png",
     title: "Invite Your Team",
     description:
       "Add your project managers, site team, and consultants. Share read-only views with investors or buyers via the Client Portal — no account required.",
   },
   {
-    icon: BarChart3,
+    image: "/images/landing/optimise-step.png",
     title: "Manage With Confidence",
     description:
       "Process claims, issue tenders, log site diaries, and track costs — all from one dashboard. One source of truth for your entire project team.",
@@ -44,11 +40,14 @@ export function HowItWorks() {
           {steps.map((step, i) => (
             <AnimatedSection key={step.title} delay={i * 0.15}>
               <div className="flex flex-col gap-6 p-6">
-                {/* Image area with grid-line background */}
                 <div className="relative flex h-[260px] items-center justify-center overflow-hidden rounded-lg bg-muted/50">
-                  <div className="grid-line-bg flex size-full items-center justify-center">
-                    <step.icon className="size-16 text-primary/40" />
-                  </div>
+                  <Image
+                    src={step.image}
+                    alt={step.title}
+                    width={300}
+                    height={260}
+                    className="object-contain"
+                  />
                 </div>
                 <div>
                   <h3 className="mb-2 text-lg font-medium">{step.title}</h3>
