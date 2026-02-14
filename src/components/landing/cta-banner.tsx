@@ -10,10 +10,14 @@ export function CtaBanner() {
           <div className="absolute -bottom-6 -left-6 h-20 w-32 rotate-[15deg] rounded-[100px] bg-primary/15 blur-sm" />
 
           <div className="relative flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
-            <h2 className="text-xl font-medium text-background sm:text-2xl">
-              Make property development more accessible,
-              <br className="hidden sm:block" /> stress free, and profitable.
-            </h2>
+            <div>
+              <h2 className="text-xl font-medium text-background sm:text-2xl">
+                Stop managing millions in spreadsheets.
+              </h2>
+              <p className="mt-2 text-sm text-background/60">
+                Free to start. No credit card required. Cancel anytime.
+              </p>
+            </div>
             <RollingButton text="Start Free" href="/signup" />
           </div>
         </div>

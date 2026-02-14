@@ -6,21 +6,21 @@ import { Layers } from "lucide-react";
 const steps = [
   {
     image: "/images/landing/signup-step.png",
-    title: "Set Up Your Project",
+    title: "Create your project",
     description:
-      "Create a project, set your budget, and define the key details. Everything is organised under your company so your team always knows where to look.",
+      "Set up a project in under 2 minutes. Define your budget, add the key details, and you're ready to go. No onboarding calls. No setup fees.",
   },
   {
     image: "/images/landing/integrate-step.png",
-    title: "Invite Your Team",
+    title: "Add your team",
     description:
-      "Add your project managers, site team, and consultants. Share read-only views with investors or buyers via the Client Portal — no account required.",
+      "Invite your PM, site team, and consultants. Give investors or buyers read-only access through the Client Portal — they don't need an account.",
   },
   {
     image: "/images/landing/optimise-step.png",
-    title: "Manage With Confidence",
+    title: "Run your development",
     description:
-      "Process claims, issue tenders, log site diaries, and track costs — all from one dashboard. One source of truth for your entire project team.",
+      "Process claims, issue tenders, log site diaries, and track costs — from one dashboard. Everyone works from the same source of truth.",
   },
 ];
 
@@ -31,9 +31,9 @@ export function HowItWorks() {
         <SectionIntro
           icon={Layers}
           badge="How It Works"
-          heading="Up and running in minutes"
+          heading="Set up in minutes, not months"
           highlightWord="minutes"
-          subtitle="From sign-up to managing your first project — it only takes a few minutes to get started."
+          subtitle="No consultants, no training manuals, no six-month rollout. If you can use a spreadsheet, you can use UpScale."
         />
 
         <div className="grid gap-6 sm:grid-cols-3">

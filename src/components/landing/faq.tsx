@@ -12,34 +12,34 @@ import { AnimatedSection } from "./animated-section";
 
 const faqs = [
   {
-    question: "What types of projects is UpScale built for?",
+    question: "What types of developments does UpScale handle?",
     answer:
-      "Residential, commercial, and mixed-use property developments — from dual-occupancies and townhouses through to large-scale apartment and commercial projects. The platform covers the full lifecycle, from feasibility and site acquisition through to construction, lot sales, and settlement.",
+      "Dual-occs, townhouses, apartments, commercial, mixed-use — from $500k builds through to $50M+ portfolios. If you're developing property in Australia, UpScale covers the full lifecycle from feasibility to settlement.",
   },
   {
-    question: "How does UpScale help me manage project costs?",
+    question: "How is this different from Procore or Aconex?",
     answer:
-      "Every project expense is tracked in one place. Submit and certify progress claims each period, manage variations with full cost impact, and see upcoming expenses on a timeline so you can actively manage cash flow. No more chasing invoices or reconciling spreadsheets.",
+      "Those platforms are built for Tier 1 builders with enterprise IT budgets. UpScale is built for property developers — the people finding deals, running feasibilities, and managing the money. It's simpler, cheaper, and covers your actual workflow.",
   },
   {
-    question: "Can I test whether a development stacks up financially?",
+    question: "We're already using spreadsheets. Why switch?",
     answer:
-      "Yes. The feasibility tool lets you model land costs, construction costs, sales revenue, debt, and equity — all the core components of a full development feasibility. Run the numbers in minutes so you can move quickly and with confidence as opportunities come up.",
+      "Spreadsheets break at scale. One wrong formula and your feasibility is off by six figures. One outdated version and your team is working from the wrong numbers. UpScale gives you the flexibility of a spreadsheet with built-in structure, collaboration, and audit trails. Start with the free tier — it takes 5 minutes to see the difference.",
   },
   {
-    question: "Can my team and consultants collaborate on the platform?",
+    question: "Will my team actually use it?",
     answer:
-      "Absolutely. Invite your project managers, site team, and consultants to work from one shared environment. You can also share read-only views with investors or buyers via the Client Portal — they don't need an account to access it.",
+      "That's exactly why we built it simple. No training manuals, no complex setup. If your team can use a spreadsheet, they can use UpScale. And unlike spreadsheets, everyone works from the same source of truth — so there's a reason to use it.",
   },
   {
     question: "Is my project data secure?",
     answer:
-      "Yes. All data is encrypted and each organisation's information is completely separated. Your team members have role-based access, so people only see what's relevant to them. You stay in control of who can view and edit your projects.",
+      "Encrypted data, role-based access, and full organisation isolation. Each organisation's data is completely separated. Your project financials are safer here than in a Google Sheet someone can forward.",
   },
   {
-    question: "How does tendering and procurement work?",
+    question: "What does the free tier include?",
     answer:
-      "Create tender packages by trade, issue them to contractors, collect and compare submissions, and award — all from one place. It simplifies the procurement process so you can move to contract award with confidence that all the key information has been captured.",
+      "One project, one team member, feasibility tool, basic cost tracking, and site diary. No credit card required. No time limit. Upgrade to Professional when you need unlimited projects and your full team on board.",
   },
 ];
 
@@ -50,9 +50,8 @@ export function Faq() {
         <SectionIntro
           icon={HelpCircle}
           badge="FAQ"
-          heading="Frequently asked questions"
+          heading="Got questions?"
           highlightWord="questions"
-          subtitle="Common questions about getting started with UpScale."
         />
 
         <AnimatedSection>

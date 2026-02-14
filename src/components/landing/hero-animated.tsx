@@ -102,9 +102,8 @@ export function HeroAnimated() {
         transition={{ duration: 0.5, delay: 0.6 }}
         className="mb-8 max-w-[420px] text-base text-muted-foreground"
       >
-        One platform to run feasibilities, manage costs, collaborate with your
-        team, and deliver projects with confidence — from site acquisition to
-        settlement.
+        Feasibility, claims, tenders, site diaries — one login, one source of
+        truth. Purpose-built for Australian property developers.
       </motion.p>
 
       {/* CTA buttons */}
@@ -116,7 +115,7 @@ export function HeroAnimated() {
       >
         <Button asChild size="lg" className="rounded-full px-5">
           <Link href="/signup">
-            Start Free
+            Start Free — No Card Required
             <ArrowRight className="ml-1 size-4" />
           </Link>
         </Button>

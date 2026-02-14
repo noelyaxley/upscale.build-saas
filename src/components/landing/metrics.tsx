@@ -8,25 +8,25 @@ const metrics = [
     value: "5 min",
     numericPart: 5,
     suffix: " min",
-    label: "Fast feasibility",
+    label: "Feasibility turnaround",
     description:
-      "Run the numbers on a potential development in under five minutes. Know whether a deal stacks up before you commit — so you can move quickly as opportunities arise.",
+      "Model land, construction, revenue, debt, and equity for a potential development. Know if a deal stacks up before you commit — not after days of spreadsheet wrestling.",
   },
   {
-    value: "1",
-    numericPart: 1,
+    value: "6",
+    numericPart: 6,
     suffix: "",
-    label: "Single source of truth",
+    label: "Modules, one platform",
     description:
-      "Every project, budget, claim, and document in one place. No more chasing spreadsheets across email threads or miscommunication between your team.",
+      "Feasibility, claims, variations, tenders, site diaries, lot sales. Six things you used to manage across separate tools — now under one login.",
   },
   {
-    value: "24/7",
-    numericPart: 24,
-    suffix: "/7",
-    label: "Complete visibility",
+    value: "0",
+    numericPart: 0,
+    suffix: "",
+    label: "Setup fees",
     description:
-      "See the status of every active project from one dashboard. Track costs, manage cash flow, and preempt upcoming expenses — so nothing catches you off guard.",
+      "No onboarding consultants. No per-seat enterprise contracts. Start with the free tier and upgrade when you're ready. Cancel anytime.",
   },
 ];
 
@@ -37,8 +37,8 @@ export function Metrics() {
         <SectionIntro
           icon={TrendingUp}
           badge="By The Numbers"
-          heading="Built to replace the spreadsheet"
-          highlightWord="replace"
+          heading="Your spreadsheet had a good run"
+          highlightWord="good run"
         />
 
         <AnimatedSection>

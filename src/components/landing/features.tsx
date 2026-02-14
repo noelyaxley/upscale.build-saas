@@ -5,40 +5,28 @@ import { AnimatedSection } from "./animated-section";
 
 const features = [
   {
-    image: "/images/landing/feature-smart-dashboard.png",
-    title: "Progress Claims & Variations",
+    image: "/images/landing/feature-business-solution.png",
+    title: "Feasibility in 5 minutes, not 5 days",
     description:
-      "Know exactly where your money is going. Submit and certify payment claims each period, track variations with full cost impact, and reduce disputes before they start.",
+      "A site comes up. You model land, construction, revenue, debt, and equity — and know whether it stacks up before lunch. Move on deals while your competitors are still building spreadsheets.",
   },
   {
-    image: "/images/landing/feature-business-solution.png",
-    title: "Feasibility & Lot Sales",
+    image: "/images/landing/feature-smart-dashboard.png",
+    title: "Every dollar tracked. Every claim certified.",
     description:
-      "Run the numbers on potential developments in minutes, not days. Model land costs, revenue, debt, and equity so you can move quickly and with confidence as opportunities arise.",
+      "Submit and certify progress claims each period. Track variations with their full cost impact. See exactly how every change hits your budget — so you find out now, not at the next claim.",
   },
   {
     image: "/images/landing/feature-keyboard.png",
-    title: "Site Diary",
+    title: "Daily site records that actually protect you",
     description:
-      "Capture what happens on site, every day. Record weather, labour, equipment, visitors, and work summaries in one place — ready when you need it for reporting or disputes.",
+      "Weather, labour, equipment, visitors — logged in 2 minutes. When a dispute lands on your desk six months later, you'll have the records to back you up.",
   },
   {
     image: "/images/landing/feature-ai-assistant.png",
-    title: "Tenders & Procurement",
+    title: "Tenders out, bids in, contracts awarded",
     description:
-      "Simplify contractor procurement from start to finish. Issue packages, collect and compare bids, and award contracts — all captured so nothing falls through the cracks.",
-  },
-  {
-    image: "/images/landing/feature-integration.png",
-    title: "Submittals & RFIs",
-    description:
-      "Keep documentation flowing. Manage shop drawings, product data, and samples through a clear review workflow so your team stays coordinated and approvals don't stall.",
-  },
-  {
-    image: "/images/landing/feature-collaboration.png",
-    title: "Programme & EOT",
-    description:
-      "Stay on top of your programme. Plan schedules with task dependencies, and track extension of time claims so you always know the impact on your delivery dates.",
+      "Issue tender packages by trade, collect bids, and compare them side-by-side. Award contracts in days, not weeks — with every submission captured in one place.",
   },
 ];
 
@@ -49,9 +37,9 @@ export function Features() {
         <SectionIntro
           icon={Sparkles}
           badge="Features"
-          heading="Everything in one place"
-          highlightWord="one place"
-          subtitle="Purpose-built for property development — not a generic project tool with workarounds bolted on."
+          heading="Not another generic project tool"
+          highlightWord="generic"
+          subtitle="Every feature is designed around how property developers actually work — not bolted on as an afterthought."
         />
 
         <AnimatedSection>

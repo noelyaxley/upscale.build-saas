@@ -66,8 +66,9 @@ export function Pricing() {
         <SectionIntro
           icon={CreditCard}
           badge="Pricing"
-          heading="Simple, transparent pricing"
-          highlightWord="transparent"
+          heading="Start free. Upgrade when you're ready."
+          highlightWord="free"
+          subtitle="No credit card required. No lock-in contracts. Cancel anytime."
         />
 
         {/* Monthly/Annual toggle */}
