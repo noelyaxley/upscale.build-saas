@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -9,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { HardHat, LogOut, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { MobileNav } from "./mobile-nav";
 
 const navLinks = [
@@ -30,7 +31,7 @@ export async function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-          <HardHat className="size-6 text-primary" />
+          <Image src="/logo-64.png" alt="Upscale.Build" width={24} height={24} />
           Upscale.Build
         </Link>
 

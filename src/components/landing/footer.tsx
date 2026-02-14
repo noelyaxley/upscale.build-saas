@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HardHat } from "lucide-react";
+import Image from "next/image";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -22,7 +22,7 @@ export function Footer() {
               href="/"
               className="mb-4 flex items-center gap-2 text-lg font-bold"
             >
-              <HardHat className="size-5" />
+              <Image src="/logo-64.png" alt="Upscale.Build" width={20} height={20} />
               Upscale.Build
             </Link>
             <nav className="flex flex-wrap gap-4">
@@ -40,7 +40,7 @@ export function Footer() {
 
           {/* Right: large logogram */}
           <div className="relative hidden sm:block">
-            <HardHat className="size-[200px] text-background/[0.04]" />
+            <Image src="/logo-256.png" alt="" width={200} height={200} className="opacity-[0.04]" />
             {/* Soft glow effect */}
             <div className="absolute inset-0 m-auto size-24 rounded-full bg-white/[0.04] blur-[50px]" />
           </div>

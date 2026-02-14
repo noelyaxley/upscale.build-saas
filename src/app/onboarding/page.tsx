@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HardHat } from "lucide-react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,8 +71,8 @@ export default function OnboardingPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <HardHat className="size-6 text-primary" />
+          <div className="mx-auto mb-4">
+            <Image src="/logo-64.png" alt="Upscale.Build" width={48} height={48} />
           </div>
           <CardTitle>Create your organisation</CardTitle>
           <CardDescription>
