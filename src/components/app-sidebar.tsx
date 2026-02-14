@@ -12,6 +12,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   Clock,
+  CreditCard,
   FileText,
   FolderKanban,
   GanttChart,
@@ -268,6 +269,12 @@ export function AppSidebar() {
                   <Link href="/settings">
                     <Settings className="mr-2 size-4" />
                     Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/billing">
+                    <CreditCard className="mr-2 size-4" />
+                    Billing
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

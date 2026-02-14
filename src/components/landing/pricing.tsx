@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { SectionIntro } from "./section-intro";
 import { AnimatedSection } from "./animated-section";
@@ -10,56 +9,49 @@ import { Check, CreditCard } from "lucide-react";
 const tiers = [
   {
     name: "Free",
-    monthlyPrice: 0,
-    annualPrice: 0,
+    price: 0,
     description: "For individual developers exploring their first project.",
     features: [
-      "1 active project",
+      "3 projects",
       "Feasibility tool",
       "Basic cost tracking",
       "Site diary",
-      "1 team member",
     ],
     cta: "Get Started",
     popular: false,
   },
   {
-    name: "Professional",
-    monthlyPrice: 149,
-    annualPrice: 1490,
-    description: "For growing teams managing multiple developments.",
+    name: "Pro",
+    price: 29,
+    description: "Everything you need to manage property developments.",
     features: [
       "Unlimited projects",
-      "Feasibility & lot sales",
+      "All modules",
       "Progress claims & variations",
       "Tenders & procurement",
       "Client portal",
-      "Up to 10 team members",
+      "10GB storage",
     ],
-    cta: "Start Free Trial",
+    cta: "Start Free",
     popular: true,
+    promo: "FREE FOR ALL OF 2026",
   },
   {
-    name: "Unlimited",
-    monthlyPrice: 249,
-    annualPrice: 2490,
+    name: "Ultimate",
+    price: 49,
     description: "For established firms with complex project portfolios.",
     features: [
-      "Everything in Professional",
-      "Unlimited team members",
-      "Programme & EOT tracking",
-      "Submittals & RFIs",
+      "Everything in Pro",
+      "1TB storage",
       "Priority support",
       "Custom onboarding",
     ],
-    cta: "Start Free Trial",
+    cta: "Subscribe",
     popular: false,
   },
 ];
 
 export function Pricing() {
-  const [annual, setAnnual] = useState(false);
-
   return (
     <section id="pricing" className="border-t border-border py-20 sm:py-24">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -70,34 +62,6 @@ export function Pricing() {
           highlightWord="free"
           subtitle="No credit card required. No lock-in contracts. Cancel anytime."
         />
-
-        {/* Monthly/Annual toggle */}
-        <div className="mb-12 flex items-center justify-center gap-3">
-          <span
-            className={`text-sm font-medium ${!annual ? "text-foreground" : "text-muted-foreground"}`}
-          >
-            Monthly
-          </span>
-          <button
-            onClick={() => setAnnual(!annual)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${annual ? "bg-primary" : "bg-muted"}`}
-            aria-label="Toggle annual billing"
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${annual ? "translate-x-5" : "translate-x-0"}`}
-            />
-          </button>
-          <span
-            className={`text-sm font-medium ${annual ? "text-foreground" : "text-muted-foreground"}`}
-          >
-            Annual
-          </span>
-          {annual && (
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              Save ~17%
-            </span>
-          )}
-        </div>
 
         <AnimatedSection>
           <div className="grid gap-6 sm:grid-cols-3">
@@ -112,7 +76,7 @@ export function Pricing() {
               >
                 {tier.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-xs font-medium text-white">
-                    Popular
+                    Recommended
                   </span>
                 )}
 
@@ -120,16 +84,16 @@ export function Pricing() {
 
                 <div className="mt-4 mb-2">
                   <span className="text-4xl font-medium tracking-tight">
-                    ${annual ? Math.round(tier.annualPrice / 12) : tier.monthlyPrice}
+                    ${tier.price}
                   </span>
-                  {tier.monthlyPrice > 0 && (
+                  {tier.price > 0 && (
                     <span className="text-sm text-muted-foreground">/mo</span>
                   )}
                 </div>
 
-                {annual && tier.annualPrice > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    ${tier.annualPrice.toLocaleString()}/yr billed annually
+                {"promo" in tier && tier.promo && (
+                  <p className="inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                    {tier.promo}
                   </p>
                 )}
 

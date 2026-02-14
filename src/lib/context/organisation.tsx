@@ -2,6 +2,8 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import type { Tables } from "@/lib/supabase/database.types";
+import type { PlanTier } from "@/lib/plans";
+import { PLAN_LIMITS } from "@/lib/plans";
 
 type Profile = Tables<"profiles">;
 type Organisation = Tables<"organisations">;
@@ -12,6 +14,10 @@ interface OrganisationContextValue {
   organisation: Organisation;
   projects: Project[];
   isAdmin: boolean;
+  planTier: PlanTier;
+  isPro: boolean;
+  isUltimate: boolean;
+  canCreateProject: boolean;
 }
 
 const OrganisationContext = createContext<OrganisationContextValue | null>(null);
@@ -38,10 +44,14 @@ export function OrganisationProvider({
   projects,
 }: OrganisationProviderProps) {
   const isAdmin = profile.role === "admin";
+  const planTier = ((organisation as any).plan_tier || "free") as PlanTier;
+  const isPro = planTier === "pro" || planTier === "ultimate";
+  const isUltimate = planTier === "ultimate";
+  const canCreateProject = isPro || projects.length < PLAN_LIMITS.free.maxProjects;
 
   return (
     <OrganisationContext.Provider
-      value={{ profile, organisation, projects, isAdmin }}
+      value={{ profile, organisation, projects, isAdmin, planTier, isPro, isUltimate, canCreateProject }}
     >
       {children}
     </OrganisationContext.Provider>

@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useOrganisation } from "@/lib/context/organisation";
 import type { Tables } from "@/lib/supabase/database.types";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -43,7 +44,7 @@ export function CreateProjectDialog() {
   const [error, setError] = useState<string | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   const router = useRouter();
-  const { organisation, isAdmin } = useOrganisation();
+  const { organisation, isAdmin, canCreateProject } = useOrganisation();
   const supabase = createClient();
 
   const [formData, setFormData] = useState({
@@ -127,6 +128,24 @@ export function CreateProjectDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
+        {!canCreateProject ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Project limit reached</DialogTitle>
+              <DialogDescription>
+                Free accounts are limited to 3 projects. Upgrade to Pro for unlimited projects.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button asChild>
+                <Link href="/settings/billing">Upgrade to Pro</Link>
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Create new project</DialogTitle>
@@ -274,6 +293,7 @@ export function CreateProjectDialog() {
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
