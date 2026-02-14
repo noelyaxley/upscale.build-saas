@@ -19,10 +19,14 @@ function Word({
   total: number;
   progress: ReturnType<typeof useScroll>["scrollYProgress"];
 }) {
-  const start = index / total;
-  const end = start + 1 / total;
-  const opacity = useTransform(progress, [start, end], [0.15, 1]);
-  const blur = useTransform(progress, [start, end], [4, 0]);
+  // progress 0→1 spans the full element traversal (~220vh of scroll).
+  // Reveal all words between progress 0.0 and 0.25 — words go solid
+  // almost immediately as the user scrolls into the section.
+  const wordStart = (index / total) * 0.25;
+  const wordEnd = wordStart + 0.02;
+
+  const opacity = useTransform(progress, [wordStart, wordEnd], [0.15, 1]);
+  const blur = useTransform(progress, [wordStart, wordEnd], [4, 0]);
   const filter = useTransform(blur, (v) => `blur(${v}px)`);
 
   return (
@@ -36,14 +40,14 @@ export function TestimonialQuote() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start center", "end center"],
+    offset: ["start end", "end start"],
   });
 
   return (
     <section
       ref={containerRef}
       className="border-t border-border"
-      style={{ minHeight: "200vh" }}
+      style={{ minHeight: "120vh" }}
     >
       <div className="sticky top-[30vh] py-20 sm:py-24">
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
