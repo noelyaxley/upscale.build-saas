@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Building2 } from "lucide-react";
 
@@ -21,9 +22,33 @@ const charVariant = {
   },
 };
 
+const phrases = [
+  "Made Easy",
+  "Made Profitable",
+  "Fully Coordinated",
+  "Truly Collaborative",
+];
+
 export function HeroAnimated() {
   const heading = "Property Development ";
-  const highlight = "Made Simple";
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
+
+  useEffect(() => {
+    // Wait for the initial character-by-character animation to finish
+    const initialDelay = setTimeout(() => {
+      setHasAnimatedIn(true);
+    }, 1500);
+    return () => clearTimeout(initialDelay);
+  }, []);
+
+  useEffect(() => {
+    if (!hasAnimatedIn) return;
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % phrases.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [hasAnimatedIn]);
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col items-center pb-14 text-center">
@@ -43,7 +68,7 @@ export function HeroAnimated() {
         <Building2 className="size-3.5 text-muted-foreground" />
       </motion.div>
 
-      {/* Character-by-character animated heading */}
+      {/* Animated heading with cycling phrases */}
       <motion.h1
         className="mb-6 text-4xl font-medium tracking-[-0.02em] leading-[1.05] sm:text-5xl lg:text-[64px]"
         variants={container}
@@ -55,15 +80,19 @@ export function HeroAnimated() {
             {char}
           </motion.span>
         ))}
-        {highlight.split("").map((char, i) => (
+        <br />
+        <AnimatePresence mode="wait">
           <motion.span
-            key={`h-${i}`}
-            variants={charVariant}
+            key={phraseIndex}
             className="text-primary"
+            initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -20, filter: "blur(8px)" }}
+            transition={{ duration: 0.4 }}
           >
-            {char}
+            {phrases[phraseIndex]}
           </motion.span>
-        ))}
+        </AnimatePresence>
       </motion.h1>
 
       {/* Subtitle */}
