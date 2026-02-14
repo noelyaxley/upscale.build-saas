@@ -17,6 +17,7 @@ const navLinks = [
   { href: "#how-it-works", label: "How It Works" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
+  { href: "/learn", label: "Learn" },
 ];
 
 export async function Header() {
@@ -84,7 +85,7 @@ export async function Header() {
               size="sm"
               className="rounded-full border-black/[0.15]"
             >
-              <Link href="/login">Get Started</Link>
+              <Link href="/signup">Start Free</Link>
             </Button>
           )}
           <MobileNav />

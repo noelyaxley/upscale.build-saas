@@ -6,6 +6,7 @@ const navLinks = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
+  { label: "Learn", href: "/learn" },
   { label: "Contact", href: "mailto:hello@upscale.build" },
 ];
 
