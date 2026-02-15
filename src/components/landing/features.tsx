@@ -1,29 +1,28 @@
-import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { SectionIntro } from "./section-intro";
 import { AnimatedSection } from "./animated-section";
 
 const features = [
   {
-    image: "/images/landing/feature-business-solution.png",
+    image: "/images/landing/feature-feasibility.gif",
     title: "Feasibility in 5 minutes, not 5 days",
     description:
       "A site comes up. You model land, construction, revenue, debt, and equity — and know whether it stacks up before lunch. Move on deals while your competitors are still building spreadsheets.",
   },
   {
-    image: "/images/landing/feature-smart-dashboard.png",
+    image: "/images/landing/feature-claims.gif",
     title: "Every dollar tracked. Every claim certified.",
     description:
       "Submit and certify progress claims each period. Track variations with their full cost impact. See exactly how every change hits your budget — so you find out now, not at the next claim.",
   },
   {
-    image: "/images/landing/feature-keyboard.png",
+    image: "/images/landing/feature-sitediary.gif",
     title: "Daily site records that actually protect you",
     description:
       "Weather, labour, equipment, visitors — logged in 2 minutes. When a dispute lands on your desk six months later, you'll have the records to back you up.",
   },
   {
-    image: "/images/landing/feature-ai-assistant.png",
+    image: "/images/landing/feature-tenders.gif",
     title: "Tenders out, bids in, contracts awarded",
     description:
       "Issue tender packages by trade, collect bids, and compare them side-by-side. Award contracts in days, not weeks — with every submission captured in one place.",
@@ -54,7 +53,8 @@ export function Features() {
                   }${i >= 2 ? " border-t border-black/[0.08]" : ""}`}
                 >
                   <div className="flex flex-1 items-center justify-center overflow-hidden rounded-lg bg-muted/30">
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={feature.image}
                       alt={feature.title}
                       width={500}

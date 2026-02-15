@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Rocket } from "lucide-react";
-import { EmailCapture } from "./email-capture";
 
 const container = {
   hidden: {},
@@ -100,18 +99,6 @@ export function HeroAnimated() {
         </Button>
       </motion.div>
 
-      {/* Email capture */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 1.0 }}
-        className="mt-4 flex flex-col items-center gap-1.5"
-      >
-        <p className="text-xs text-muted-foreground">
-          Not ready to sign up? Get early access updates:
-        </p>
-        <EmailCapture />
-      </motion.div>
     </div>
   );
 }

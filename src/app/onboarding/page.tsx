@@ -155,7 +155,7 @@ export default function OnboardingPage() {
               ) : (
                 <div className="flex size-full items-center justify-center">
                   <Image
-                    src="/logo-64.png"
+                    src="/logo-256.png"
                     alt="Upscale.Build"
                     width={48}
                     height={48}

@@ -91,7 +91,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <Image src="/logo-64.png" alt="Upscale.Build" width={32} height={32} className="rounded-lg" />
+                <Image src="/logo-256.png" alt="Upscale.Build" width={32} height={32} className="rounded-lg" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
                     {organisation.name}

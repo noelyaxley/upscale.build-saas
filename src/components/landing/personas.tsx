@@ -16,13 +16,13 @@ const personas = [
   },
   {
     icon: Briefcase,
-    name: "For the development company",
+    name: "For the Project Manager",
     subtitle: "Managing 2-10 projects, $5M-$50M",
     points: [
-      "See every active project from one dashboard",
-      "Your PM, site team, and consultants all work from one source",
-      "Process claims and variations without chasing spreadsheets",
-      "Give investors real-time visibility through the Client Portal",
+      "Track every claim, variation, and EOT across all your projects",
+      "Log site diaries, labour, and equipment from one place",
+      "Manage tenders, submittals, and consultant phases without email",
+      "Give your client real-time visibility through the Client Portal",
     ],
   },
 ];
