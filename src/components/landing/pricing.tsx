@@ -48,6 +48,7 @@ const tiers = [
     ],
     cta: "Subscribe",
     popular: false,
+    comingSoon: true,
   },
 ];
 
@@ -80,13 +81,34 @@ export function Pricing() {
                   </span>
                 )}
 
-                <h3 className="text-lg font-medium">{tier.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-medium">{tier.name}</h3>
+                  {"comingSoon" in tier && tier.comingSoon && (
+                    <span className="rounded-full border border-black/[0.08] bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      Coming Soon
+                    </span>
+                  )}
+                </div>
 
                 <div className="mt-4 mb-2">
-                  <span className="text-4xl font-medium tracking-tight">
-                    ${tier.price}
-                  </span>
-                  {tier.price > 0 && (
+                  {"promo" in tier && tier.promo ? (
+                    <>
+                      <span className="relative text-4xl font-medium tracking-tight text-muted-foreground/50">
+                        ${tier.price}
+                        <span className="absolute inset-0 flex items-center">
+                          <span className="h-[2px] w-full -rotate-12 bg-muted-foreground/50" />
+                        </span>
+                      </span>
+                      <span className="ml-2 text-4xl font-medium tracking-tight">
+                        Free
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-4xl font-medium tracking-tight">
+                      ${tier.price}
+                    </span>
+                  )}
+                  {tier.price > 0 && !("promo" in tier && tier.promo) && (
                     <span className="text-sm text-muted-foreground">/mo</span>
                   )}
                 </div>
