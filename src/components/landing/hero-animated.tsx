@@ -96,7 +96,7 @@ export function HeroAnimated() {
           size="lg"
           className="rounded-full px-5"
         >
-          <Link href="#how-it-works">See How It Works</Link>
+          <Link href="/#how-it-works">See How It Works</Link>
         </Button>
       </motion.div>
 
