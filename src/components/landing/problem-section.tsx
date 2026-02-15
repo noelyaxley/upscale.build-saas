@@ -48,8 +48,8 @@ export function ProblemSection() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
-                      <problem.icon className="size-5 text-destructive" />
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <problem.icon className="size-5 text-primary" />
                     </div>
                     <h3 className="text-lg font-medium">{problem.title}</h3>
                   </div>
