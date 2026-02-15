@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { DollarSign, FolderKanban, HardHat, Users } from "lucide-react";
 import { useOrganisation } from "@/lib/context/organisation";
 import { ProjectCard } from "@/components/project-card";
@@ -17,6 +18,8 @@ function formatCurrency(cents: number): string {
 }
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const isNew = searchParams.get("new") === "true";
   const { organisation, projects, isAdmin } = useOrganisation();
 
   const totalProjects = projects.length;
@@ -55,7 +58,7 @@ export default function DashboardPage() {
             Welcome to {organisation.name}
           </p>
         </div>
-        <CreateProjectDialog />
+        <CreateProjectDialog defaultOpen={isNew} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

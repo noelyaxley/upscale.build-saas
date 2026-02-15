@@ -120,7 +120,7 @@ export default function OnboardingPage() {
 
       if (profileError) throw profileError;
 
-      router.push("/dashboard");
+      router.push("/dashboard?new=true");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

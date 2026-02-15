@@ -38,8 +38,8 @@ const stages = [
   { value: "completed", label: "Completed" },
 ];
 
-export function CreateProjectDialog() {
-  const [open, setOpen] = useState(false);
+export function CreateProjectDialog({ defaultOpen = false }: { defaultOpen?: boolean } = {}) {
+  const [open, setOpen] = useState(defaultOpen);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
