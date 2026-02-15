@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("org_id, role")
+    .select("org_id, role, full_name, phone")
     .eq("id", user.id)
     .single();
 
@@ -54,9 +54,11 @@ export async function POST(request: Request) {
   // Create or reuse Stripe customer
   let customerId = org.stripe_customer_id as string | null;
   if (!customerId) {
+    const profileAny = profile as any;
     const customer = await getStripe().customers.create({
       email: user.email,
-      name: org.name,
+      name: profileAny.full_name || org.name,
+      phone: profileAny.phone || undefined,
       metadata: { org_id: org.id },
     });
     customerId = customer.id;
