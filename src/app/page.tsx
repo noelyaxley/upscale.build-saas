@@ -3,7 +3,7 @@ import { Hero } from "@/components/landing/hero";
 import { ProblemSection } from "@/components/landing/problem-section";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Features } from "@/components/landing/features";
-import { Metrics } from "@/components/landing/metrics";
+import { MidPageCta } from "@/components/landing/mid-page-cta";
 import { Personas } from "@/components/landing/personas";
 import { Comparison } from "@/components/landing/comparison";
 import { FounderStory } from "@/components/landing/founder-story";
@@ -21,7 +21,7 @@ export default function Home() {
         <ProblemSection />
         <HowItWorks />
         <Features />
-        <Metrics />
+        <MidPageCta />
         <Personas />
         <Comparison />
         <FounderStory />

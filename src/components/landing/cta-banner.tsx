@@ -1,4 +1,5 @@
 import { RollingButton } from "./rolling-button";
+import { EmailCapture } from "./email-capture";
 
 export function CtaBanner() {
   return (
@@ -9,16 +10,25 @@ export function CtaBanner() {
           <div className="absolute -right-8 -top-8 h-24 w-40 rotate-[-20deg] rounded-[100px] bg-primary/20 blur-sm" />
           <div className="absolute -bottom-6 -left-6 h-20 w-32 rotate-[15deg] rounded-[100px] bg-primary/15 blur-sm" />
 
-          <div className="relative flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
-            <div>
-              <h2 className="text-xl font-medium text-background sm:text-2xl">
-                Stop managing millions in spreadsheets.
-              </h2>
-              <p className="mt-2 text-sm text-background/60">
-                Free to start. No credit card required. Cancel anytime.
-              </p>
+          <div className="relative flex flex-col gap-8">
+            <div className="flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
+              <div>
+                <h2 className="text-xl font-medium text-background sm:text-2xl">
+                  Stop managing millions in spreadsheets.
+                </h2>
+                <p className="mt-2 text-sm text-background/60">
+                  Free to start. No credit card required. Cancel anytime.
+                </p>
+              </div>
+              <RollingButton text="Start Free" href="/signup" />
             </div>
-            <RollingButton text="Start Free" href="/signup" />
+
+            <div className="border-t border-white/10 pt-6">
+              <p className="mb-3 text-xs text-background/50">
+                Or get early access updates — no account needed:
+              </p>
+              <EmailCapture dark />
+            </div>
           </div>
         </div>
       </div>
