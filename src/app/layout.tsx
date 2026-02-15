@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Upscale.Build - Construction Project Management",
+  title: "UpScale.build - Construction Project Management",
   description:
     "Manage construction projects with confidence. Track progress, control documents, manage budgets, and coordinate teams — all in one platform.",
 };

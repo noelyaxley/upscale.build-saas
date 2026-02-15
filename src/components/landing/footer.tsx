@@ -22,8 +22,8 @@ export function Footer() {
               href="/"
               className="mb-4 flex items-center gap-2 text-lg font-bold"
             >
-              <Image src="/logo-256.png" alt="Upscale.Build" width={20} height={20} />
-              Upscale.Build
+              <Image src="/logo-256.png" alt="UpScale.build" width={20} height={20} />
+              UpScale.build
             </Link>
             <nav className="flex flex-wrap gap-4">
               {navLinks.map((link) => (

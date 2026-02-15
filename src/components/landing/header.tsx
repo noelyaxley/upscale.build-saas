@@ -31,8 +31,8 @@ export async function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-          <Image src="/logo-256.png" alt="Upscale.Build" width={24} height={24} />
-          Upscale.Build
+          <Image src="/logo-256.png" alt="UpScale.build" width={24} height={24} />
+          UpScale.build
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

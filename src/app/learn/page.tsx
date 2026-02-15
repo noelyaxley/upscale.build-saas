@@ -4,7 +4,7 @@ import { BookOpen } from "lucide-react";
 import { getTermsByCategory } from "@/lib/glossary/terms";
 
 export const metadata: Metadata = {
-  title: "Property Development Glossary | Upscale.Build",
+  title: "Property Development Glossary | UpScale.build",
   description:
     "Plain-English explanations of property development and construction terms — feasibility, progress claims, variations, tenders, and more.",
 };

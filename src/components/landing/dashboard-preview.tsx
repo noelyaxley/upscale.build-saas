@@ -138,7 +138,7 @@ export function DashboardPreview() {
           <div className="hidden w-44 shrink-0 border-r border-border bg-muted/30 p-3 md:block">
             <div className="mb-5 flex items-center gap-2 px-2 text-sm font-bold">
               <Building2 className="size-4 text-primary" />
-              Upscale.Build
+              UpScale.build
             </div>
             <nav className="space-y-0.5">
               {sidebarItems.map((item) => (

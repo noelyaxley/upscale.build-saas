@@ -18,7 +18,7 @@ export async function generateMetadata({
   const term = getTermBySlug(slug);
   if (!term) return {};
   return {
-    title: `${term.title} — Property Development Glossary | Upscale.Build`,
+    title: `${term.title} — Property Development Glossary | UpScale.build`,
     description: term.metaDescription,
   };
 }
@@ -55,12 +55,12 @@ export default async function TermPage({
         description: term.metaDescription,
         author: {
           "@type": "Organization",
-          name: "Upscale.Build",
+          name: "UpScale.build",
           url: "https://upscale.build",
         },
         publisher: {
           "@type": "Organization",
-          name: "Upscale.Build",
+          name: "UpScale.build",
           url: "https://upscale.build",
         },
       },
