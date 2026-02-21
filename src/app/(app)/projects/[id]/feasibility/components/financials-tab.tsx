@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Calendar, Landmark, Settings, TrendingUp, Users } from "lucide-react";
+import { Calendar, DollarSign, Landmark, Settings, ShoppingCart, TrendingUp, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,7 +16,7 @@ import type {
   FeasibilitySummary,
 } from "@/lib/feasibility/types";
 import { generateCashflow } from "@/lib/feasibility/cashflow";
-import { calculateGst } from "@/lib/feasibility/gst";
+import { calculateGst, normalizeToExGst } from "@/lib/feasibility/gst";
 import { resolveAutoFacilitySize } from "@/lib/feasibility/calculations";
 import { computeDrawdowns } from "@/lib/feasibility/drawdown";
 import { formatCurrency } from "./currency-helpers";
@@ -173,6 +173,20 @@ export function FinancialsTab({
       cashflow.map((m) => m.label)
     );
   }, [state.debtFacilities, cashflow, summary]);
+
+  // Revenue Plan: per-unit monthly allocation
+  const revenuePlan = useMemo(() => {
+    const totalMonths = state.scenario.project_length_months || 24;
+    return state.salesUnits.map((u) => {
+      const revenue = normalizeToExGst(u.sale_price || 0, u.gst_status);
+      const monthIdx = u.settlement_month
+        ? Math.max(0, u.settlement_month - 1)
+        : totalMonths - 1;
+      const months = new Array(totalMonths).fill(0) as number[];
+      if (monthIdx < totalMonths) months[monthIdx] = revenue;
+      return { id: u.id, name: u.name, months, total: revenue };
+    });
+  }, [state.salesUnits, state.scenario.project_length_months]);
 
   return (
     <div className="space-y-6">
@@ -491,7 +505,7 @@ export function FinancialsTab({
               </tbody>
             </table>
 
-            {/* Month-by-month drawn balance */}
+            {/* Month-by-month drawn balance + available */}
             <div className="overflow-x-auto">
               <table className="text-xs">
                 <thead>
@@ -511,28 +525,64 @@ export function FinancialsTab({
                 </thead>
                 <tbody>
                   {drawdowns.map((dd) => (
-                    <tr key={dd.facilityId} className="border-b border-border/50">
-                      <td className="sticky left-0 bg-background py-1 pr-4">
-                        {dd.facilityName}
-                      </td>
-                      {dd.months.map((m) => {
-                        const util =
-                          dd.facilitySize > 0
-                            ? (m.cumulativeDrawn / dd.facilitySize) * 100
-                            : 0;
-                        return (
+                    <>
+                      <tr key={`${dd.facilityId}-drawn`} className="border-b border-border/50">
+                        <td className="sticky left-0 bg-background py-1 pr-4">
+                          {dd.facilityName} — Drawn
+                        </td>
+                        {dd.months.map((m) => {
+                          const util =
+                            dd.facilitySize > 0
+                              ? (m.cumulativeDrawn / dd.facilitySize) * 100
+                              : 0;
+                          return (
+                            <td
+                              key={m.month}
+                              className={`py-1 pr-2 text-right ${util > 90 ? "text-red-600" : util > 75 ? "text-amber-600" : ""}`}
+                            >
+                              {m.cumulativeDrawn > 0
+                                ? formatCurrency(m.cumulativeDrawn)
+                                : "-"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr key={`${dd.facilityId}-avail`} className="border-b border-border/50">
+                        <td className="sticky left-0 bg-background py-1 pr-4 text-muted-foreground">
+                          {dd.facilityName} — Available
+                        </td>
+                        {dd.months.map((m) => (
                           <td
                             key={m.month}
-                            className={`py-1 pr-2 text-right ${util > 90 ? "text-red-600" : util > 75 ? "text-amber-600" : ""}`}
+                            className={`py-1 pr-2 text-right ${m.availableBalance <= 0 ? "text-red-600 font-medium" : "text-muted-foreground"}`}
                           >
                             {m.cumulativeDrawn > 0
-                              ? formatCurrency(m.cumulativeDrawn)
+                              ? formatCurrency(m.availableBalance)
                               : "-"}
+                          </td>
+                        ))}
+                      </tr>
+                    </>
+                  ))}
+                  {/* Total drawn across all facilities */}
+                  {drawdowns.length > 1 && (
+                    <tr className="border-t font-medium">
+                      <td className="sticky left-0 bg-background py-1 pr-4">
+                        Total Drawn
+                      </td>
+                      {drawdowns[0]?.months.map((_, i) => {
+                        const total = drawdowns.reduce(
+                          (sum, dd) => sum + dd.months[i].cumulativeDrawn,
+                          0
+                        );
+                        return (
+                          <td key={i} className="py-1 pr-2 text-right">
+                            {total > 0 ? formatCurrency(total) : "-"}
                           </td>
                         );
                       })}
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -540,10 +590,79 @@ export function FinancialsTab({
         </Card>
       )}
 
-      {/* Monthly Cashflow */}
+      {/* Revenue Plan */}
+      {revenuePlan.length > 0 && cashflow.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShoppingCart className="size-4 text-lime-500" />
+              Revenue Plan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="text-xs">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="sticky left-0 bg-background pb-2 pr-4 font-medium">
+                      Unit
+                    </th>
+                    {cashflow.map((m) => (
+                      <th
+                        key={m.month}
+                        className="min-w-[80px] pb-2 pr-2 text-right font-medium"
+                      >
+                        {m.label}
+                      </th>
+                    ))}
+                    <th className="min-w-[90px] pb-2 pl-2 text-right font-medium">
+                      Total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {revenuePlan.map((u) => (
+                    <tr key={u.id} className="border-b border-border/50">
+                      <td className="sticky left-0 bg-background py-1 pr-4">
+                        {u.name}
+                      </td>
+                      {u.months.map((v, i) => (
+                        <td key={i} className="py-1 pr-2 text-right">
+                          {v > 0 ? formatCurrency(v) : "-"}
+                        </td>
+                      ))}
+                      <td className="py-1 pl-2 text-right font-medium">
+                        {formatCurrency(u.total)}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="border-t font-medium text-emerald-600">
+                    <td className="sticky left-0 bg-background py-1.5 pr-4">
+                      Total Revenue
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1.5 pr-2 text-right">
+                        {m.revenue > 0 ? formatCurrency(m.revenue) : "-"}
+                      </td>
+                    ))}
+                    <td className="py-1.5 pl-2 text-right">
+                      {formatCurrency(summary.totalRevenueExGst)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cost Plan */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Monthly Cashflow</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <DollarSign className="size-4 text-lime-500" />
+            Cost Plan
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {cashflow.length > 0 ? (
@@ -587,13 +706,11 @@ export function FinancialsTab({
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="sticky left-0 bg-background py-1 pr-4">
-                      Construction
+                      Acquisition
                     </td>
                     {cashflow.map((m) => (
                       <td key={m.month} className="py-1 pr-2 text-right">
-                        {m.constructionCosts > 0
-                          ? formatCurrency(m.constructionCosts)
-                          : "-"}
+                        {m.acquisitionCosts > 0 ? formatCurrency(m.acquisitionCosts) : "-"}
                       </td>
                     ))}
                   </tr>
@@ -603,32 +720,89 @@ export function FinancialsTab({
                     </td>
                     {cashflow.map((m) => (
                       <td key={m.month} className="py-1 pr-2 text-right">
-                        {m.professionalFees > 0
-                          ? formatCurrency(m.professionalFees)
-                          : "-"}
+                        {m.professionalFees > 0 ? formatCurrency(m.professionalFees) : "-"}
                       </td>
                     ))}
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="sticky left-0 bg-background py-1 pr-4">
-                      Other Costs
+                      Construction
                     </td>
-                    {cashflow.map((m) => {
-                      const other =
-                        m.acquisitionCosts +
-                        m.devFees +
-                        m.landHoldingCosts +
-                        m.contingencyCosts +
-                        m.marketingCosts +
-                        m.agentFees +
-                        m.legalFees +
-                        m.fundingCosts;
-                      return (
-                        <td key={m.month} className="py-1 pr-2 text-right">
-                          {other > 0 ? formatCurrency(other) : "-"}
-                        </td>
-                      );
-                    })}
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.constructionCosts > 0 ? formatCurrency(m.constructionCosts) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">
+                      Dev Fees
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.devFees > 0 ? formatCurrency(m.devFees) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">
+                      Land Holding
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.landHoldingCosts > 0 ? formatCurrency(m.landHoldingCosts) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">
+                      Contingency
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.contingencyCosts > 0 ? formatCurrency(m.contingencyCosts) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">
+                      Marketing
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.marketingCosts > 0 ? formatCurrency(m.marketingCosts) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">
+                      Agent Fees
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.agentFees > 0 ? formatCurrency(m.agentFees) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">
+                      Legal Fees
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.legalFees > 0 ? formatCurrency(m.legalFees) : "-"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">
+                      Funding Costs
+                    </td>
+                    {cashflow.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.fundingCosts > 0 ? formatCurrency(m.fundingCosts) : "-"}
+                      </td>
+                    ))}
                   </tr>
                   <tr className="border-b font-medium">
                     <td className="sticky left-0 bg-background py-1.5 pr-4">
