@@ -22,6 +22,7 @@ const costBreakdown = [
   { label: "Dev Fees", color: "bg-yellow-500", key: "devFees" as const },
   { label: "Land Holding", color: "bg-lime-500", key: "landHoldingCosts" as const },
   { label: "Contingency", color: "bg-teal-500", key: "contingencyCosts" as const },
+  { label: "Marketing", color: "bg-violet-500", key: "marketingCosts" as const },
   { label: "Agent Fees", color: "bg-cyan-500", key: "agentFees" as const },
   { label: "Legal Fees", color: "bg-sky-500", key: "legalFees" as const },
   { label: "Funding Costs", color: "bg-indigo-500", key: "totalFundingCosts" as const },
@@ -170,6 +171,12 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
+                  <span>Marketing</span>
+                  <span className="font-medium">
+                    {formatCurrency(summary.marketingCosts)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
                   <span>Agent Fees</span>
                   <span className="font-medium">
                     {formatCurrency(summary.agentFees)}
@@ -231,12 +238,13 @@ export function SummaryTab({ summary }: SummaryTabProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <h4 className="text-xs font-medium uppercase text-muted-foreground">
+                Margins
+              </h4>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Residual Land Value
-                </span>
+                <span className="text-muted-foreground">Profit Margin</span>
                 <span className="font-medium">
-                  {formatCurrency(summary.residualLandValue)}
+                  {formatPct(summary.profitMargin)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -253,6 +261,75 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                   {formatPct(summary.profitOnCost)}
                 </span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Profit on Project Cost
+                </span>
+                <span className="font-medium">
+                  {formatPct(summary.profitOnProjectCost)}
+                </span>
+              </div>
+
+              <div className="border-t pt-2">
+                <h4 className="mb-2 text-xs font-medium uppercase text-muted-foreground">
+                  Residual Land Value
+                </h4>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">RLV (Breakeven)</span>
+                <span className="font-medium">
+                  {formatCurrency(summary.residualLandValue)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  RLV (at Target Margin)
+                </span>
+                <span className="font-medium">
+                  {formatCurrency(summary.residualLandValueAtTarget)}
+                </span>
+              </div>
+
+              <div className="border-t pt-2">
+                <h4 className="mb-2 text-xs font-medium uppercase text-muted-foreground">
+                  Leverage
+                </h4>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Ordinary Equity
+                </span>
+                <span className="font-medium">
+                  {formatPct(summary.ordinaryEquityLeveragePct)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Preferred Equity
+                </span>
+                <span className="font-medium">
+                  {formatPct(summary.preferredEquityLeveragePct)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Debt</span>
+                <span className="font-medium">
+                  {formatPct(summary.debtLeveragePct)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">LTC Ratio</span>
+                <span className="font-medium">
+                  {formatPct(summary.debtToCostRatio)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">LVR</span>
+                <span className="font-medium">
+                  {formatPct(summary.debtToGrvRatio)}
+                </span>
+              </div>
+
               {summary.unitCount > 0 && (
                 <>
                   <div className="border-t pt-2">
@@ -276,6 +353,48 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                     <span className="text-muted-foreground">Profit</span>
                     <span className="font-medium">
                       {formatCurrency(summary.profitPerUnit)}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {summary.totalSaleableArea > 0 && (
+                <>
+                  <div className="border-t pt-2">
+                    <h4 className="mb-2 text-xs font-medium uppercase text-muted-foreground">
+                      Per m2 / Per Lot
+                    </h4>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Ave. Net Sales / m2
+                    </span>
+                    <span className="font-medium">
+                      {formatCurrency(summary.aveNetSalesPerM2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Ave. Net Sales / Lot
+                    </span>
+                    <span className="font-medium">
+                      {formatCurrency(summary.aveNetSalesPerLot)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Ave. Construction / m2
+                    </span>
+                    <span className="font-medium">
+                      {formatCurrency(summary.aveConstructionPerM2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Ave. Construction / Lot
+                    </span>
+                    <span className="font-medium">
+                      {formatCurrency(summary.aveConstructionPerLot)}
                     </span>
                   </div>
                 </>

@@ -21,6 +21,7 @@ const RATE_TYPES: RateType[] = [
   "$/Lot",
   "% Construction",
   "% GRV",
+  "% Project Costs",
 ];
 
 export function RateTypeSelect({

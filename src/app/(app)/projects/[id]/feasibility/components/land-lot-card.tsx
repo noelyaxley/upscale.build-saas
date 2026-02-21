@@ -217,10 +217,34 @@ export function LandLotCard({ lot, onUpdate, onDelete }: LandLotCardProps) {
           </div>
         </div>
 
-        <div>
-          <Label className="text-xs">Settlement Balance</Label>
-          <div className="mt-1 rounded-md bg-muted px-3 py-2 text-sm font-medium">
-            {formatCurrency(settlementBalance)}
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label className="text-xs">Settlement Balance</Label>
+            <div className="mt-1 rounded-md bg-muted px-3 py-2 text-sm font-medium">
+              {formatCurrency(settlementBalance)}
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Deposit Month</Label>
+            <Input
+              type="number"
+              min={1}
+              value={lot.deposit_month}
+              onChange={(e) =>
+                onUpdate({ deposit_month: parseInt(e.target.value) || 1 })
+              }
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Settlement Month</Label>
+            <Input
+              type="number"
+              min={1}
+              value={lot.settlement_month}
+              onChange={(e) =>
+                onUpdate({ settlement_month: parseInt(e.target.value) || 1 })
+              }
+            />
           </div>
         </div>
       </CardContent>

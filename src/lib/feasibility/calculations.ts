@@ -11,6 +11,24 @@ interface ResolveContext {
   lotCount: number;
   constructionTotal: number;
   grvTotal: number;
+  projectCostsTotal: number;
+  projectLengthMonths: number;
+}
+
+/** Map holding frequency to divisor in months */
+function frequencyToMonths(frequency: string): number {
+  switch (frequency) {
+    case "monthly":
+      return 1;
+    case "quarterly":
+      return 3;
+    case "semi_annually":
+      return 6;
+    case "annually":
+      return 12;
+    default:
+      return 0; // "once" — no recurring multiplier
+  }
 }
 
 /** Resolve a line item's amount_ex_gst based on its rate type */
@@ -21,31 +39,44 @@ export function resolveLineItemAmount(
   const qty = item.quantity || 1;
   const rate = item.rate || 0;
 
+  let baseAmount: number;
+
   switch (item.rate_type) {
     case "$/m2":
-      return normalizeToExGst(
-        Math.round(qty * rate * (context.totalLandSize || 1)),
-        item.gst_status
-      );
+      baseAmount = Math.round(qty * rate * (context.totalLandSize || 1));
+      break;
     case "$/Lot":
-      return normalizeToExGst(
-        Math.round(qty * rate * (context.lotCount || 1)),
-        item.gst_status
-      );
+      baseAmount = Math.round(qty * rate * (context.lotCount || 1));
+      break;
     case "% Construction":
-      return normalizeToExGst(
-        Math.round((rate / 100) * context.constructionTotal * qty),
-        item.gst_status
-      );
+      baseAmount = Math.round((rate / 100) * context.constructionTotal * qty);
+      break;
     case "% GRV":
-      return normalizeToExGst(
-        Math.round((rate / 100) * context.grvTotal * qty),
-        item.gst_status
-      );
+      baseAmount = Math.round((rate / 100) * context.grvTotal * qty);
+      break;
+    case "% Project Costs":
+      baseAmount = Math.round((rate / 100) * context.projectCostsTotal * qty);
+      break;
     case "$ Amount":
     default:
-      return normalizeToExGst(Math.round(qty * rate), item.gst_status);
+      baseAmount = Math.round(qty * rate);
+      break;
   }
+
+  let amount = normalizeToExGst(baseAmount, item.gst_status);
+
+  // Apply frequency multiplier for recurring costs (holding costs, outgoings)
+  const freq = item.frequency || "once";
+  if (freq !== "once") {
+    const freqMonths = frequencyToMonths(freq);
+    if (freqMonths > 0) {
+      const spanMonths = item.cashflow_span_months || context.projectLengthMonths;
+      const periods = spanMonths / freqMonths;
+      amount = Math.round(amount * periods);
+    }
+  }
+
+  return amount;
 }
 
 function sumSection(
@@ -68,10 +99,22 @@ export function getLotCount(state: FeasibilityState): number {
   return state.landLots.length || 1;
 }
 
-/** Full P&L computation - two-pass for percentage-based items */
+/** Get total saleable area across all sales units */
+export function getTotalSaleableArea(state: FeasibilityState): number {
+  return state.salesUnits.reduce((sum, u) => sum + (u.area_m2 || 0), 0);
+}
+
+/**
+ * Full P&L computation — three-pass for percentage-based items:
+ *   Pass 1: flat construction items → constructionTotal
+ *   Pass 2: all items except "% Project Costs" → totalCostsExFunding (partial)
+ *   Pass 3: "% Project Costs" items resolved against totalCostsExFunding
+ */
 export function computeSummary(state: FeasibilityState): FeasibilitySummary {
   const totalLandSize = getTotalLandSize(state);
   const lotCount = getLotCount(state);
+  const totalSaleableArea = getTotalSaleableArea(state);
+  const projectLengthMonths = state.scenario.project_length_months || 24;
 
   // Revenue
   const totalRevenue = state.salesUnits.reduce(
@@ -90,67 +133,92 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     0
   );
 
-  // Pass 1: resolve flat-rate items to get construction total
+  // Pass 1: resolve flat-rate construction items to get constructionTotal
   const pass1Context: ResolveContext = {
     totalLandSize,
     lotCount,
     constructionTotal: 0,
     grvTotal: totalRevenue,
+    projectCostsTotal: 0,
+    projectLengthMonths,
   };
 
-  // Construction is needed for % Construction items in other sections
   const flatConstructionItems = state.lineItems.filter(
     (i) =>
       i.section === "construction" &&
       i.rate_type !== "% Construction" &&
-      i.rate_type !== "% GRV"
+      i.rate_type !== "% GRV" &&
+      i.rate_type !== "% Project Costs"
   );
   const flatConstructionTotal = flatConstructionItems.reduce(
     (sum, item) => sum + resolveLineItemAmount(item, pass1Context),
     0
   );
 
-  // Pass 2: with construction total known
-  const context: ResolveContext = {
+  // Pass 2: with constructionTotal known, resolve all non-"% Project Costs" items
+  const pass2Context: ResolveContext = {
     totalLandSize,
     lotCount,
     constructionTotal: flatConstructionTotal,
     grvTotal: totalRevenue,
+    projectCostsTotal: 0, // not yet known
+    projectLengthMonths,
   };
 
-  const acquisitionCosts = sumSection(state.lineItems, "acquisition", context);
-  const professionalFees = sumSection(
-    state.lineItems,
-    "professional_fees",
-    context
+  // Filter items that DON'T use % Project Costs
+  const nonPctProjectItems = state.lineItems.filter(
+    (i) => i.rate_type !== "% Project Costs"
   );
-  const constructionCosts = sumSection(
-    state.lineItems,
-    "construction",
-    context
+  const pctProjectItems = state.lineItems.filter(
+    (i) => i.rate_type === "% Project Costs"
   );
-  const devFees = sumSection(state.lineItems, "dev_fees", context);
-  const landHoldingCosts = sumSection(
-    state.lineItems,
-    "land_holding",
-    context
-  );
-  const contingencyCosts = sumSection(
-    state.lineItems,
-    "contingency",
-    context
-  );
-  const agentFees = sumSection(state.lineItems, "agent_fees", context);
-  const legalFees = sumSection(state.lineItems, "legal_fees", context);
+
+  const acquisitionCosts = sumSection(nonPctProjectItems, "acquisition", pass2Context);
+  const professionalFees = sumSection(nonPctProjectItems, "professional_fees", pass2Context);
+  const constructionCosts = sumSection(nonPctProjectItems, "construction", pass2Context);
+  const devFees = sumSection(nonPctProjectItems, "dev_fees", pass2Context);
+  const landHoldingCosts = sumSection(nonPctProjectItems, "land_holding", pass2Context);
+  const marketingCosts = sumSection(nonPctProjectItems, "marketing", pass2Context);
+  const agentFees = sumSection(nonPctProjectItems, "agent_fees", pass2Context);
+  const legalFees = sumSection(nonPctProjectItems, "legal_fees", pass2Context);
+
+  // Partial contingency (non-% Project Costs items)
+  const partialContingency = sumSection(nonPctProjectItems, "contingency", pass2Context);
+
+  // Partial total for % Project Costs denominator
+  const partialCostsExFunding =
+    landCost +
+    acquisitionCosts +
+    professionalFees +
+    constructionCosts +
+    devFees +
+    landHoldingCosts +
+    partialContingency +
+    marketingCosts +
+    agentFees +
+    legalFees;
+
+  // Pass 3: resolve "% Project Costs" items against the partial total
+  const pass3Context: ResolveContext = {
+    ...pass2Context,
+    projectCostsTotal: partialCostsExFunding,
+  };
+
+  const pctProjectContingency = pctProjectItems
+    .filter((i) => i.section === "contingency")
+    .reduce((sum, item) => sum + resolveLineItemAmount(item, pass3Context), 0);
+
+  // Also resolve any other sections that might use % Project Costs
+  const pctProjectOther = pctProjectItems
+    .filter((i) => i.section !== "contingency")
+    .reduce((sum, item) => sum + resolveLineItemAmount(item, pass3Context), 0);
+
+  const contingencyCosts = partialContingency + pctProjectContingency;
 
   // Funding line-item costs
-  const facilityFees = sumSection(
-    state.lineItems,
-    "facility_fees",
-    context
-  );
-  const loanFees = sumSection(state.lineItems, "loan_fees", context);
-  const equityFees = sumSection(state.lineItems, "equity_fees", context);
+  const facilityFees = sumSection(state.lineItems, "facility_fees", pass2Context);
+  const loanFees = sumSection(state.lineItems, "loan_fees", pass2Context);
+  const equityFees = sumSection(state.lineItems, "equity_fees", pass2Context);
 
   // Debt interest from facilities and loans
   const totalDebtInterest =
@@ -165,9 +233,16 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
       );
     }, 0);
 
-  // Equity
-  const totalEquity = state.equityPartners.reduce(
-    (sum, e) => sum + (e.equity_amount || 0),
+  // Equity breakdown
+  const totalPreferredEquity = state.equityPartners
+    .filter((e) => !e.is_developer_equity)
+    .reduce((sum, e) => sum + (e.equity_amount || 0), 0);
+  const totalDeveloperEquity = state.equityPartners
+    .filter((e) => e.is_developer_equity)
+    .reduce((sum, e) => sum + (e.equity_amount || 0), 0);
+  const totalEquity = totalPreferredEquity + totalDeveloperEquity;
+  const totalDebt = state.debtFacilities.reduce(
+    (sum, f) => sum + (f.total_facility || 0),
     0
   );
 
@@ -180,25 +255,74 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     devFees +
     landHoldingCosts +
     contingencyCosts +
+    marketingCosts +
     agentFees +
-    legalFees;
+    legalFees +
+    pctProjectOther;
 
   const totalFundingCosts =
     facilityFees + loanFees + equityFees + totalDebtInterest;
 
   const totalCosts = totalCostsExFunding + totalFundingCosts;
   const profit = totalRevenueExGst - totalCosts;
-  const profitOnCost = totalCosts > 0 ? (profit / totalCosts) * 100 : 0;
-  const developmentMargin =
+
+  // Project Costs to Fund = costs that need funding (ex funding costs)
+  const projectCostsToFund = totalCostsExFunding;
+
+  // Profit metrics
+  const profitMargin =
     totalRevenueExGst > 0 ? (profit / totalRevenueExGst) * 100 : 0;
+  const developmentMargin =
+    totalRevenueExGst > 0
+      ? ((totalRevenueExGst - totalCostsExFunding) / totalRevenueExGst) * 100
+      : 0;
+  const profitOnCost = totalCosts > 0 ? (profit / totalCosts) * 100 : 0;
+  const profitOnProjectCost =
+    totalCostsExFunding > 0 ? (profit / totalCostsExFunding) * 100 : 0;
+
+  // Net Sales Revenue (GRV minus sales costs)
+  const totalSalesCosts = agentFees + legalFees;
+  const netSalesRevenue = totalRevenueExGst - totalSalesCosts;
 
   // Per-unit
   const revenuePerUnit = unitCount > 0 ? Math.round(totalRevenue / unitCount) : 0;
   const costPerUnit = unitCount > 0 ? Math.round(totalCosts / unitCount) : 0;
   const profitPerUnit = unitCount > 0 ? Math.round(profit / unitCount) : 0;
 
-  // Residual land value = Revenue - (all costs except land)
+  // Per-m2 and per-lot averages
+  const projectLots = state.scenario.project_lots || unitCount || 1;
+  const aveNetSalesPerM2 =
+    totalSaleableArea > 0 ? Math.round(netSalesRevenue / totalSaleableArea) : 0;
+  const aveNetSalesPerLot =
+    projectLots > 0 ? Math.round(netSalesRevenue / projectLots) : 0;
+  const aveConstructionPerM2 =
+    totalSaleableArea > 0 ? Math.round(constructionCosts / totalSaleableArea) : 0;
+  const aveConstructionPerLot =
+    projectLots > 0 ? Math.round(constructionCosts / projectLots) : 0;
+
+  // Leverage indicators (use projectCostsToFund as denominator)
+  const ordinaryEquityLeveragePct =
+    projectCostsToFund > 0
+      ? (totalDeveloperEquity / projectCostsToFund) * 100
+      : 0;
+  const preferredEquityLeveragePct =
+    projectCostsToFund > 0
+      ? (totalPreferredEquity / projectCostsToFund) * 100
+      : 0;
+  const debtLeveragePct =
+    projectCostsToFund > 0 ? (totalDebt / projectCostsToFund) * 100 : 0;
+  const debtToCostRatio =
+    totalCosts > 0 ? (totalDebt / totalCosts) * 100 : 0;
+  const debtToGrvRatio =
+    totalRevenueExGst > 0 ? (totalDebt / totalRevenueExGst) * 100 : 0;
+
+  // Residual Land Value
+  // Simple: what you can pay for land and break even
   const residualLandValue = totalRevenueExGst - (totalCosts - landCost);
+  // At target margin: RLV = Revenue * (1 - target%) - (TotalCosts - LandPurchase)
+  const targetMargin = state.scenario.target_margin_pct ?? 20;
+  const residualLandValueAtTarget =
+    totalRevenueExGst * (1 - targetMargin / 100) - (totalCosts - landCost);
 
   return {
     totalRevenue,
@@ -211,6 +335,7 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     devFees,
     landHoldingCosts,
     contingencyCosts,
+    marketingCosts,
     agentFees,
     legalFees,
     facilityFees,
@@ -221,14 +346,31 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     totalCostsExFunding,
     totalFundingCosts,
     totalCosts,
+    projectCostsToFund,
     profit,
-    profitOnCost,
+    profitMargin,
     developmentMargin,
+    profitOnCost,
+    profitOnProjectCost,
     revenuePerUnit,
     costPerUnit,
     profitPerUnit,
+    totalSaleableArea,
+    aveNetSalesPerM2,
+    aveNetSalesPerLot,
+    aveConstructionPerM2,
+    aveConstructionPerLot,
+    ordinaryEquityLeveragePct,
+    preferredEquityLeveragePct,
+    debtLeveragePct,
+    debtToCostRatio,
+    debtToGrvRatio,
+    totalDebt,
+    totalPreferredEquity,
+    totalDeveloperEquity,
     totalLandSize,
     lotCount,
     residualLandValue,
+    residualLandValueAtTarget,
   };
 }

@@ -8,8 +8,16 @@ import type {
   LineItemSection,
   RateType,
   GstStatus,
+  HoldingFrequency,
   FeasibilitySummary,
 } from "@/lib/feasibility/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { resolveLineItemAmount } from "@/lib/feasibility/calculations";
 import { GstSelect } from "./gst-select";
 import { RateTypeSelect } from "./rate-type-select";
@@ -25,6 +33,7 @@ interface LineItemsTableProps {
   onUpdate: (id: string, changes: Partial<LineItem>) => void;
   onRemove: (id: string) => void;
   landLotId?: string | null;
+  projectLengthMonths?: number;
 }
 
 export function LineItemsTable({
@@ -37,7 +46,9 @@ export function LineItemsTable({
   onUpdate,
   onRemove,
   landLotId,
+  projectLengthMonths = 24,
 }: LineItemsTableProps) {
+  const showFrequency = section === "land_holding";
   const filtered = items.filter(
     (i) =>
       i.section === section &&
@@ -50,6 +61,8 @@ export function LineItemsTable({
     lotCount: summary.lotCount,
     constructionTotal: summary.constructionCosts,
     grvTotal: summary.totalRevenue,
+    projectCostsTotal: summary.projectCostsToFund,
+    projectLengthMonths,
   };
 
   const total = filtered.reduce(
@@ -71,6 +84,7 @@ export function LineItemsTable({
       rate: 0,
       gst_status: "exclusive",
       amount_ex_gst: 0,
+      frequency: showFrequency ? "monthly" : "once",
       cashflow_start_month: null,
       cashflow_span_months: 1,
       sort_order: filtered.length,
@@ -88,6 +102,11 @@ export function LineItemsTable({
               <th className="w-32 pb-2 pr-2 font-medium">Rate Type</th>
               <th className="w-28 pb-2 pr-2 font-medium">Rate ($)</th>
               <th className="w-28 pb-2 pr-2 font-medium">GST</th>
+              {showFrequency && (
+                <th className="w-28 pb-2 pr-2 font-medium">Frequency</th>
+              )}
+              <th className="w-20 pb-2 pr-2 font-medium">Start Mth</th>
+              <th className="w-20 pb-2 pr-2 font-medium">Span</th>
               <th className="w-28 pb-2 pr-2 text-right font-medium">
                 Amount Ex GST
               </th>
@@ -154,6 +173,55 @@ export function LineItemsTable({
                       className="h-8 border-none bg-transparent shadow-none"
                     />
                   </td>
+                  {showFrequency && (
+                    <td className="py-1 pr-2">
+                      <Select
+                        value={item.frequency || "once"}
+                        onValueChange={(v) =>
+                          onUpdate(item.id, { frequency: v as HoldingFrequency })
+                        }
+                      >
+                        <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="once">Once</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="semi_annually">Semi-Annual</SelectItem>
+                          <SelectItem value="annually">Annually</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  )}
+                  <td className="py-1 pr-2">
+                    <Input
+                      type="number"
+                      value={item.cashflow_start_month ?? ""}
+                      onChange={(e) =>
+                        onUpdate(item.id, {
+                          cashflow_start_month:
+                            e.target.value ? parseInt(e.target.value) || 1 : null,
+                        })
+                      }
+                      placeholder="1"
+                      className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
+                      min={1}
+                    />
+                  </td>
+                  <td className="py-1 pr-2">
+                    <Input
+                      type="number"
+                      value={item.cashflow_span_months || 1}
+                      onChange={(e) =>
+                        onUpdate(item.id, {
+                          cashflow_span_months: parseInt(e.target.value) || 1,
+                        })
+                      }
+                      className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
+                      min={1}
+                    />
+                  </td>
                   <td className="py-1 pr-2 text-right font-medium">
                     {formatCurrency(resolved)}
                   </td>
@@ -174,7 +242,7 @@ export function LineItemsTable({
           {filtered.length > 0 && (
             <tfoot>
               <tr className="border-t font-medium">
-                <td colSpan={5} className="py-2 pr-2 text-right text-xs">
+                <td colSpan={showFrequency ? 8 : 7} className="py-2 pr-2 text-right text-xs">
                   Total
                 </td>
                 <td className="py-2 pr-2 text-right">{formatCurrency(total)}</td>

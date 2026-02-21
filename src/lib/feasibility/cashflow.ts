@@ -13,6 +13,7 @@ export interface CashflowMonth {
   devFees: number;
   landHoldingCosts: number;
   contingencyCosts: number;
+  marketingCosts: number;
   agentFees: number;
   legalFees: number;
   fundingCosts: number;
@@ -28,6 +29,7 @@ const COST_SECTIONS: LineItemSection[] = [
   "dev_fees",
   "land_holding",
   "contingency",
+  "marketing",
   "agent_fees",
   "legal_fees",
   "facility_fees",
@@ -49,6 +51,8 @@ function getSectionKey(section: LineItemSection): keyof CashflowMonth {
       return "landHoldingCosts";
     case "contingency":
       return "contingencyCosts";
+    case "marketing":
+      return "marketingCosts";
     case "agent_fees":
       return "agentFees";
     case "legal_fees":
@@ -68,6 +72,7 @@ function getMonthLabel(startDate: Date, monthIndex: number): string {
 
 export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
   const totalMonths = state.scenario.project_length_months || 24;
+  const projectLengthMonths = totalMonths;
   const startDate = state.scenario.start_date
     ? new Date(state.scenario.start_date)
     : new Date();
@@ -88,7 +93,8 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
       (i) =>
         i.section === "construction" &&
         i.rate_type !== "% Construction" &&
-        i.rate_type !== "% GRV"
+        i.rate_type !== "% GRV" &&
+        i.rate_type !== "% Project Costs"
     )
     .reduce(
       (sum, item) =>
@@ -98,6 +104,8 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
           lotCount,
           constructionTotal: 0,
           grvTotal: totalRevenue,
+          projectCostsTotal: 0,
+          projectLengthMonths,
         }),
       0
     );
@@ -107,6 +115,8 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
     lotCount,
     constructionTotal: flatConstructionTotal,
     grvTotal: totalRevenue,
+    projectCostsTotal: 0, // not used for cashflow distribution
+    projectLengthMonths,
   };
 
   // Initialize months
@@ -121,6 +131,7 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
     devFees: 0,
     landHoldingCosts: 0,
     contingencyCosts: 0,
+    marketingCosts: 0,
     agentFees: 0,
     legalFees: 0,
     fundingCosts: 0,
@@ -129,10 +140,18 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
     cumulativeCashflow: 0,
   }));
 
-  // Distribute land costs to month 1
+  // Distribute land costs using deposit_month and settlement_month
   for (const lot of state.landLots) {
-    if (months.length > 0) {
-      months[0].landCost += lot.purchase_price || 0;
+    const depositMonth = Math.max(0, (lot.deposit_month || 1) - 1);
+    const settlementMonth = Math.max(0, (lot.settlement_month || 1) - 1);
+    const deposit = lot.deposit_amount || 0;
+    const balance = (lot.purchase_price || 0) - deposit;
+
+    if (depositMonth < totalMonths) {
+      months[depositMonth].landCost += deposit;
+    }
+    if (settlementMonth < totalMonths) {
+      months[settlementMonth].landCost += balance;
     }
   }
 
@@ -152,13 +171,15 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
     }
   }
 
-  // Distribute revenue - default to last months
-  const salesRevenue = state.salesUnits.reduce(
-    (sum, u) => sum + normalizeToExGst(u.sale_price || 0, u.gst_status),
-    0
-  );
-  if (months.length > 0) {
-    months[months.length - 1].revenue += salesRevenue;
+  // Distribute revenue per unit using settlement_month (default: last month)
+  for (const unit of state.salesUnits) {
+    const unitRevenue = normalizeToExGst(unit.sale_price || 0, unit.gst_status);
+    const monthIdx = unit.settlement_month
+      ? Math.max(0, unit.settlement_month - 1)
+      : totalMonths - 1;
+    if (monthIdx < totalMonths) {
+      months[monthIdx].revenue += unitRevenue;
+    }
   }
 
   // Compute totals and cumulative
@@ -172,6 +193,7 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
       m.devFees +
       m.landHoldingCosts +
       m.contingencyCosts +
+      m.marketingCosts +
       m.agentFees +
       m.legalFees +
       m.fundingCosts;

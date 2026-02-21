@@ -33,6 +33,7 @@ import type {
   ProductType,
   SaleType,
   DevelopmentType,
+  HoldingFrequency,
 } from "@/lib/feasibility/types";
 import { computeSummary } from "@/lib/feasibility/calculations";
 import { ScenarioHeader } from "./components/scenario-header";
@@ -64,6 +65,8 @@ function mapLandLot(row: Record<string, unknown>): LandLot {
     purchase_price: (row.purchase_price as number) ?? 0,
     deposit_amount: (row.deposit_amount as number) ?? 0,
     deposit_pct: (row.deposit_pct as number) ?? 10,
+    deposit_month: (row.deposit_month as number) ?? 1,
+    settlement_month: (row.settlement_month as number) ?? 1,
     sort_order: (row.sort_order as number) ?? 0,
   };
 }
@@ -82,6 +85,7 @@ function mapLineItem(row: Record<string, unknown>): LineItem {
     rate: (row.rate as number) ?? 0,
     gst_status: (row.gst_status as GstStatus) ?? "exclusive",
     amount_ex_gst: (row.amount_ex_gst as number) ?? 0,
+    frequency: (row.frequency as HoldingFrequency) ?? "once",
     cashflow_start_month: row.cashflow_start_month as number | null,
     cashflow_span_months: (row.cashflow_span_months as number) ?? 1,
     sort_order: (row.sort_order as number) ?? 0,
@@ -105,6 +109,7 @@ function mapSalesUnit(row: Record<string, unknown>): SalesUnit {
     sale_price: (row.sale_price as number) ?? 0,
     gst_status: (row.gst_status as GstStatus) ?? "exclusive",
     amount_ex_gst: (row.amount_ex_gst as number) ?? 0,
+    settlement_month: row.settlement_month as number | null,
     sort_order: (row.sort_order as number) ?? 0,
   };
 }
@@ -170,6 +175,8 @@ function scenarioToFields(
     start_date:
       (s as Record<string, unknown>).start_date as string | null ?? null,
     state: (s as Record<string, unknown>).state as string ?? "NSW",
+    target_margin_pct:
+      (s as Record<string, unknown>).target_margin_pct as number ?? 20,
     site_area: s.site_area,
     fsr: s.fsr,
     max_height: s.max_height,
@@ -360,6 +367,7 @@ function buildInitialState(
     project_lots: 1,
     start_date: null,
     state: "NSW",
+    target_margin_pct: 20,
     site_area: null,
     fsr: null,
     max_height: null,
@@ -450,6 +458,7 @@ export function FeasibilityView({
           project_lots: state.scenario.project_lots,
           start_date: state.scenario.start_date,
           state: state.scenario.state,
+          target_margin_pct: state.scenario.target_margin_pct,
           // Update legacy cache fields from summary
           total_revenue: summary.totalRevenue,
           site_cost: summary.landCost,
@@ -458,6 +467,7 @@ export function FeasibilityView({
           statutory_fees: summary.devFees,
           finance_costs: summary.totalFundingCosts,
           contingency: summary.contingencyCosts,
+          marketing_costs: summary.marketingCosts,
           total_costs: summary.totalCosts,
           profit: summary.profit,
           profit_on_cost:
@@ -500,6 +510,8 @@ export function FeasibilityView({
               purchase_price: l.purchase_price,
               deposit_amount: l.deposit_amount,
               deposit_pct: l.deposit_pct,
+              deposit_month: l.deposit_month,
+              settlement_month: l.settlement_month,
               sort_order: i,
             }))
           ).then()
@@ -522,6 +534,7 @@ export function FeasibilityView({
               rate: item.rate,
               gst_status: item.gst_status,
               amount_ex_gst: item.amount_ex_gst,
+              frequency: item.frequency,
               cashflow_start_month: item.cashflow_start_month,
               cashflow_span_months: item.cashflow_span_months,
               sort_order: i,
@@ -549,6 +562,7 @@ export function FeasibilityView({
               sale_price: u.sale_price,
               gst_status: u.gst_status,
               amount_ex_gst: u.amount_ex_gst,
+              settlement_month: u.settlement_month,
               sort_order: i,
             }))
           ).then()

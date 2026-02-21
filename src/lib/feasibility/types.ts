@@ -1,6 +1,7 @@
 // Domain types for the feasibility calculator
 
-export type RateType = "$ Amount" | "$/m2" | "$/Lot" | "% Construction" | "% GRV";
+export type RateType = "$ Amount" | "$/m2" | "$/Lot" | "% Construction" | "% GRV" | "% Project Costs";
+export type HoldingFrequency = "once" | "monthly" | "quarterly" | "semi_annually" | "annually";
 export type GstStatus = "exclusive" | "inclusive" | "exempt";
 export type SaleStatus = "unsold" | "exchanged" | "settled" | "withdrawn";
 export type LoanType = "interest_only" | "principal_and_interest";
@@ -20,7 +21,8 @@ export type LineItemSection =
   | "legal_fees"
   | "facility_fees"
   | "loan_fees"
-  | "equity_fees";
+  | "equity_fees"
+  | "marketing";
 
 export interface LandLot {
   id: string;
@@ -38,6 +40,8 @@ export interface LandLot {
   purchase_price: number;
   deposit_amount: number;
   deposit_pct: number;
+  deposit_month: number;
+  settlement_month: number;
   sort_order: number;
 }
 
@@ -54,6 +58,7 @@ export interface LineItem {
   rate: number;
   gst_status: GstStatus;
   amount_ex_gst: number;
+  frequency: HoldingFrequency;
   cashflow_start_month: number | null;
   cashflow_span_months: number;
   sort_order: number;
@@ -75,6 +80,7 @@ export interface SalesUnit {
   sale_price: number;
   gst_status: GstStatus;
   amount_ex_gst: number;
+  settlement_month: number | null;
   sort_order: number;
 }
 
@@ -146,6 +152,7 @@ export interface ScenarioFields {
   total_costs: number | null;
   profit: number | null;
   profit_on_cost: number | null;
+  target_margin_pct: number;
   notes: string | null;
 }
 
@@ -173,6 +180,7 @@ export interface FeasibilitySummary {
   devFees: number;
   landHoldingCosts: number;
   contingencyCosts: number;
+  marketingCosts: number;
   agentFees: number;
   legalFees: number;
 
@@ -188,20 +196,43 @@ export interface FeasibilitySummary {
   totalFundingCosts: number;
   totalCosts: number;
 
+  // Project costs total (costs that need funding — excludes funding costs themselves)
+  projectCostsToFund: number;
+
   // Profit
   profit: number;
-  profitOnCost: number;
-  developmentMargin: number;
+  profitMargin: number;           // profit / totalRevenueExGst * 100
+  developmentMargin: number;      // (totalRevenueExGst - totalCostsExFunding) / totalRevenueExGst * 100
+  profitOnCost: number;           // profit / totalCosts * 100 (aka Total Cost Margin)
+  profitOnProjectCost: number;    // profit / totalCostsExFunding * 100 (aka Total Project Cost Margin)
 
   // Per-unit
   revenuePerUnit: number;
   costPerUnit: number;
   profitPerUnit: number;
 
+  // Per-m2 and per-lot averages
+  totalSaleableArea: number;
+  aveNetSalesPerM2: number;
+  aveNetSalesPerLot: number;
+  aveConstructionPerM2: number;
+  aveConstructionPerLot: number;
+
+  // Leverage indicators (use projectCostsToFund as denominator)
+  ordinaryEquityLeveragePct: number;
+  preferredEquityLeveragePct: number;
+  debtLeveragePct: number;
+  debtToCostRatio: number;        // LTC %: totalDebt / totalCosts * 100
+  debtToGrvRatio: number;         // LVR %: totalDebt / totalRevenueExGst * 100
+  totalDebt: number;
+  totalPreferredEquity: number;
+  totalDeveloperEquity: number;
+
   // Land
   totalLandSize: number;
   lotCount: number;
   residualLandValue: number;
+  residualLandValueAtTarget: number;
 }
 
 // Reducer action types

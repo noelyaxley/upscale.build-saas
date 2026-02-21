@@ -107,6 +107,7 @@ const RESIDENTIAL_COLUMNS: ColumnDef[] = [
   { key: "area_m2", header: "Area m\u00B2", width: "w-20" },
   { key: "sale_price", header: "Sale Price", width: "w-28" },
   { key: "gst_status", header: "GST", width: "w-24" },
+  { key: "settlement_month", header: "Settle Mth", width: "w-20" },
   { key: "per_m2", header: "$/m\u00B2", width: "w-20", align: "right" },
   { key: "ex_gst", header: "Ex GST", width: "w-28", align: "right" },
   { key: "actions", header: "", width: "w-10" },
@@ -121,6 +122,7 @@ const COMMERCIAL_COLUMNS: ColumnDef[] = [
   { key: "per_m2", header: "$/m\u00B2", width: "w-20", align: "right" },
   { key: "cap_rate", header: "Cap Rate %", width: "w-20" },
   { key: "gst_status", header: "GST", width: "w-24" },
+  { key: "settlement_month", header: "Settle Mth", width: "w-20" },
   { key: "ex_gst", header: "Ex GST", width: "w-28", align: "right" },
   { key: "actions", header: "", width: "w-10" },
 ];
@@ -133,6 +135,7 @@ const INDUSTRIAL_COLUMNS: ColumnDef[] = [
   { key: "sale_price", header: "Sale Price", width: "w-28" },
   { key: "per_m2", header: "$/m\u00B2", width: "w-20", align: "right" },
   { key: "gst_status", header: "GST", width: "w-24" },
+  { key: "settlement_month", header: "Settle Mth", width: "w-20" },
   { key: "ex_gst", header: "Ex GST", width: "w-28", align: "right" },
   { key: "actions", header: "", width: "w-10" },
 ];
@@ -324,6 +327,25 @@ function UnitCell({
           />
         </td>
       );
+    case "settlement_month":
+      return (
+        <td className="py-1 pr-2">
+          <Input
+            type="number"
+            min={1}
+            value={unit.settlement_month ?? ""}
+            onChange={(e) =>
+              onUpdate(unit.id, {
+                settlement_month: e.target.value
+                  ? parseInt(e.target.value) || null
+                  : null,
+              })
+            }
+            placeholder="Last"
+            className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
+          />
+        </td>
+      );
     case "per_m2":
       return (
         <td className="py-1 pr-2 text-right text-xs text-muted-foreground">
@@ -476,6 +498,7 @@ export function SalesTab({ state, dispatch, summary }: SalesTabProps) {
       sale_price: 0,
       gst_status: "exclusive",
       amount_ex_gst: 0,
+      settlement_month: null,
       sort_order: state.salesUnits.length,
     };
     dispatch({ type: "ADD_SALES_UNIT", payload: newUnit });

@@ -64,6 +64,12 @@ const BASE_SECTIONS: CostSection[] = [
     defaultTabs: ["Default"],
     summaryValue: (s) => s.contingencyCosts,
   },
+  {
+    key: "marketing",
+    label: "Marketing",
+    defaultTabs: ["Marketing Costs"],
+    summaryValue: (s) => s.marketingCosts,
+  },
 ];
 
 function getSections(devType: DevelopmentType): CostSection[] {

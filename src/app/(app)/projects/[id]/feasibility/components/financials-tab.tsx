@@ -180,6 +180,14 @@ export function FinancialsTab({
               </tr>
               <tr className="border-b border-border/50">
                 <td className="py-1.5 pl-4 text-muted-foreground">
+                  Marketing
+                </td>
+                <td className="py-1.5 text-right">
+                  {formatCurrency(summary.marketingCosts)}
+                </td>
+              </tr>
+              <tr className="border-b border-border/50">
+                <td className="py-1.5 pl-4 text-muted-foreground">
                   Sales Costs
                 </td>
                 <td className="py-1.5 text-right">
@@ -292,6 +300,7 @@ export function FinancialsTab({
                         m.devFees +
                         m.landHoldingCosts +
                         m.contingencyCosts +
+                        m.marketingCosts +
                         m.agentFees +
                         m.legalFees +
                         m.fundingCosts;
