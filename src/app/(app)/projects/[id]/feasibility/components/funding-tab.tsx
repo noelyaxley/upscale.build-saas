@@ -26,7 +26,9 @@ import type {
   EquityPartner,
   LvrMethod,
   LoanType,
+  LandLoanType,
 } from "@/lib/feasibility/types";
+import { resolveAutoFacilitySize } from "@/lib/feasibility/calculations";
 import {
   formatCurrency,
   centsToDisplay,
@@ -39,9 +41,29 @@ interface FundingTabProps {
   summary: FeasibilitySummary;
 }
 
+const LVR_METHODS: { value: LvrMethod; label: string }[] = [
+  { value: "grv_ex_gst", label: "GRV (Ex GST)" },
+  { value: "grv_inc_gst", label: "GRV (Inc GST)" },
+  { value: "tdc_ex_gst", label: "TDC (Ex GST)" },
+  { value: "tdc_inc_gst", label: "TDC (Inc GST)" },
+  { value: "tcc_ex_gst", label: "TCC (Ex GST)" },
+  { value: "tcc_inc_gst", label: "TCC (Inc GST)" },
+  { value: "tcc_cont_ex_gst", label: "TCC+Cont (Ex GST)" },
+  { value: "tcc_cont_inc_gst", label: "TCC+Cont (Inc GST)" },
+];
+
 export function FundingTab({ state, dispatch, summary }: FundingTabProps) {
+  // Build auto-calc context for facility size computation
+  const facilityCtx = {
+    totalRevenueExGst: summary.totalRevenueExGst,
+    totalRevenue: summary.totalRevenue,
+    totalCostsExFunding: summary.totalCostsExFunding,
+    constructionCosts: summary.constructionCosts,
+    contingencyCosts: summary.contingencyCosts,
+  };
+
   const totalDebt = state.debtFacilities.reduce(
-    (s, f) => s + (f.total_facility || 0),
+    (s, f) => s + resolveAutoFacilitySize(f, facilityCtx),
     0
   );
   const totalEquity = state.equityPartners.reduce(
@@ -62,11 +84,12 @@ export function FundingTab({ state, dispatch, summary }: FundingTabProps) {
       priority: "senior",
       calculation_type: "manual",
       term_months: 24,
-      lvr_method: "tdc",
+      lvr_method: "tdc_ex_gst",
       lvr_pct: 65,
       interest_rate: 0,
       total_facility: 0,
       interest_provision: 0,
+      land_loan_type: "provisioned",
       sort_order: state.debtFacilities.length,
     };
     dispatch({ type: "ADD_DEBT_FACILITY", payload: f });
@@ -202,197 +225,214 @@ export function FundingTab({ state, dispatch, summary }: FundingTabProps) {
                   <tr className="border-b text-left text-xs text-muted-foreground">
                     <th className="pb-2 pr-2 font-medium">Name</th>
                     <th className="w-24 pb-2 pr-2 font-medium">Priority</th>
-                    <th className="w-24 pb-2 pr-2 font-medium">LVR Method</th>
-                    <th className="w-20 pb-2 pr-2 font-medium">LVR %</th>
-                    <th className="w-20 pb-2 pr-2 font-medium">Rate %</th>
-                    <th className="w-20 pb-2 pr-2 font-medium">Term (m)</th>
+                    <th className="w-20 pb-2 pr-2 font-medium">Calc</th>
+                    <th className="w-36 pb-2 pr-2 font-medium">LVR Method</th>
+                    <th className="w-16 pb-2 pr-2 font-medium">LVR %</th>
+                    <th className="w-16 pb-2 pr-2 font-medium">Rate %</th>
+                    <th className="w-16 pb-2 pr-2 font-medium">Term</th>
+                    <th className="w-24 pb-2 pr-2 font-medium">Loan Type</th>
                     <th className="w-28 pb-2 pr-2 font-medium">Facility</th>
                     <th className="w-28 pb-2 pr-2 font-medium">Interest</th>
                     <th className="w-10 pb-2" />
                   </tr>
                 </thead>
                 <tbody>
-                  {state.debtFacilities.map((f) => (
-                    <tr key={f.id} className="border-b border-border/50">
-                      <td className="py-1 pr-2">
-                        <Input
-                          value={f.name}
-                          onChange={(e) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: { name: e.target.value },
-                              },
-                            })
-                          }
-                          className="h-8 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Select
-                          value={f.priority}
-                          onValueChange={(v) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: { priority: v },
-                              },
-                            })
-                          }
-                        >
-                          <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="senior">Senior</SelectItem>
-                            <SelectItem value="mezzanine">Mezzanine</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Select
-                          value={f.lvr_method}
-                          onValueChange={(v) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: { lvr_method: v as LvrMethod },
-                              },
-                            })
-                          }
-                        >
-                          <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="tdc">TDC</SelectItem>
-                            <SelectItem value="grv">GRV</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min={0}
-                          max={100}
-                          value={f.lvr_pct}
-                          onChange={(e) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: {
-                                  lvr_pct: parseFloat(e.target.value) || 0,
-                                },
-                              },
-                            })
-                          }
-                          className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          value={f.interest_rate}
-                          onChange={(e) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: {
-                                  interest_rate:
-                                    parseFloat(e.target.value) || 0,
-                                },
-                              },
-                            })
-                          }
-                          className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Input
-                          type="number"
-                          min={1}
-                          value={f.term_months}
-                          onChange={(e) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: {
-                                  term_months: parseInt(e.target.value) || 24,
-                                },
-                              },
-                            })
-                          }
-                          className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Input
-                          type="number"
-                          step="1"
-                          min={0}
-                          value={centsToDisplay(f.total_facility)}
-                          onChange={(e) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: {
-                                  total_facility: displayToCents(e.target.value),
-                                },
-                              },
-                            })
-                          }
-                          className="h-8 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Input
-                          type="number"
-                          step="1"
-                          min={0}
-                          value={centsToDisplay(f.interest_provision)}
-                          onChange={(e) =>
-                            dispatch({
-                              type: "UPDATE_DEBT_FACILITY",
-                              payload: {
-                                id: f.id,
-                                changes: {
+                  {state.debtFacilities.map((f) => {
+                    const isAuto = f.calculation_type === "auto";
+                    const autoSize = resolveAutoFacilitySize(f, facilityCtx);
+                    const autoInterest = isAuto
+                      ? Math.round(
+                          autoSize *
+                            ((f.interest_rate || 0) / 100 / 12) *
+                            f.term_months
+                        )
+                      : 0;
+                    const updateF = (changes: Partial<DebtFacility>) =>
+                      dispatch({
+                        type: "UPDATE_DEBT_FACILITY",
+                        payload: { id: f.id, changes },
+                      });
+                    return (
+                      <tr key={f.id} className="border-b border-border/50">
+                        <td className="py-1 pr-2">
+                          <Input
+                            value={f.name}
+                            onChange={(e) => updateF({ name: e.target.value })}
+                            className="h-8 border-none bg-transparent px-1 shadow-none"
+                          />
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Select
+                            value={f.priority}
+                            onValueChange={(v) => updateF({ priority: v })}
+                          >
+                            <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="senior">Senior</SelectItem>
+                              <SelectItem value="mezzanine">Mezz</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Select
+                            value={f.calculation_type}
+                            onValueChange={(v) =>
+                              updateF({ calculation_type: v })
+                            }
+                          >
+                            <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="manual">Manual</SelectItem>
+                              <SelectItem value="auto">Auto</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Select
+                            value={f.lvr_method}
+                            onValueChange={(v) =>
+                              updateF({ lvr_method: v as LvrMethod })
+                            }
+                          >
+                            <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {LVR_METHODS.map((m) => (
+                                <SelectItem key={m.value} value={m.value}>
+                                  {m.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Input
+                            type="number"
+                            step="0.1"
+                            min={0}
+                            max={100}
+                            value={f.lvr_pct}
+                            onChange={(e) =>
+                              updateF({
+                                lvr_pct: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            className="h-8 w-16 border-none bg-transparent px-1 shadow-none"
+                          />
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            value={f.interest_rate}
+                            onChange={(e) =>
+                              updateF({
+                                interest_rate:
+                                  parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            className="h-8 w-16 border-none bg-transparent px-1 shadow-none"
+                          />
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Input
+                            type="number"
+                            min={1}
+                            value={f.term_months}
+                            onChange={(e) =>
+                              updateF({
+                                term_months: parseInt(e.target.value) || 24,
+                              })
+                            }
+                            className="h-8 w-16 border-none bg-transparent px-1 shadow-none"
+                          />
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Select
+                            value={f.land_loan_type}
+                            onValueChange={(v) =>
+                              updateF({ land_loan_type: v as LandLoanType })
+                            }
+                          >
+                            <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="provisioned">
+                                Provisioned
+                              </SelectItem>
+                              <SelectItem value="serviced">Serviced</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="py-1 pr-2">
+                          {isAuto ? (
+                            <div className="px-1 text-sm font-medium text-muted-foreground">
+                              {formatCurrency(autoSize)}
+                            </div>
+                          ) : (
+                            <Input
+                              type="number"
+                              step="1"
+                              min={0}
+                              value={centsToDisplay(f.total_facility)}
+                              onChange={(e) =>
+                                updateF({
+                                  total_facility: displayToCents(
+                                    e.target.value
+                                  ),
+                                })
+                              }
+                              className="h-8 border-none bg-transparent px-1 shadow-none"
+                            />
+                          )}
+                        </td>
+                        <td className="py-1 pr-2">
+                          {isAuto ? (
+                            <div className="px-1 text-sm font-medium text-muted-foreground">
+                              {formatCurrency(autoInterest)}
+                            </div>
+                          ) : (
+                            <Input
+                              type="number"
+                              step="1"
+                              min={0}
+                              value={centsToDisplay(f.interest_provision)}
+                              onChange={(e) =>
+                                updateF({
                                   interest_provision: displayToCents(
                                     e.target.value
                                   ),
-                                },
-                              },
-                            })
-                          }
-                          className="h-8 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-7"
-                          onClick={() =>
-                            dispatch({
-                              type: "REMOVE_DEBT_FACILITY",
-                              payload: f.id,
-                            })
-                          }
-                        >
-                          <Trash2 className="size-3.5 text-muted-foreground" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                                })
+                              }
+                              className="h-8 border-none bg-transparent px-1 shadow-none"
+                            />
+                          )}
+                        </td>
+                        <td className="py-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7"
+                            onClick={() =>
+                              dispatch({
+                                type: "REMOVE_DEBT_FACILITY",
+                                payload: f.id,
+                              })
+                            }
+                          >
+                            <Trash2 className="size-3.5 text-muted-foreground" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

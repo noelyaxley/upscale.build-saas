@@ -3,6 +3,7 @@ import type {
   FeasibilitySummary,
   LineItem,
   LineItemSection,
+  DebtFacility,
 } from "./types";
 import { normalizeToExGst } from "./gst";
 
@@ -87,6 +88,69 @@ function sumSection(
   return items
     .filter((i) => i.section === section)
     .reduce((sum, item) => sum + resolveLineItemAmount(item, context), 0);
+}
+
+// ---------- Auto-calc facility size from LVR ----------
+
+interface FacilityCalcContext {
+  totalRevenueExGst: number;
+  totalRevenue: number;
+  totalCostsExFunding: number;
+  constructionCosts: number;
+  contingencyCosts: number;
+}
+
+/** Resolve a facility's size — either manual or auto-computed from LVR */
+export function resolveAutoFacilitySize(
+  facility: DebtFacility,
+  ctx: FacilityCalcContext
+): number {
+  if (facility.calculation_type !== "auto") return facility.total_facility;
+
+  const pct = (facility.lvr_pct || 0) / 100;
+  let base: number;
+
+  switch (facility.lvr_method) {
+    case "grv_ex_gst":
+      base = ctx.totalRevenueExGst;
+      break;
+    case "grv_inc_gst":
+      base = ctx.totalRevenue;
+      break;
+    case "tdc_ex_gst":
+      base = ctx.totalCostsExFunding;
+      break;
+    case "tdc_inc_gst":
+      base = Math.round(ctx.totalCostsExFunding * 1.1);
+      break;
+    case "tcc_ex_gst":
+      base = ctx.constructionCosts;
+      break;
+    case "tcc_inc_gst":
+      base = Math.round(ctx.constructionCosts * 1.1);
+      break;
+    case "tcc_cont_ex_gst":
+      base = ctx.constructionCosts + ctx.contingencyCosts;
+      break;
+    case "tcc_cont_inc_gst":
+      base = Math.round((ctx.constructionCosts + ctx.contingencyCosts) * 1.1);
+      break;
+    default:
+      base = ctx.totalCostsExFunding;
+      break;
+  }
+
+  return Math.round(base * pct);
+}
+
+/** Resolve a facility's interest provision — auto-computed when calculation_type = "auto" */
+function resolveAutoInterest(
+  facility: DebtFacility,
+  facilitySize: number
+): number {
+  if (facility.calculation_type !== "auto") return facility.interest_provision;
+  const monthlyRate = (facility.interest_rate || 0) / 100 / 12;
+  return Math.round(facilitySize * monthlyRate * facility.term_months);
 }
 
 /** Get total land size across all lots */
@@ -220,12 +284,39 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
   const loanFees = sumSection(state.lineItems, "loan_fees", pass2Context);
   const equityFees = sumSection(state.lineItems, "equity_fees", pass2Context);
 
+  // Build partial totalCostsExFunding for auto-calc context
+  const partialTotalCostsExFunding =
+    landCost +
+    acquisitionCosts +
+    professionalFees +
+    constructionCosts +
+    devFees +
+    landHoldingCosts +
+    contingencyCosts +
+    marketingCosts +
+    agentFees +
+    legalFees +
+    pctProjectOther;
+
+  // Auto-calc facility context
+  const facilityCtx: FacilityCalcContext = {
+    totalRevenueExGst,
+    totalRevenue,
+    totalCostsExFunding: partialTotalCostsExFunding,
+    constructionCosts,
+    contingencyCosts,
+  };
+
+  // Resolve each facility's size and interest (auto or manual)
+  const resolvedFacilities = state.debtFacilities.map((f) => {
+    const size = resolveAutoFacilitySize(f, facilityCtx);
+    const interest = resolveAutoInterest(f, size);
+    return { size, interest };
+  });
+
   // Debt interest from facilities and loans
   const totalDebtInterest =
-    state.debtFacilities.reduce(
-      (sum, f) => sum + (f.interest_provision || 0),
-      0
-    ) +
+    resolvedFacilities.reduce((sum, r) => sum + r.interest, 0) +
     state.debtLoans.reduce((sum, l) => {
       const monthlyRate = (l.interest_rate || 0) / 100 / 12;
       return (
@@ -241,24 +332,13 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     .filter((e) => e.is_developer_equity)
     .reduce((sum, e) => sum + (e.equity_amount || 0), 0);
   const totalEquity = totalPreferredEquity + totalDeveloperEquity;
-  const totalDebt = state.debtFacilities.reduce(
-    (sum, f) => sum + (f.total_facility || 0),
+  const totalDebt = resolvedFacilities.reduce(
+    (sum, r) => sum + r.size,
     0
   );
 
   // Totals
-  const totalCostsExFunding =
-    landCost +
-    acquisitionCosts +
-    professionalFees +
-    constructionCosts +
-    devFees +
-    landHoldingCosts +
-    contingencyCosts +
-    marketingCosts +
-    agentFees +
-    legalFees +
-    pctProjectOther;
+  const totalCostsExFunding = partialTotalCostsExFunding;
 
   const totalFundingCosts =
     facilityFees + loanFees + equityFees + totalDebtInterest;

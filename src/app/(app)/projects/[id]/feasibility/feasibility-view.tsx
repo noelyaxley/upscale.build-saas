@@ -122,11 +122,12 @@ function mapDebtFacility(row: Record<string, unknown>): DebtFacility {
     priority: (row.priority as string) ?? "senior",
     calculation_type: (row.calculation_type as string) ?? "manual",
     term_months: (row.term_months as number) ?? 24,
-    lvr_method: (row.lvr_method as LvrMethod) ?? "tdc",
+    lvr_method: (row.lvr_method as LvrMethod) ?? "tdc_ex_gst",
     lvr_pct: (row.lvr_pct as number) ?? 65,
     interest_rate: (row.interest_rate as number) ?? 0,
     total_facility: (row.total_facility as number) ?? 0,
     interest_provision: (row.interest_provision as number) ?? 0,
+    land_loan_type: (row.land_loan_type as DebtFacility["land_loan_type"]) ?? "provisioned",
     sort_order: (row.sort_order as number) ?? 0,
   };
 }
@@ -584,6 +585,7 @@ export function FeasibilityView({
               interest_rate: f.interest_rate,
               total_facility: f.total_facility,
               interest_provision: f.interest_provision,
+              land_loan_type: f.land_loan_type,
               sort_order: i,
             }))
           ).then()

@@ -5,7 +5,16 @@ export type HoldingFrequency = "once" | "monthly" | "quarterly" | "semi_annually
 export type GstStatus = "exclusive" | "inclusive" | "exempt";
 export type SaleStatus = "unsold" | "exchanged" | "settled" | "withdrawn";
 export type LoanType = "interest_only" | "principal_and_interest";
-export type LvrMethod = "tdc" | "grv";
+export type LvrMethod =
+  | "grv_ex_gst"
+  | "grv_inc_gst"
+  | "tdc_ex_gst"
+  | "tdc_inc_gst"
+  | "tcc_ex_gst"
+  | "tcc_inc_gst"
+  | "tcc_cont_ex_gst"
+  | "tcc_cont_inc_gst";
+export type LandLoanType = "provisioned" | "serviced";
 export type ProductType = "residential" | "commercial" | "industrial";
 export type SaleType = "vacant_possession" | "sale_with_lease";
 export type DevelopmentType = "residential" | "commercial" | "mixed_use" | "industrial" | "land_subdivision";
@@ -96,6 +105,7 @@ export interface DebtFacility {
   interest_rate: number;
   total_facility: number;
   interest_provision: number;
+  land_loan_type: LandLoanType;
   sort_order: number;
 }
 
