@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Calendar, DollarSign, Landmark, Settings, ShoppingCart, TrendingUp, Users } from "lucide-react";
+import { Calendar, DollarSign, Landmark, Receipt, Settings, ShoppingCart, TrendingUp, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,7 +16,7 @@ import type {
   FeasibilitySummary,
 } from "@/lib/feasibility/types";
 import { generateCashflow } from "@/lib/feasibility/cashflow";
-import { calculateGst, normalizeToExGst } from "@/lib/feasibility/gst";
+import { calculateGst, marginSchemeGst, normalizeToExGst } from "@/lib/feasibility/gst";
 import { resolveAutoFacilitySize, resolveLineItemAmount } from "@/lib/feasibility/calculations";
 import { computeDrawdowns } from "@/lib/feasibility/drawdown";
 import { formatCurrency } from "./currency-helpers";
@@ -84,21 +84,82 @@ export function FinancialsTab({
     return d.toISOString().split("T")[0];
   }, [startDate, state.scenario.project_length_months]);
 
-  // GST summary
-  const gstOnSales = state.salesUnits.reduce((sum, u) => {
-    if (u.gst_status === "exempt") return sum;
-    const exGst =
-      u.gst_status === "inclusive"
-        ? Math.round((u.sale_price || 0) / 1.1)
-        : u.sale_price || 0;
-    return sum + calculateGst(exGst, u.gst_status);
-  }, 0);
+  // Monthly GST report
+  const monthlyGst = useMemo(() => {
+    const totalMonths = state.scenario.project_length_months || 24;
+    const startDate = state.scenario.start_date
+      ? new Date(state.scenario.start_date)
+      : new Date();
 
-  const gstOnCosts = state.lineItems.reduce((sum, item) => {
-    if (item.gst_status === "exempt") return sum;
-    return sum + calculateGst(item.amount_ex_gst || item.rate || 0, item.gst_status);
-  }, 0);
+    const months = Array.from({ length: totalMonths }, (_, i) => {
+      const d = new Date(startDate);
+      d.setMonth(d.getMonth() + i);
+      return {
+        month: i + 1,
+        label: d.toLocaleDateString("en-AU", { month: "short", year: "numeric" }),
+        gstOnSales: 0,
+        marginSchemeGst: 0,
+        gstOnCosts: 0,
+        netGst: 0,
+      };
+    });
 
+    // GST on sales by settlement month
+    const totalLandPurchase = state.landLots.reduce(
+      (s, l) => s + (l.purchase_price || 0),
+      0
+    );
+    const hasMarginScheme = state.landLots.some((l) => l.margin_scheme_applied);
+
+    for (const u of state.salesUnits) {
+      if (u.gst_status === "exempt") continue;
+      const monthIdx = u.settlement_month
+        ? Math.max(0, u.settlement_month - 1)
+        : totalMonths - 1;
+      if (monthIdx >= totalMonths) continue;
+
+      if (hasMarginScheme) {
+        // Margin scheme: GST = 1/11 of (sale price - purchase price allocated per unit)
+        const allocatedPurchase =
+          state.salesUnits.length > 0
+            ? Math.round(totalLandPurchase / state.salesUnits.length)
+            : 0;
+        const gst = marginSchemeGst(u.sale_price || 0, allocatedPurchase);
+        months[monthIdx].marginSchemeGst += gst;
+        months[monthIdx].gstOnSales += gst;
+      } else {
+        const exGst = normalizeToExGst(u.sale_price || 0, u.gst_status);
+        const gst = calculateGst(exGst, u.gst_status);
+        months[monthIdx].gstOnSales += gst;
+      }
+    }
+
+    // GST on costs by cashflow timing
+    for (const item of state.lineItems) {
+      if (item.gst_status === "exempt") continue;
+      const amount = item.amount_ex_gst || item.rate || 0;
+      const gst = calculateGst(amount, item.gst_status);
+      if (gst === 0) continue;
+
+      const startMonth = Math.max(0, (item.cashflow_start_month ?? 1) - 1);
+      const span = Math.max(1, item.cashflow_span_months || 1);
+      const perMonth = Math.round(gst / span);
+      for (let m = startMonth; m < startMonth + span && m < totalMonths; m++) {
+        months[m].gstOnCosts += perMonth;
+      }
+    }
+
+    // Compute net
+    for (const m of months) {
+      m.netGst = m.gstOnSales - m.gstOnCosts;
+    }
+
+    return months;
+  }, [state]);
+
+  const gstOnSales = monthlyGst.reduce((s, m) => s + m.gstOnSales, 0);
+  const gstOnCosts = monthlyGst.reduce((s, m) => s + m.gstOnCosts, 0);
+  const totalMarginSchemeGst = monthlyGst.reduce((s, m) => s + m.marginSchemeGst, 0);
   const netGst = gstOnSales - gstOnCosts;
 
   // Profit distribution per equity partner
@@ -878,23 +939,29 @@ export function FinancialsTab({
         </CardContent>
       </Card>
 
-      {/* GST Summary */}
+      {/* GST Report */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">GST Summary</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Receipt className="size-4 text-lime-500" />
+            GST Report
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="space-y-4">
+          {/* Summary */}
+          <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                GST Collected (Sales)
-              </span>
+              <span className="text-muted-foreground">GST Collected (Sales)</span>
               <span className="font-medium">{formatCurrency(gstOnSales)}</span>
             </div>
+            {totalMarginSchemeGst > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="pl-4 text-muted-foreground">of which Margin Scheme</span>
+                <span className="text-xs text-muted-foreground">{formatCurrency(totalMarginSchemeGst)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                GST Paid (Input Tax Credits)
-              </span>
+              <span className="text-muted-foreground">GST Paid (Input Tax Credits)</span>
               <span className="font-medium">{formatCurrency(gstOnCosts)}</span>
             </div>
             <div className="flex justify-between border-t pt-2 text-sm font-medium">
@@ -904,6 +971,65 @@ export function FinancialsTab({
               </span>
             </div>
           </div>
+
+          {/* Monthly breakdown */}
+          {monthlyGst.some((m) => m.gstOnSales > 0 || m.gstOnCosts > 0) && (
+            <div className="overflow-x-auto">
+              <table className="text-xs">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="sticky left-0 bg-background pb-2 pr-4 font-medium">Month</th>
+                    {monthlyGst.map((m) => (
+                      <th key={m.month} className="min-w-[80px] pb-2 pr-2 text-right font-medium">
+                        {m.label}
+                      </th>
+                    ))}
+                    <th className="min-w-[90px] pb-2 pl-2 text-right font-medium">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">GST on Sales</td>
+                    {monthlyGst.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.gstOnSales > 0 ? formatCurrency(m.gstOnSales) : "-"}
+                      </td>
+                    ))}
+                    <td className="py-1 pl-2 text-right font-medium">
+                      {formatCurrency(gstOnSales)}
+                    </td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="sticky left-0 bg-background py-1 pr-4">Input Tax Credits</td>
+                    {monthlyGst.map((m) => (
+                      <td key={m.month} className="py-1 pr-2 text-right">
+                        {m.gstOnCosts > 0 ? formatCurrency(m.gstOnCosts) : "-"}
+                      </td>
+                    ))}
+                    <td className="py-1 pl-2 text-right font-medium">
+                      {formatCurrency(gstOnCosts)}
+                    </td>
+                  </tr>
+                  <tr className="border-t font-medium">
+                    <td className="sticky left-0 bg-background py-1.5 pr-4">Net GST</td>
+                    {monthlyGst.map((m) => (
+                      <td
+                        key={m.month}
+                        className={`py-1.5 pr-2 text-right ${m.netGst > 0 ? "text-red-600" : m.netGst < 0 ? "text-emerald-600" : ""}`}
+                      >
+                        {m.netGst !== 0 ? formatCurrency(m.netGst) : "-"}
+                      </td>
+                    ))}
+                    <td
+                      className={`py-1.5 pl-2 text-right ${netGst >= 0 ? "text-red-600" : "text-emerald-600"}`}
+                    >
+                      {formatCurrency(netGst)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

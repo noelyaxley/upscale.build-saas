@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { TrendingUp, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,6 +23,13 @@ interface SummaryTabProps {
   summary: FeasibilitySummary;
 }
 
+const GST_RATE = 0.1;
+
+/** Add 10% GST to an ex-GST amount */
+function addGst(amount: number): number {
+  return Math.round(amount * (1 + GST_RATE));
+}
+
 const costBreakdown = [
   { label: "Land Cost", color: "bg-red-500", key: "landCost" as const },
   { label: "Acquisition", color: "bg-rose-400", key: "acquisitionCosts" as const },
@@ -36,6 +45,11 @@ const costBreakdown = [
 ];
 
 export function SummaryTab({ summary }: SummaryTabProps) {
+  const [showIncGst, setShowIncGst] = useState(false);
+
+  /** Optionally add GST to a value based on toggle */
+  const gv = (amount: number) => (showIncGst ? addGst(amount) : amount);
+
   const costEntries = costBreakdown
     .map((c) => ({
       ...c,
@@ -44,31 +58,55 @@ export function SummaryTab({ summary }: SummaryTabProps) {
     }))
     .filter((c) => c.value > 0);
 
+  const gstLabel = showIncGst ? " (Inc GST)" : " (Ex GST)";
+
   return (
     <div className="space-y-6">
+      {/* GST Toggle */}
+      <div className="flex justify-end">
+        <div className="inline-flex rounded-md border">
+          <Button
+            variant={!showIncGst ? "default" : "ghost"}
+            size="sm"
+            className="rounded-r-none"
+            onClick={() => setShowIncGst(false)}
+          >
+            Ex GST
+          </Button>
+          <Button
+            variant={showIncGst ? "default" : "ghost"}
+            size="sm"
+            className="rounded-l-none"
+            onClick={() => setShowIncGst(true)}
+          >
+            Inc GST
+          </Button>
+        </div>
+      </div>
+
       {/* Key Metrics Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Revenue
+              Revenue{gstLabel}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-emerald-600">
-              {formatCurrency(summary.totalRevenue)}
+              {formatCurrency(showIncGst ? summary.totalRevenue : summary.totalRevenueExGst)}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Costs
+              Total Costs{gstLabel}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-600">
-              {formatCurrency(summary.totalCosts)}
+              {formatCurrency(gv(summary.totalCosts))}
             </p>
           </CardContent>
         </Card>
@@ -116,7 +154,7 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                 Revenue
               </h4>
               <div className="flex justify-between text-sm">
-                <span>Gross Revenue</span>
+                <span>Gross Revenue (Inc GST)</span>
                 <span className="font-medium">
                   {formatCurrency(summary.totalRevenue)}
                 </span>
@@ -132,67 +170,67 @@ export function SummaryTab({ summary }: SummaryTabProps) {
             {/* Costs section */}
             <div>
               <h4 className="mb-2 text-xs font-medium uppercase text-muted-foreground">
-                Costs
+                Costs{gstLabel}
               </h4>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span>Land Cost</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.landCost)}
+                    {formatCurrency(gv(summary.landCost))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Acquisition Costs</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.acquisitionCosts)}
+                    {formatCurrency(gv(summary.acquisitionCosts))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Professional Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.professionalFees)}
+                    {formatCurrency(gv(summary.professionalFees))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Construction</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.constructionCosts)}
+                    {formatCurrency(gv(summary.constructionCosts))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Development Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.devFees)}
+                    {formatCurrency(gv(summary.devFees))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Land Holding</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.landHoldingCosts)}
+                    {formatCurrency(gv(summary.landHoldingCosts))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Contingency</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.contingencyCosts)}
+                    {formatCurrency(gv(summary.contingencyCosts))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Marketing</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.marketingCosts)}
+                    {formatCurrency(gv(summary.marketingCosts))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Agent Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.agentFees)}
+                    {formatCurrency(gv(summary.agentFees))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Legal Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(summary.legalFees)}
+                    {formatCurrency(gv(summary.legalFees))}
                   </span>
                 </div>
               </div>

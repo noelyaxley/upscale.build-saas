@@ -48,6 +48,7 @@ export function LandTab({ state, dispatch, summary }: LandTabProps) {
       deposit_pct: 10,
       deposit_month: 1,
       settlement_month: 1,
+      payment_schedule: [],
       sort_order: state.landLots.length,
     };
     dispatch({ type: "ADD_LAND_LOT", payload: newLot });

@@ -140,17 +140,33 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
     cumulativeCashflow: 0,
   }));
 
-  // Distribute land costs using deposit_month and settlement_month
+  // Distribute land costs using deposit_month, settlement_month, and payment_schedule
   for (const lot of state.landLots) {
     const depositMonth = Math.max(0, (lot.deposit_month || 1) - 1);
     const settlementMonth = Math.max(0, (lot.settlement_month || 1) - 1);
     const deposit = lot.deposit_amount || 0;
-    const balance = (lot.purchase_price || 0) - deposit;
+    const purchasePrice = lot.purchase_price || 0;
 
+    // Sum of scheduled payments (excluding deposit and settlement balance)
+    const schedule = lot.payment_schedule ?? [];
+    const scheduledTotal = schedule.reduce((s, p) => s + (p.amount || 0), 0);
+
+    // Deposit
     if (depositMonth < totalMonths) {
       months[depositMonth].landCost += deposit;
     }
-    if (settlementMonth < totalMonths) {
+
+    // Scheduled progress payments
+    for (const payment of schedule) {
+      const pMonth = Math.max(0, (payment.month || 1) - 1);
+      if (pMonth < totalMonths) {
+        months[pMonth].landCost += payment.amount || 0;
+      }
+    }
+
+    // Settlement balance = purchase price - deposit - scheduled payments
+    const balance = Math.max(0, purchasePrice - deposit - scheduledTotal);
+    if (settlementMonth < totalMonths && balance > 0) {
       months[settlementMonth].landCost += balance;
     }
   }

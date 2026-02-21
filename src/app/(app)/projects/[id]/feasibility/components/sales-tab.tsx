@@ -161,6 +161,7 @@ function UnitCell({
   perM2,
   onUpdate,
   onRemove,
+  onDetail,
 }: {
   col: ColumnDef;
   unit: SalesUnit;
@@ -168,16 +169,28 @@ function UnitCell({
   perM2: number;
   onUpdate: (id: string, changes: Partial<SalesUnit>) => void;
   onRemove: (id: string) => void;
+  onDetail: (id: string) => void;
 }) {
   switch (col.key) {
     case "name":
       return (
         <td className="py-1 pr-2">
-          <Input
-            value={unit.name}
-            onChange={(e) => onUpdate(unit.id, { name: e.target.value })}
-            className="h-8 border-none bg-transparent px-1 shadow-none"
-          />
+          <div className="flex items-center gap-1">
+            <Input
+              value={unit.name}
+              onChange={(e) => onUpdate(unit.id, { name: e.target.value })}
+              className="h-8 border-none bg-transparent px-1 shadow-none"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              onClick={() => onDetail(unit.id)}
+              title="Unit details"
+            >
+              <ShoppingCart className="size-3 text-muted-foreground" />
+            </Button>
+          </div>
         </td>
       );
     case "status":
@@ -454,12 +467,207 @@ function AddTabDialog({
   );
 }
 
+// ---------- Unit Detail Dialog ----------
+
+function UnitDetailDialog({
+  unit,
+  open,
+  onOpenChange,
+  onUpdate,
+}: {
+  unit: SalesUnit;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdate: (id: string, changes: Partial<SalesUnit>) => void;
+}) {
+  const statusColor: Record<SaleStatus, string> = {
+    unsold: "bg-muted text-muted-foreground",
+    exchanged: "bg-amber-100 text-amber-800",
+    settled: "bg-emerald-100 text-emerald-800",
+    withdrawn: "bg-red-100 text-red-800",
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {unit.name}
+            <span className={`rounded px-2 py-0.5 text-xs font-medium ${statusColor[unit.status]}`}>
+              {unit.status}
+            </span>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-6 py-4">
+          {/* Area Breakdown */}
+          <div>
+            <h4 className="mb-3 text-xs font-medium uppercase text-muted-foreground">
+              Area Breakdown
+            </h4>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs">Internal m2</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={unit.internal_area_m2 ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, {
+                      internal_area_m2: e.target.value ? parseFloat(e.target.value) : null,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">External m2</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={unit.external_area_m2 ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, {
+                      external_area_m2: e.target.value ? parseFloat(e.target.value) : null,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Storage m2</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={unit.storage_area_m2 ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, {
+                      storage_area_m2: e.target.value ? parseFloat(e.target.value) : null,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            {(unit.internal_area_m2 || unit.external_area_m2 || unit.storage_area_m2) && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Total: {(
+                  (unit.internal_area_m2 ?? 0) +
+                  (unit.external_area_m2 ?? 0) +
+                  (unit.storage_area_m2 ?? 0)
+                ).toFixed(1)} m2
+              </p>
+            )}
+          </div>
+
+          {/* Buyer Info */}
+          <div>
+            <h4 className="mb-3 text-xs font-medium uppercase text-muted-foreground">
+              Buyer Information
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Buyer Name</Label>
+                <Input
+                  value={unit.buyer_name ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, { buyer_name: e.target.value || null })
+                  }
+                  placeholder="Name"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Phone</Label>
+                <Input
+                  value={unit.buyer_phone ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, { buyer_phone: e.target.value || null })
+                  }
+                  placeholder="Phone"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Email</Label>
+                <Input
+                  value={unit.buyer_email ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, { buyer_email: e.target.value || null })
+                  }
+                  placeholder="Email"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Solicitor</Label>
+                <Input
+                  value={unit.buyer_solicitor ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, { buyer_solicitor: e.target.value || null })
+                  }
+                  placeholder="Solicitor"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Contract Dates & Deposit */}
+          <div>
+            <h4 className="mb-3 text-xs font-medium uppercase text-muted-foreground">
+              Contract Details
+            </h4>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs">Contract Date</Label>
+                <Input
+                  type="date"
+                  value={unit.contract_date ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, { contract_date: e.target.value || null })
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Sunset Date</Label>
+                <Input
+                  type="date"
+                  value={unit.sunset_date ?? ""}
+                  onChange={(e) =>
+                    onUpdate(unit.id, { sunset_date: e.target.value || null })
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Deposit Received ($)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={centsToDisplay(unit.deposit_received)}
+                  onChange={(e) =>
+                    onUpdate(unit.id, {
+                      deposit_received: displayToCents(e.target.value),
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>Done</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ---------- Main Component ----------
 
 export function SalesTab({ state, dispatch, summary }: SalesTabProps) {
   const [salesCostSection, setSalesCostSection] = useState<
     "agent_fees" | "legal_fees"
   >("agent_fees");
+  const [detailUnitId, setDetailUnitId] = useState<string | null>(null);
+  const detailUnit = detailUnitId
+    ? state.salesUnits.find((u) => u.id === detailUnitId) ?? null
+    : null;
 
   const tabs = useMemo(() => deriveTabs(state), [state]);
   const [customTabs, setCustomTabs] = useState<TabInfo[]>([]);
@@ -495,10 +703,20 @@ export function SalesTab({ state, dispatch, summary }: SalesTabProps) {
       bathrooms: 0,
       car_spaces: 0,
       area_m2: null,
+      internal_area_m2: null,
+      external_area_m2: null,
+      storage_area_m2: null,
       sale_price: 0,
       gst_status: "exclusive",
       amount_ex_gst: 0,
       settlement_month: null,
+      buyer_name: null,
+      buyer_email: null,
+      buyer_phone: null,
+      buyer_solicitor: null,
+      contract_date: null,
+      sunset_date: null,
+      deposit_received: 0,
       sort_order: state.salesUnits.length,
     };
     dispatch({ type: "ADD_SALES_UNIT", payload: newUnit });
@@ -585,6 +803,7 @@ export function SalesTab({ state, dispatch, summary }: SalesTabProps) {
                                   perM2={perM2}
                                   onUpdate={handleUpdateUnit}
                                   onRemove={handleRemoveUnit}
+                                  onDetail={setDetailUnitId}
                                 />
                               ))}
                             </tr>
@@ -668,6 +887,16 @@ export function SalesTab({ state, dispatch, summary }: SalesTabProps) {
           />
         </CardContent>
       </Card>
+
+      {/* Unit Detail Dialog */}
+      {detailUnit && (
+        <UnitDetailDialog
+          unit={detailUnit}
+          open={!!detailUnitId}
+          onOpenChange={(open) => { if (!open) setDetailUnitId(null); }}
+          onUpdate={handleUpdateUnit}
+        />
+      )}
 
       {/* Summary sidebar */}
       <Card>

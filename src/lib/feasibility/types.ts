@@ -33,6 +33,12 @@ export type LineItemSection =
   | "equity_fees"
   | "marketing";
 
+export interface LandPayment {
+  name: string;
+  amount: number;
+  month: number;
+}
+
 export interface LandLot {
   id: string;
   scenario_id: string;
@@ -51,6 +57,7 @@ export interface LandLot {
   deposit_pct: number;
   deposit_month: number;
   settlement_month: number;
+  payment_schedule: LandPayment[];
   sort_order: number;
 }
 
@@ -87,10 +94,20 @@ export interface SalesUnit {
   bathrooms: number;
   car_spaces: number;
   area_m2: number | null;
+  internal_area_m2: number | null;
+  external_area_m2: number | null;
+  storage_area_m2: number | null;
   sale_price: number;
   gst_status: GstStatus;
   amount_ex_gst: number;
   settlement_month: number | null;
+  buyer_name: string | null;
+  buyer_email: string | null;
+  buyer_phone: string | null;
+  buyer_solicitor: string | null;
+  contract_date: string | null;
+  sunset_date: string | null;
+  deposit_received: number;
   sort_order: number;
 }
 

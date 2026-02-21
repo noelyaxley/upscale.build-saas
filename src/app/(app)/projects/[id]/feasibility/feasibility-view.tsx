@@ -20,6 +20,7 @@ import type {
   FeasibilityState,
   FeasibilityAction,
   LandLot,
+  LandPayment,
   LineItem,
   SalesUnit,
   DebtFacility,
@@ -67,6 +68,7 @@ function mapLandLot(row: Record<string, unknown>): LandLot {
     deposit_pct: (row.deposit_pct as number) ?? 10,
     deposit_month: (row.deposit_month as number) ?? 1,
     settlement_month: (row.settlement_month as number) ?? 1,
+    payment_schedule: (row.payment_schedule as LandPayment[]) ?? [],
     sort_order: (row.sort_order as number) ?? 0,
   };
 }
@@ -107,10 +109,20 @@ function mapSalesUnit(row: Record<string, unknown>): SalesUnit {
     bathrooms: (row.bathrooms as number) ?? 0,
     car_spaces: (row.car_spaces as number) ?? 0,
     area_m2: row.area_m2 as number | null,
+    internal_area_m2: row.internal_area_m2 as number | null,
+    external_area_m2: row.external_area_m2 as number | null,
+    storage_area_m2: row.storage_area_m2 as number | null,
     sale_price: (row.sale_price as number) ?? 0,
     gst_status: (row.gst_status as GstStatus) ?? "exclusive",
     amount_ex_gst: (row.amount_ex_gst as number) ?? 0,
     settlement_month: row.settlement_month as number | null,
+    buyer_name: row.buyer_name as string | null,
+    buyer_email: row.buyer_email as string | null,
+    buyer_phone: row.buyer_phone as string | null,
+    buyer_solicitor: row.buyer_solicitor as string | null,
+    contract_date: row.contract_date as string | null,
+    sunset_date: row.sunset_date as string | null,
+    deposit_received: (row.deposit_received as number) ?? 0,
     sort_order: (row.sort_order as number) ?? 0,
   };
 }
@@ -522,6 +534,7 @@ export function FeasibilityView({
               deposit_pct: l.deposit_pct,
               deposit_month: l.deposit_month,
               settlement_month: l.settlement_month,
+              payment_schedule: l.payment_schedule,
               sort_order: i,
             }))
           ).then()
@@ -570,10 +583,20 @@ export function FeasibilityView({
               bathrooms: u.bathrooms,
               car_spaces: u.car_spaces,
               area_m2: u.area_m2,
+              internal_area_m2: u.internal_area_m2,
+              external_area_m2: u.external_area_m2,
+              storage_area_m2: u.storage_area_m2,
               sale_price: u.sale_price,
               gst_status: u.gst_status,
               amount_ex_gst: u.amount_ex_gst,
               settlement_month: u.settlement_month,
+              buyer_name: u.buyer_name,
+              buyer_email: u.buyer_email,
+              buyer_phone: u.buyer_phone,
+              buyer_solicitor: u.buyer_solicitor,
+              contract_date: u.contract_date,
+              sunset_date: u.sunset_date,
+              deposit_received: u.deposit_received,
               sort_order: i,
             }))
           ).then()
