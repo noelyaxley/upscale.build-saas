@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { TrendingUp, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { FeasibilitySummary } from "@/lib/feasibility/types";
+import type { FeasibilityState, FeasibilitySummary, LineItemSection } from "@/lib/feasibility/types";
+import { calculateGst } from "@/lib/feasibility/gst";
+import { resolveLineItemAmount } from "@/lib/feasibility/calculations";
 import { formatCurrency, formatPct } from "./currency-helpers";
 
 /** RAG colour class based on value and thresholds */
@@ -21,13 +23,49 @@ function ragColor(value: number, amber: number, red: number): string {
 
 interface SummaryTabProps {
   summary: FeasibilitySummary;
+  state: FeasibilityState;
 }
 
-const GST_RATE = 0.1;
+/** Compute per-section GST totals from actual line item GST statuses */
+function computeSectionGst(state: FeasibilityState): Record<string, number> {
+  const totalLandSize = state.landLots.reduce((s, l) => s + (l.land_size_m2 || 0), 0);
+  const lotCount = state.landLots.length || 1;
+  const totalRevenue = state.salesUnits.reduce((s, u) => s + (u.sale_price || 0), 0);
+  const projectLengthMonths = state.scenario.project_length_months || 24;
 
-/** Add 10% GST to an ex-GST amount */
-function addGst(amount: number): number {
-  return Math.round(amount * (1 + GST_RATE));
+  const ctx = {
+    totalLandSize,
+    lotCount,
+    constructionTotal: 0,
+    grvTotal: totalRevenue,
+    projectCostsTotal: 0,
+    projectLengthMonths,
+  };
+
+  const gstMap: Record<string, number> = {};
+
+  for (const item of state.lineItems) {
+    const amountExGst = resolveLineItemAmount(item, ctx);
+    const gst = calculateGst(amountExGst, item.gst_status);
+    const section = item.section as string;
+    gstMap[section] = (gstMap[section] || 0) + gst;
+  }
+
+  // Land cost GST: depends on lot GST flags
+  let landGst = 0;
+  for (const lot of state.landLots) {
+    if (lot.land_purchase_gst_included) {
+      // GST already in price, compute the GST component
+      landGst += Math.round((lot.purchase_price || 0) / 11);
+    } else if (lot.entity_gst_registered && !lot.margin_scheme_applied) {
+      // Standard GST on land
+      landGst += Math.round((lot.purchase_price || 0) * 0.1);
+    }
+    // else: exempt or margin scheme — no GST to add
+  }
+  gstMap["land"] = landGst;
+
+  return gstMap;
 }
 
 const costBreakdown = [
@@ -41,14 +79,40 @@ const costBreakdown = [
   { label: "Marketing", color: "bg-violet-500", key: "marketingCosts" as const },
   { label: "Agent Fees", color: "bg-cyan-500", key: "agentFees" as const },
   { label: "Legal Fees", color: "bg-sky-500", key: "legalFees" as const },
+  { label: "Rental Costs", color: "bg-pink-500", key: "rentalCosts" as const },
   { label: "Funding Costs", color: "bg-indigo-500", key: "totalFundingCosts" as const },
 ];
 
-export function SummaryTab({ summary }: SummaryTabProps) {
+/** Map summary keys to line item sections for GST lookup */
+const sectionGstKey: Record<string, string> = {
+  landCost: "land",
+  acquisitionCosts: "acquisition",
+  professionalFees: "professional_fees",
+  constructionCosts: "construction",
+  devFees: "dev_fees",
+  landHoldingCosts: "land_holding",
+  contingencyCosts: "contingency",
+  marketingCosts: "marketing",
+  agentFees: "agent_fees",
+  legalFees: "legal_fees",
+  rentalCosts: "rental_costs",
+};
+
+export function SummaryTab({ summary, state }: SummaryTabProps) {
   const [showIncGst, setShowIncGst] = useState(false);
 
-  /** Optionally add GST to a value based on toggle */
-  const gv = (amount: number) => (showIncGst ? addGst(amount) : amount);
+  const gstMap = useMemo(() => computeSectionGst(state), [state]);
+
+  /** Add accurate per-section GST */
+  const gv = (amount: number, summaryKey?: string) => {
+    if (!showIncGst) return amount;
+    if (summaryKey && sectionGstKey[summaryKey]) {
+      const sectionKey = sectionGstKey[summaryKey];
+      return amount + (gstMap[sectionKey] || 0);
+    }
+    // Fallback: sum all cost GST
+    return amount + Object.values(gstMap).reduce((s, v) => s + v, 0);
+  };
 
   const costEntries = costBreakdown
     .map((c) => ({
@@ -59,6 +123,11 @@ export function SummaryTab({ summary }: SummaryTabProps) {
     .filter((c) => c.value > 0);
 
   const gstLabel = showIncGst ? " (Inc GST)" : " (Ex GST)";
+
+  // Total costs inc GST = sum of each section + its GST
+  const totalCostsIncGst = showIncGst
+    ? summary.totalCosts + Object.values(gstMap).reduce((s, v) => s + v, 0)
+    : summary.totalCosts;
 
   return (
     <div className="space-y-6">
@@ -106,7 +175,7 @@ export function SummaryTab({ summary }: SummaryTabProps) {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-600">
-              {formatCurrency(gv(summary.totalCosts))}
+              {formatCurrency(totalCostsIncGst)}
             </p>
           </CardContent>
         </Card>
@@ -165,6 +234,14 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                   {formatCurrency(summary.totalRevenueExGst)}
                 </span>
               </div>
+              {summary.rentalIncome > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Net Rental Income</span>
+                  <span className="font-medium">
+                    {formatCurrency(summary.netRentalIncome)}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Costs section */}
@@ -176,63 +253,71 @@ export function SummaryTab({ summary }: SummaryTabProps) {
                 <div className="flex justify-between text-sm">
                   <span>Land Cost</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.landCost))}
+                    {formatCurrency(gv(summary.landCost, "landCost"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Acquisition Costs</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.acquisitionCosts))}
+                    {formatCurrency(gv(summary.acquisitionCosts, "acquisitionCosts"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Professional Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.professionalFees))}
+                    {formatCurrency(gv(summary.professionalFees, "professionalFees"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Construction</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.constructionCosts))}
+                    {formatCurrency(gv(summary.constructionCosts, "constructionCosts"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Development Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.devFees))}
+                    {formatCurrency(gv(summary.devFees, "devFees"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Land Holding</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.landHoldingCosts))}
+                    {formatCurrency(gv(summary.landHoldingCosts, "landHoldingCosts"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Contingency</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.contingencyCosts))}
+                    {formatCurrency(gv(summary.contingencyCosts, "contingencyCosts"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Marketing</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.marketingCosts))}
+                    {formatCurrency(gv(summary.marketingCosts, "marketingCosts"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Agent Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.agentFees))}
+                    {formatCurrency(gv(summary.agentFees, "agentFees"))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Legal Fees</span>
                   <span className="font-medium">
-                    {formatCurrency(gv(summary.legalFees))}
+                    {formatCurrency(gv(summary.legalFees, "legalFees"))}
                   </span>
                 </div>
+                {summary.rentalCosts > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>Rental Costs</span>
+                    <span className="font-medium">
+                      {formatCurrency(gv(summary.rentalCosts, "rentalCosts"))}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

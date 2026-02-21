@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Calculator,
@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   FeasibilityState,
   FeasibilityAction,
+  FeasibilitySummary,
   LandLot,
   LandPayment,
   LineItem,
@@ -26,6 +27,7 @@ import type {
   DebtFacility,
   DebtLoan,
   EquityPartner,
+  EquityInjection,
   GstStatus,
   RateType,
   SaleStatus,
@@ -44,6 +46,8 @@ import { SalesTab } from "./components/sales-tab";
 import { FundingTab } from "./components/funding-tab";
 import { SummaryTab } from "./components/summary-tab";
 import { FinancialsTab } from "./components/financials-tab";
+import { ScenarioComparison } from "./components/scenario-comparison";
+import "./print-report.css";
 
 type Scenario = Tables<"feasibility_scenarios">;
 
@@ -168,6 +172,7 @@ function mapEquityPartner(row: Record<string, unknown>): EquityPartner {
     distribution_type: (row.distribution_type as string) ?? "proportional",
     equity_amount: (row.equity_amount as number) ?? 0,
     return_percentage: (row.return_percentage as number) ?? 0,
+    injection_schedule: (row.injection_schedule as EquityInjection[]) ?? [],
     sort_order: (row.sort_order as number) ?? 0,
   };
 }
@@ -435,6 +440,9 @@ export function FeasibilityView({
   const router = useRouter();
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
+  const savedStateRef = useRef<string>("");
+  const [compareScenarioId, setCompareScenarioId] = useState<string | null>(null);
+  const [compareSummary, setCompareSummary] = useState<FeasibilitySummary | null>(null);
 
   const [state, dispatch] = useReducer(
     feasibilityReducer,
@@ -453,6 +461,18 @@ export function FeasibilityView({
   );
 
   const summary = useMemo(() => computeSummary(state), [state]);
+
+  // Snapshot state after initial load
+  useEffect(() => {
+    if (!savedStateRef.current) {
+      savedStateRef.current = JSON.stringify(state);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isDirty = useMemo(() => {
+    if (!savedStateRef.current) return false;
+    return JSON.stringify(state) !== savedStateRef.current;
+  }, [state]);
 
   const handleSelectScenario = useCallback(
     (id: string) => {
@@ -654,6 +674,7 @@ export function FeasibilityView({
               distribution_type: e.distribution_type,
               equity_amount: e.equity_amount,
               return_percentage: e.return_percentage,
+              injection_schedule: e.injection_schedule,
               sort_order: i,
             }))
           ).then()
@@ -662,10 +683,235 @@ export function FeasibilityView({
 
       await Promise.all(inserts);
       router.refresh();
+      savedStateRef.current = JSON.stringify(state);
     } finally {
       setSaving(false);
     }
   }, [state, summary, supabase, router]);
+
+  // Auto-save after 30 seconds of inactivity when dirty
+  useEffect(() => {
+    if (!isDirty || saving || !state.scenario.id) return;
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [isDirty, saving, state.scenario.id, handleSave]);
+
+  const handleDuplicate = useCallback(async () => {
+    if (!state.scenario.id) return;
+    setSaving(true);
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+      const newScenarioId = crypto.randomUUID();
+
+      // 1. Create new scenario
+      await db.from("feasibility_scenarios").insert({
+        id: newScenarioId,
+        project_id: state.scenario.project_id,
+        org_id: state.scenario.org_id,
+        name: `${state.scenario.name} (Copy)`,
+        development_type: state.scenario.development_type,
+        project_length_months: state.scenario.project_length_months,
+        project_lots: state.scenario.project_lots,
+        start_date: state.scenario.start_date,
+        state: state.scenario.state,
+        target_margin_pct: state.scenario.target_margin_pct,
+        tax_rate: state.scenario.tax_rate,
+        discount_rate: state.scenario.discount_rate,
+      });
+
+      // 2. Clone child records with new IDs
+      const inserts: Promise<unknown>[] = [];
+
+      if (state.landLots.length > 0) {
+        inserts.push(
+          db.from("feasibility_land_lots").insert(
+            state.landLots.map((l, i) => ({
+              id: crypto.randomUUID(),
+              scenario_id: newScenarioId,
+              name: l.name,
+              land_size_m2: l.land_size_m2,
+              address: l.address,
+              suburb: l.suburb,
+              state: l.state,
+              postcode: l.postcode,
+              entity_gst_registered: l.entity_gst_registered,
+              land_purchase_gst_included: l.land_purchase_gst_included,
+              margin_scheme_applied: l.margin_scheme_applied,
+              land_rate: l.land_rate,
+              purchase_price: l.purchase_price,
+              deposit_amount: l.deposit_amount,
+              deposit_pct: l.deposit_pct,
+              deposit_month: l.deposit_month,
+              settlement_month: l.settlement_month,
+              payment_schedule: l.payment_schedule,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.lineItems.length > 0) {
+        inserts.push(
+          db.from("feasibility_line_items").insert(
+            state.lineItems.map((item, i) => ({
+              id: crypto.randomUUID(),
+              scenario_id: newScenarioId,
+              section: item.section,
+              tab_name: item.tab_name,
+              name: item.name,
+              quantity: item.quantity,
+              rate_type: item.rate_type,
+              rate: item.rate,
+              gst_status: item.gst_status,
+              amount_ex_gst: item.amount_ex_gst,
+              frequency: item.frequency,
+              cashflow_start_month: item.cashflow_start_month,
+              cashflow_span_months: item.cashflow_span_months,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.salesUnits.length > 0) {
+        inserts.push(
+          db.from("feasibility_sales_units").insert(
+            state.salesUnits.map((u, i) => ({
+              id: crypto.randomUUID(),
+              scenario_id: newScenarioId,
+              tab_name: u.tab_name,
+              name: u.name,
+              status: u.status,
+              product_type: u.product_type,
+              sale_type: u.sale_type,
+              cap_rate: u.cap_rate,
+              bedrooms: u.bedrooms,
+              bathrooms: u.bathrooms,
+              car_spaces: u.car_spaces,
+              area_m2: u.area_m2,
+              internal_area_m2: u.internal_area_m2,
+              external_area_m2: u.external_area_m2,
+              storage_area_m2: u.storage_area_m2,
+              sale_price: u.sale_price,
+              gst_status: u.gst_status,
+              amount_ex_gst: u.amount_ex_gst,
+              settlement_month: u.settlement_month,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.debtFacilities.length > 0) {
+        inserts.push(
+          db.from("feasibility_debt_facilities").insert(
+            state.debtFacilities.map((f, i) => ({
+              id: crypto.randomUUID(),
+              scenario_id: newScenarioId,
+              name: f.name,
+              priority: f.priority,
+              calculation_type: f.calculation_type,
+              term_months: f.term_months,
+              lvr_method: f.lvr_method,
+              lvr_pct: f.lvr_pct,
+              interest_rate: f.interest_rate,
+              total_facility: f.total_facility,
+              interest_provision: f.interest_provision,
+              land_loan_type: f.land_loan_type,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.debtLoans.length > 0) {
+        inserts.push(
+          db.from("feasibility_debt_loans").insert(
+            state.debtLoans.map((l, i) => ({
+              id: crypto.randomUUID(),
+              scenario_id: newScenarioId,
+              name: l.name,
+              principal_amount: l.principal_amount,
+              interest_rate: l.interest_rate,
+              payment_period: l.payment_period,
+              term_months: l.term_months,
+              loan_type: l.loan_type,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      if (state.equityPartners.length > 0) {
+        inserts.push(
+          db.from("feasibility_equity_partners").insert(
+            state.equityPartners.map((e, i) => ({
+              id: crypto.randomUUID(),
+              scenario_id: newScenarioId,
+              name: e.name,
+              is_developer_equity: e.is_developer_equity,
+              distribution_type: e.distribution_type,
+              equity_amount: e.equity_amount,
+              return_percentage: e.return_percentage,
+              injection_schedule: e.injection_schedule,
+              sort_order: i,
+            }))
+          ).then()
+        );
+      }
+
+      await Promise.all(inserts);
+      router.push(`/projects/${project.id}/feasibility?scenario=${newScenarioId}`);
+      router.refresh();
+    } finally {
+      setSaving(false);
+    }
+  }, [state, supabase, router, project.id]);
+
+  const handleCompare = useCallback(async (compareId: string | null) => {
+    setCompareScenarioId(compareId);
+    if (!compareId) {
+      setCompareSummary(null);
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
+
+    // Load the comparison scenario's data
+    const [scenarioRes, lotsRes, itemsRes, unitsRes, facilitiesRes, loansRes, equityRes] =
+      await Promise.all([
+        db.from("feasibility_scenarios").select("*").eq("id", compareId).single(),
+        db.from("feasibility_land_lots").select("*").eq("scenario_id", compareId).order("sort_order"),
+        db.from("feasibility_line_items").select("*").eq("scenario_id", compareId).order("sort_order"),
+        db.from("feasibility_sales_units").select("*").eq("scenario_id", compareId).order("sort_order"),
+        db.from("feasibility_debt_facilities").select("*").eq("scenario_id", compareId).order("sort_order"),
+        db.from("feasibility_debt_loans").select("*").eq("scenario_id", compareId).order("sort_order"),
+        db.from("feasibility_equity_partners").select("*").eq("scenario_id", compareId).order("sort_order"),
+      ]);
+
+    if (!scenarioRes.data) return;
+
+    const compareState: FeasibilityState = {
+      scenario: scenarioToFields(scenarioRes.data),
+      landLots: (lotsRes.data ?? []).map(mapLandLot),
+      lineItems: (itemsRes.data ?? []).map(mapLineItem),
+      salesUnits: (unitsRes.data ?? []).map(mapSalesUnit),
+      debtFacilities: (facilitiesRes.data ?? []).map(mapDebtFacility),
+      debtLoans: (loansRes.data ?? []).map(mapDebtLoan),
+      equityPartners: (equityRes.data ?? []).map(mapEquityPartner),
+    };
+
+    setCompareSummary(computeSummary(compareState));
+  }, [supabase]);
+
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -676,7 +922,12 @@ export function FeasibilityView({
         developmentType={state.scenario.id ? state.scenario.development_type : undefined}
         onSelectScenario={handleSelectScenario}
         onSave={handleSave}
+        onDuplicate={handleDuplicate}
+        onPrint={handlePrint}
+        onCompare={handleCompare}
+        compareScenarioId={compareScenarioId}
         saving={saving}
+        isDirty={isDirty}
       />
 
       {scenarios.length === 0 ? (
@@ -727,7 +978,7 @@ export function FeasibilityView({
             <FundingTab state={state} dispatch={dispatch} summary={summary} />
           </TabsContent>
           <TabsContent value="summary">
-            <SummaryTab summary={summary} />
+            <SummaryTab summary={summary} state={state} />
           </TabsContent>
           <TabsContent value="financials">
             <FinancialsTab
@@ -737,6 +988,18 @@ export function FeasibilityView({
             />
           </TabsContent>
         </Tabs>
+      )}
+
+      {/* Scenario Comparison */}
+      {compareSummary && compareScenarioId && (
+        <ScenarioComparison
+          scenarioAName={state.scenario.name}
+          scenarioBName={
+            scenarios.find((s) => s.id === compareScenarioId)?.name ?? "Scenario B"
+          }
+          summaryA={summary}
+          summaryB={compareSummary}
+        />
       )}
     </div>
   );

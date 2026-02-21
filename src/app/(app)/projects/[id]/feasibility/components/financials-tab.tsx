@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Calendar, DollarSign, Landmark, Receipt, Settings, ShoppingCart, TrendingUp, Users } from "lucide-react";
+import { Activity, Calendar, DollarSign, Landmark, Receipt, Settings, ShoppingCart, TrendingUp, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,7 +17,7 @@ import type {
 } from "@/lib/feasibility/types";
 import { generateCashflow } from "@/lib/feasibility/cashflow";
 import { calculateGst, marginSchemeGst, normalizeToExGst } from "@/lib/feasibility/gst";
-import { resolveAutoFacilitySize, resolveLineItemAmount } from "@/lib/feasibility/calculations";
+import { computeSummary, resolveAutoFacilitySize, resolveLineItemAmount } from "@/lib/feasibility/calculations";
 import { computeDrawdowns } from "@/lib/feasibility/drawdown";
 import { formatCurrency } from "./currency-helpers";
 
@@ -66,6 +66,104 @@ function PLRow({
         {formatCurrency(value)}
       </td>
     </tr>
+  );
+}
+
+const SENSITIVITY_PCTS = [-15, -10, -5, 5, 10, 15];
+
+function SensitivityTable({
+  state,
+  baseProfit,
+}: {
+  state: FeasibilityState;
+  baseProfit: number;
+}) {
+  const rows = useMemo(() => {
+    const factors = [
+      {
+        label: "Construction Costs",
+        adjust: (s: FeasibilityState, pct: number): FeasibilityState => ({
+          ...s,
+          lineItems: s.lineItems.map((i) =>
+            i.section === "construction"
+              ? { ...i, rate: Math.round(i.rate * (1 + pct / 100)) }
+              : i
+          ),
+        }),
+      },
+      {
+        label: "Revenue",
+        adjust: (s: FeasibilityState, pct: number): FeasibilityState => ({
+          ...s,
+          salesUnits: s.salesUnits.map((u) => ({
+            ...u,
+            sale_price: Math.round((u.sale_price || 0) * (1 + pct / 100)),
+          })),
+        }),
+      },
+      {
+        label: "Land Cost",
+        adjust: (s: FeasibilityState, pct: number): FeasibilityState => ({
+          ...s,
+          landLots: s.landLots.map((l) => ({
+            ...l,
+            purchase_price: Math.round((l.purchase_price || 0) * (1 + pct / 100)),
+          })),
+        }),
+      },
+      {
+        label: "Interest Rate",
+        adjust: (s: FeasibilityState, pct: number): FeasibilityState => ({
+          ...s,
+          debtFacilities: s.debtFacilities.map((f) => ({
+            ...f,
+            interest_rate: f.interest_rate * (1 + pct / 100),
+          })),
+        }),
+      },
+    ];
+
+    return factors.map((factor) => ({
+      label: factor.label,
+      deltas: SENSITIVITY_PCTS.map((pct) => {
+        const adjusted = factor.adjust(state, pct);
+        const adjustedSummary = computeSummary(adjusted);
+        return adjustedSummary.profit - baseProfit;
+      }),
+    }));
+  }, [state, baseProfit]);
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-left text-xs text-muted-foreground">
+            <th className="pb-2 pr-4 font-medium">Factor</th>
+            {SENSITIVITY_PCTS.map((pct) => (
+              <th key={pct} className="pb-2 pr-2 text-right font-medium">
+                {pct > 0 ? `+${pct}%` : `${pct}%`}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label} className="border-b border-border/50">
+              <td className="py-1.5 pr-4">{row.label}</td>
+              {row.deltas.map((delta, i) => (
+                <td
+                  key={i}
+                  className={`py-1.5 pr-2 text-right font-medium ${delta > 0 ? "text-emerald-600" : delta < 0 ? "text-red-600" : ""}`}
+                >
+                  {delta >= 0 ? "+" : ""}
+                  {formatCurrency(delta)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -225,7 +323,8 @@ export function FinancialsTab({
         m.contingencyCosts +
         m.marketingCosts +
         m.agentFees +
-        m.legalFees
+        m.legalFees +
+        m.rentalCosts
     );
 
     // Build assigned costs for items with explicit funding_facility_id
@@ -398,6 +497,9 @@ export function FinancialsTab({
             <tbody>
               {/* Revenue */}
               <PLRow label="Revenue (ex GST)" value={summary.totalRevenueExGst} bold color="green" />
+              {summary.rentalIncome > 0 && (
+                <PLRow label="Rental Income" value={summary.rentalIncome} indent />
+              )}
 
               {/* Cost breakdown */}
               <PLRow label="Land Cost" value={summary.landCost} indent />
@@ -409,6 +511,9 @@ export function FinancialsTab({
               <PLRow label="Contingency" value={summary.contingencyCosts} indent />
               <PLRow label="Marketing" value={summary.marketingCosts} indent />
               <PLRow label="Sales Costs" value={summary.agentFees + summary.legalFees} indent />
+              {summary.rentalCosts > 0 && (
+                <PLRow label="Rental Costs" value={summary.rentalCosts} indent />
+              )}
               <PLRow
                 label="Total Project Costs"
                 value={summary.totalCostsExFunding}
@@ -902,6 +1007,30 @@ export function FinancialsTab({
                       </td>
                     ))}
                   </tr>
+                  {cashflow.some((m) => m.rentalIncome > 0) && (
+                    <tr className="border-b border-border/50">
+                      <td className="sticky left-0 bg-background py-1 pr-4 text-emerald-600">
+                        Rental Income
+                      </td>
+                      {cashflow.map((m) => (
+                        <td key={m.month} className="py-1 pr-2 text-right">
+                          {m.rentalIncome > 0 ? formatCurrency(m.rentalIncome) : "-"}
+                        </td>
+                      ))}
+                    </tr>
+                  )}
+                  {cashflow.some((m) => m.rentalCosts > 0) && (
+                    <tr className="border-b border-border/50">
+                      <td className="sticky left-0 bg-background py-1 pr-4">
+                        Rental Costs
+                      </td>
+                      {cashflow.map((m) => (
+                        <td key={m.month} className="py-1 pr-2 text-right">
+                          {m.rentalCosts > 0 ? formatCurrency(m.rentalCosts) : "-"}
+                        </td>
+                      ))}
+                    </tr>
+                  )}
                   <tr className="border-b font-medium">
                     <td className="sticky left-0 bg-background py-1.5 pr-4">
                       Net Cashflow
@@ -936,6 +1065,19 @@ export function FinancialsTab({
               Set a start date and project length to generate cashflow
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Sensitivity Analysis */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Activity className="size-4 text-lime-500" />
+            Sensitivity Analysis
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SensitivityTable state={state} baseProfit={summary.profit} />
         </CardContent>
       </Card>
 

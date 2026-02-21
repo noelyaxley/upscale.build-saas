@@ -342,6 +342,11 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
 
   const contingencyCosts = partialContingency + pctProjectContingency;
 
+  // Rental income / costs
+  const rentalIncome = sumSection(state.lineItems, "rental_income", pass2Context);
+  const rentalCosts = sumSection(state.lineItems, "rental_costs", pass2Context);
+  const netRentalIncome = rentalIncome - rentalCosts;
+
   // Funding line-item costs
   const facilityFees = sumSection(state.lineItems, "facility_fees", pass2Context);
   const loanFees = sumSection(state.lineItems, "loan_fees", pass2Context);
@@ -359,6 +364,7 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     marketingCosts +
     agentFees +
     legalFees +
+    rentalCosts +
     pctProjectOther;
 
   // Auto-calc facility context
@@ -428,17 +434,18 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     facilityFees + loanFees + equityFees + totalDebtInterest;
 
   const totalCosts = totalCostsExFunding + totalFundingCosts;
-  const profit = totalRevenueExGst - totalCosts;
+  const totalIncomeExGst = totalRevenueExGst + rentalIncome;
+  const profit = totalIncomeExGst - totalCosts;
 
   // Project Costs to Fund = costs that need funding (ex funding costs)
   const projectCostsToFund = totalCostsExFunding;
 
   // Profit metrics
   const profitMargin =
-    totalRevenueExGst > 0 ? (profit / totalRevenueExGst) * 100 : 0;
+    totalIncomeExGst > 0 ? (profit / totalIncomeExGst) * 100 : 0;
   const developmentMargin =
-    totalRevenueExGst > 0
-      ? ((totalRevenueExGst - totalCostsExFunding) / totalRevenueExGst) * 100
+    totalIncomeExGst > 0
+      ? ((totalIncomeExGst - totalCostsExFunding) / totalIncomeExGst) * 100
       : 0;
   const profitOnCost = totalCosts > 0 ? (profit / totalCosts) * 100 : 0;
   const profitOnProjectCost =
@@ -489,7 +496,7 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     totalRevenueExGst * (1 - targetMargin / 100) - (totalCosts - landCost);
 
   // After-tax P&L
-  const ebit = totalRevenueExGst - totalCostsExFunding;
+  const ebit = totalIncomeExGst - totalCostsExFunding;
   const profitBeforeTax = profit; // = totalRevenueExGst - totalCosts
   const taxRate = state.scenario.tax_rate ?? 30;
   const taxAmount = profitBeforeTax > 0 ? Math.round(profitBeforeTax * taxRate / 100) : 0;
@@ -504,6 +511,9 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     totalRevenue,
     totalRevenueExGst,
     unitCount,
+    rentalIncome,
+    rentalCosts,
+    netRentalIncome,
     landCost,
     acquisitionCosts,
     professionalFees,

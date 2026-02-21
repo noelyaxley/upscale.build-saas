@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Plus, Trash2, Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,6 +120,7 @@ export function FundingTab({ state, dispatch, summary }: FundingTabProps) {
       distribution_type: "proportional",
       equity_amount: 0,
       return_percentage: 0,
+      injection_schedule: [],
       sort_order: state.equityPartners.length,
     };
     dispatch({ type: "ADD_EQUITY_PARTNER", payload: e });
@@ -652,124 +654,249 @@ export function FundingTab({ state, dispatch, summary }: FundingTabProps) {
                 </thead>
                 <tbody>
                   {state.equityPartners.map((e) => (
-                    <tr key={e.id} className="border-b border-border/50">
-                      <td className="py-1 pr-2">
-                        <Input
-                          value={e.name}
-                          onChange={(ev) =>
-                            dispatch({
-                              type: "UPDATE_EQUITY_PARTNER",
-                              payload: {
-                                id: e.id,
-                                changes: { name: ev.target.value },
-                              },
-                            })
-                          }
-                          className="h-8 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1 pr-2 text-center">
-                        <input
-                          type="checkbox"
-                          checked={e.is_developer_equity}
-                          onChange={(ev) =>
-                            dispatch({
-                              type: "UPDATE_EQUITY_PARTNER",
-                              payload: {
-                                id: e.id,
-                                changes: {
-                                  is_developer_equity: ev.target.checked,
+                    <React.Fragment key={e.id}>
+                      <tr className="border-b border-border/50">
+                        <td className="py-1 pr-2">
+                          <Input
+                            value={e.name}
+                            onChange={(ev) =>
+                              dispatch({
+                                type: "UPDATE_EQUITY_PARTNER",
+                                payload: {
+                                  id: e.id,
+                                  changes: { name: ev.target.value },
                                 },
-                              },
-                            })
-                          }
-                          className="accent-primary"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Select
-                          value={e.distribution_type}
-                          onValueChange={(v) =>
-                            dispatch({
-                              type: "UPDATE_EQUITY_PARTNER",
-                              payload: {
-                                id: e.id,
-                                changes: { distribution_type: v },
-                              },
-                            })
-                          }
-                        >
-                          <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="proportional">
-                              Proportional
-                            </SelectItem>
-                            <SelectItem value="preferred">Preferred</SelectItem>
-                            <SelectItem value="fixed">Fixed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Input
-                          type="number"
-                          step="1"
-                          min={0}
-                          value={centsToDisplay(e.equity_amount)}
-                          onChange={(ev) =>
-                            dispatch({
-                              type: "UPDATE_EQUITY_PARTNER",
-                              payload: {
-                                id: e.id,
-                                changes: {
-                                  equity_amount: displayToCents(
-                                    ev.target.value
-                                  ),
+                              })
+                            }
+                            className="h-8 border-none bg-transparent px-1 shadow-none"
+                          />
+                        </td>
+                        <td className="py-1 pr-2 text-center">
+                          <input
+                            type="checkbox"
+                            checked={e.is_developer_equity}
+                            onChange={(ev) =>
+                              dispatch({
+                                type: "UPDATE_EQUITY_PARTNER",
+                                payload: {
+                                  id: e.id,
+                                  changes: {
+                                    is_developer_equity: ev.target.checked,
+                                  },
                                 },
-                              },
-                            })
-                          }
-                          className="h-8 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1 pr-2">
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min={0}
-                          value={e.return_percentage}
-                          onChange={(ev) =>
-                            dispatch({
-                              type: "UPDATE_EQUITY_PARTNER",
-                              payload: {
-                                id: e.id,
-                                changes: {
-                                  return_percentage:
-                                    parseFloat(ev.target.value) || 0,
+                              })
+                            }
+                            className="accent-primary"
+                          />
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Select
+                            value={e.distribution_type}
+                            onValueChange={(v) =>
+                              dispatch({
+                                type: "UPDATE_EQUITY_PARTNER",
+                                payload: {
+                                  id: e.id,
+                                  changes: { distribution_type: v },
                                 },
-                              },
-                            })
-                          }
-                          className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
-                        />
-                      </td>
-                      <td className="py-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-7"
-                          onClick={() =>
-                            dispatch({
-                              type: "REMOVE_EQUITY_PARTNER",
-                              payload: e.id,
-                            })
-                          }
-                        >
-                          <Trash2 className="size-3.5 text-muted-foreground" />
-                        </Button>
-                      </td>
-                    </tr>
+                              })
+                            }
+                          >
+                            <SelectTrigger className="h-8 border-none bg-transparent shadow-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="proportional">
+                                Proportional
+                              </SelectItem>
+                              <SelectItem value="preferred">Preferred</SelectItem>
+                              <SelectItem value="fixed">Fixed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Input
+                            type="number"
+                            step="1"
+                            min={0}
+                            value={centsToDisplay(e.equity_amount)}
+                            onChange={(ev) =>
+                              dispatch({
+                                type: "UPDATE_EQUITY_PARTNER",
+                                payload: {
+                                  id: e.id,
+                                  changes: {
+                                    equity_amount: displayToCents(
+                                      ev.target.value
+                                    ),
+                                  },
+                                },
+                              })
+                            }
+                            className="h-8 border-none bg-transparent px-1 shadow-none"
+                          />
+                        </td>
+                        <td className="py-1 pr-2">
+                          <Input
+                            type="number"
+                            step="0.1"
+                            min={0}
+                            value={e.return_percentage}
+                            onChange={(ev) =>
+                              dispatch({
+                                type: "UPDATE_EQUITY_PARTNER",
+                                payload: {
+                                  id: e.id,
+                                  changes: {
+                                    return_percentage:
+                                      parseFloat(ev.target.value) || 0,
+                                  },
+                                },
+                              })
+                            }
+                            className="h-8 w-20 border-none bg-transparent px-1 shadow-none"
+                          />
+                        </td>
+                        <td className="py-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7"
+                            onClick={() =>
+                              dispatch({
+                                type: "REMOVE_EQUITY_PARTNER",
+                                payload: e.id,
+                              })
+                            }
+                          >
+                            <Trash2 className="size-3.5 text-muted-foreground" />
+                          </Button>
+                        </td>
+                      </tr>
+                      {/* Injection Schedule */}
+                      <tr className="border-b border-border/50 bg-muted/30">
+                        <td colSpan={6} className="px-4 py-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-muted-foreground">
+                              Injection Schedule
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs"
+                              onClick={() => {
+                                const schedule = [...(e.injection_schedule ?? [])];
+                                schedule.push({
+                                  name: `Injection ${schedule.length + 1}`,
+                                  amount: 0,
+                                  month: 1,
+                                });
+                                dispatch({
+                                  type: "UPDATE_EQUITY_PARTNER",
+                                  payload: {
+                                    id: e.id,
+                                    changes: { injection_schedule: schedule },
+                                  },
+                                });
+                              }}
+                            >
+                              <Plus className="mr-1 size-3" />
+                              Add
+                            </Button>
+                          </div>
+                          {(e.injection_schedule ?? []).length > 0 ? (
+                            <div className="space-y-1">
+                              {(e.injection_schedule ?? []).map((inj, idx) => (
+                                <div
+                                  key={idx}
+                                  className="grid grid-cols-[1fr_100px_80px_28px] gap-2"
+                                >
+                                  <Input
+                                    className="h-7 text-xs"
+                                    value={inj.name}
+                                    onChange={(ev) => {
+                                      const schedule = [...(e.injection_schedule ?? [])];
+                                      schedule[idx] = { ...schedule[idx], name: ev.target.value };
+                                      dispatch({
+                                        type: "UPDATE_EQUITY_PARTNER",
+                                        payload: {
+                                          id: e.id,
+                                          changes: { injection_schedule: schedule },
+                                        },
+                                      });
+                                    }}
+                                  />
+                                  <Input
+                                    className="h-7 text-xs"
+                                    type="number"
+                                    step="1"
+                                    min={0}
+                                    value={centsToDisplay(inj.amount)}
+                                    onChange={(ev) => {
+                                      const schedule = [...(e.injection_schedule ?? [])];
+                                      schedule[idx] = {
+                                        ...schedule[idx],
+                                        amount: displayToCents(ev.target.value),
+                                      };
+                                      dispatch({
+                                        type: "UPDATE_EQUITY_PARTNER",
+                                        payload: {
+                                          id: e.id,
+                                          changes: { injection_schedule: schedule },
+                                        },
+                                      });
+                                    }}
+                                  />
+                                  <Input
+                                    className="h-7 text-xs"
+                                    type="number"
+                                    min={1}
+                                    value={inj.month}
+                                    onChange={(ev) => {
+                                      const schedule = [...(e.injection_schedule ?? [])];
+                                      schedule[idx] = {
+                                        ...schedule[idx],
+                                        month: parseInt(ev.target.value) || 1,
+                                      };
+                                      dispatch({
+                                        type: "UPDATE_EQUITY_PARTNER",
+                                        payload: {
+                                          id: e.id,
+                                          changes: { injection_schedule: schedule },
+                                        },
+                                      });
+                                    }}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-7"
+                                    onClick={() => {
+                                      const schedule = (e.injection_schedule ?? []).filter(
+                                        (_, i) => i !== idx
+                                      );
+                                      dispatch({
+                                        type: "UPDATE_EQUITY_PARTNER",
+                                        payload: {
+                                          id: e.id,
+                                          changes: { injection_schedule: schedule },
+                                        },
+                                      });
+                                    }}
+                                  >
+                                    <Trash2 className="size-3 text-muted-foreground" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              No scheduled injections — equity contributed as needed
+                            </p>
+                          )}
+                        </td>
+                      </tr>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>

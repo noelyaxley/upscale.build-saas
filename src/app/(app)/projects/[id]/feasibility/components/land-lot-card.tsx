@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import type { LandLot } from "@/lib/feasibility/types";
+import type { LandLot, LandPayment } from "@/lib/feasibility/types";
 import { centsToDisplay, displayToCents, formatCurrency } from "./currency-helpers";
 
 const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
@@ -246,6 +246,112 @@ export function LandLotCard({ lot, onUpdate, onDelete }: LandLotCardProps) {
               }
             />
           </div>
+        </div>
+
+        {/* Payment Schedule */}
+        <Separator />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground">
+              Payment Schedule
+            </Label>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => {
+                const schedule = [...(lot.payment_schedule ?? [])];
+                schedule.push({
+                  name: `Payment ${schedule.length + 1}`,
+                  amount: 0,
+                  month: 1,
+                });
+                onUpdate({ payment_schedule: schedule });
+              }}
+            >
+              <Plus className="mr-1 size-3" />
+              Add Payment
+            </Button>
+          </div>
+          {(lot.payment_schedule ?? []).length > 0 && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-[1fr_100px_80px_32px] gap-2 text-xs font-medium text-muted-foreground">
+                <span>Name</span>
+                <span>Amount</span>
+                <span>Month</span>
+                <span />
+              </div>
+              {(lot.payment_schedule ?? []).map((payment, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-[1fr_100px_80px_32px] gap-2"
+                >
+                  <Input
+                    className="h-8 text-sm"
+                    value={payment.name}
+                    onChange={(e) => {
+                      const schedule = [...(lot.payment_schedule ?? [])];
+                      schedule[idx] = { ...schedule[idx], name: e.target.value };
+                      onUpdate({ payment_schedule: schedule });
+                    }}
+                  />
+                  <Input
+                    className="h-8 text-sm"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={centsToDisplay(payment.amount)}
+                    onChange={(e) => {
+                      const schedule = [...(lot.payment_schedule ?? [])];
+                      schedule[idx] = {
+                        ...schedule[idx],
+                        amount: displayToCents(e.target.value),
+                      };
+                      onUpdate({ payment_schedule: schedule });
+                    }}
+                  />
+                  <Input
+                    className="h-8 text-sm"
+                    type="number"
+                    min="1"
+                    value={payment.month}
+                    onChange={(e) => {
+                      const schedule = [...(lot.payment_schedule ?? [])];
+                      schedule[idx] = {
+                        ...schedule[idx],
+                        month: parseInt(e.target.value) || 1,
+                      };
+                      onUpdate({ payment_schedule: schedule });
+                    }}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    onClick={() => {
+                      const schedule = (lot.payment_schedule ?? []).filter(
+                        (_, i) => i !== idx
+                      );
+                      onUpdate({ payment_schedule: schedule });
+                    }}
+                  >
+                    <Trash2 className="size-3.5 text-muted-foreground" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>
+                  Scheduled Total:{" "}
+                  {formatCurrency(
+                    (lot.payment_schedule ?? []).reduce(
+                      (s, p) => s + (p.amount || 0),
+                      0
+                    )
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

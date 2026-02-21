@@ -70,6 +70,18 @@ const BASE_SECTIONS: CostSection[] = [
     defaultTabs: ["Marketing Costs"],
     summaryValue: (s) => s.marketingCosts,
   },
+  {
+    key: "rental_income",
+    label: "Rental Income",
+    defaultTabs: ["Default"],
+    summaryValue: (s) => s.rentalIncome,
+  },
+  {
+    key: "rental_costs",
+    label: "Rental Costs",
+    defaultTabs: ["Default"],
+    summaryValue: (s) => s.rentalCosts,
+  },
 ];
 
 function getSections(devType: DevelopmentType): CostSection[] {

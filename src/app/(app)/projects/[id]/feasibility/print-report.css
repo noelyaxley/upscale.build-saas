@@ -1,0 +1,56 @@
+@media print {
+  /* Hide non-print elements */
+  nav,
+  aside,
+  header,
+  [data-sidebar],
+  [data-no-print],
+  button:not([data-print-keep]),
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset layout */
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+    font-size: 10pt;
+  }
+
+  /* Remove shadows and borders from cards */
+  [class*="card"] {
+    border: 1px solid #e5e5e5 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  /* Tables */
+  table {
+    font-size: 8pt;
+    width: 100%;
+  }
+
+  th,
+  td {
+    padding: 2pt 4pt;
+  }
+
+  /* Page breaks */
+  .print-break-before {
+    break-before: page;
+  }
+
+  /* Landscape for wide tables */
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  /* Ensure colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

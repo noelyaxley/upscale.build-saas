@@ -55,6 +55,7 @@ interface SalesTabProps {
 
 const SALE_STATUSES: SaleStatus[] = [
   "unsold",
+  "hold",
   "exchanged",
   "settled",
   "withdrawn",
@@ -482,6 +483,7 @@ function UnitDetailDialog({
 }) {
   const statusColor: Record<SaleStatus, string> = {
     unsold: "bg-muted text-muted-foreground",
+    hold: "bg-yellow-100 text-yellow-800",
     exchanged: "bg-amber-100 text-amber-800",
     settled: "bg-emerald-100 text-emerald-800",
     withdrawn: "bg-red-100 text-red-800",

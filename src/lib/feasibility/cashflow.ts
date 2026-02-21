@@ -17,6 +17,8 @@ export interface CashflowMonth {
   agentFees: number;
   legalFees: number;
   fundingCosts: number;
+  rentalIncome: number;
+  rentalCosts: number;
   totalCosts: number;
   netCashflow: number;
   cumulativeCashflow: number;
@@ -35,6 +37,8 @@ const COST_SECTIONS: LineItemSection[] = [
   "facility_fees",
   "loan_fees",
   "equity_fees",
+  "rental_income",
+  "rental_costs",
 ];
 
 function getSectionKey(section: LineItemSection): keyof CashflowMonth {
@@ -61,6 +65,10 @@ function getSectionKey(section: LineItemSection): keyof CashflowMonth {
     case "loan_fees":
     case "equity_fees":
       return "fundingCosts";
+    case "rental_income":
+      return "rentalIncome";
+    case "rental_costs":
+      return "rentalCosts";
   }
 }
 
@@ -135,6 +143,8 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
     agentFees: 0,
     legalFees: 0,
     fundingCosts: 0,
+    rentalIncome: 0,
+    rentalCosts: 0,
     totalCosts: 0,
     netCashflow: 0,
     cumulativeCashflow: 0,
@@ -212,8 +222,9 @@ export function generateCashflow(state: FeasibilityState): CashflowMonth[] {
       m.marketingCosts +
       m.agentFees +
       m.legalFees +
-      m.fundingCosts;
-    m.netCashflow = m.revenue - m.totalCosts;
+      m.fundingCosts +
+      m.rentalCosts;
+    m.netCashflow = m.revenue + m.rentalIncome - m.totalCosts;
     cumulative += m.netCashflow;
     m.cumulativeCashflow = cumulative;
   }

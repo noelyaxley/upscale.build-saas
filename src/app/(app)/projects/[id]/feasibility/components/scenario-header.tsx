@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Save } from "lucide-react";
+import { Copy, GitCompare, Plus, Printer, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/page-header";
@@ -22,7 +22,12 @@ interface ScenarioHeaderProps {
   developmentType?: DevelopmentType;
   onSelectScenario: (id: string) => void;
   onSave: () => void;
+  onDuplicate?: () => void;
+  onPrint?: () => void;
+  onCompare?: (scenarioId: string | null) => void;
+  compareScenarioId?: string | null;
   saving: boolean;
+  isDirty?: boolean;
 }
 
 export function ScenarioHeader({
@@ -32,8 +37,15 @@ export function ScenarioHeader({
   developmentType,
   onSelectScenario,
   onSave,
+  onDuplicate,
+  onPrint,
+  onCompare,
+  compareScenarioId,
   saving,
+  isDirty = false,
 }: ScenarioHeaderProps) {
+  const otherScenarios = scenarios.filter((s) => s.id !== selectedId);
+
   return (
     <>
       <PageHeader
@@ -52,7 +64,7 @@ export function ScenarioHeader({
         }
       />
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3" data-no-print>
         <Select value={selectedId} onValueChange={onSelectScenario}>
           <SelectTrigger className="w-[240px]">
             <SelectValue placeholder="Select scenario" />
@@ -72,10 +84,48 @@ export function ScenarioHeader({
           </Button>
         </CreateScenarioDialog>
         {selectedId && (
-          <Button size="sm" onClick={onSave} disabled={saving}>
-            <Save className="mr-2 size-4" />
-            {saving ? "Saving..." : "Save"}
-          </Button>
+          <>
+            <Button size="sm" onClick={onSave} disabled={saving} className="relative">
+              <Save className="mr-2 size-4" />
+              {saving ? "Saving..." : "Save"}
+              {isDirty && !saving && (
+                <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-orange-500" />
+              )}
+            </Button>
+            {onDuplicate && (
+              <Button variant="outline" size="sm" onClick={onDuplicate} disabled={saving}>
+                <Copy className="mr-2 size-4" />
+                Duplicate
+              </Button>
+            )}
+            {onPrint && (
+              <Button variant="outline" size="sm" onClick={onPrint}>
+                <Printer className="mr-2 size-4" />
+                Print
+              </Button>
+            )}
+            {onCompare && otherScenarios.length > 0 && (
+              <div className="flex items-center gap-2">
+                <GitCompare className="size-4 text-muted-foreground" />
+                <Select
+                  value={compareScenarioId ?? "none"}
+                  onValueChange={(v) => onCompare(v === "none" ? null : v)}
+                >
+                  <SelectTrigger className="h-8 w-[180px]">
+                    <SelectValue placeholder="Compare with..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No comparison</SelectItem>
+                    {otherScenarios.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

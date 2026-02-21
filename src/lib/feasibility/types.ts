@@ -3,7 +3,7 @@
 export type RateType = "$ Amount" | "$/m2" | "$/Lot" | "% Construction" | "% GRV" | "% Project Costs";
 export type HoldingFrequency = "once" | "monthly" | "quarterly" | "semi_annually" | "annually";
 export type GstStatus = "exclusive" | "inclusive" | "exempt";
-export type SaleStatus = "unsold" | "exchanged" | "settled" | "withdrawn";
+export type SaleStatus = "unsold" | "hold" | "exchanged" | "settled" | "withdrawn";
 export type LoanType = "interest_only" | "principal_and_interest";
 export type LvrMethod =
   | "grv_ex_gst"
@@ -31,9 +31,17 @@ export type LineItemSection =
   | "facility_fees"
   | "loan_fees"
   | "equity_fees"
-  | "marketing";
+  | "marketing"
+  | "rental_income"
+  | "rental_costs";
 
 export interface LandPayment {
+  name: string;
+  amount: number;
+  month: number;
+}
+
+export interface EquityInjection {
   name: string;
   amount: number;
   month: number;
@@ -147,6 +155,7 @@ export interface EquityPartner {
   distribution_type: string;
   equity_amount: number;
   return_percentage: number;
+  injection_schedule: EquityInjection[];
   sort_order: number;
 }
 
@@ -201,6 +210,11 @@ export interface FeasibilitySummary {
   totalRevenue: number;
   totalRevenueExGst: number;
   unitCount: number;
+
+  // Rental income
+  rentalIncome: number;
+  rentalCosts: number;
+  netRentalIncome: number;
 
   // Cost sections
   landCost: number;
