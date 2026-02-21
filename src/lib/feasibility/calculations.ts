@@ -6,6 +6,7 @@ import type {
   DebtFacility,
 } from "./types";
 import { normalizeToExGst } from "./gst";
+import { computeDrawdowns, type ResolvedFacility } from "./drawdown";
 
 interface ResolveContext {
   totalLandSize: number;
@@ -92,7 +93,7 @@ function sumSection(
 
 // ---------- Auto-calc facility size from LVR ----------
 
-interface FacilityCalcContext {
+export interface FacilityCalcContext {
   totalRevenueExGst: number;
   totalRevenue: number;
   totalCostsExFunding: number;
@@ -143,14 +144,43 @@ export function resolveAutoFacilitySize(
   return Math.round(base * pct);
 }
 
-/** Resolve a facility's interest provision — auto-computed when calculation_type = "auto" */
-function resolveAutoInterest(
-  facility: DebtFacility,
-  facilitySize: number
-): number {
-  if (facility.calculation_type !== "auto") return facility.interest_provision;
-  const monthlyRate = (facility.interest_rate || 0) / 100 / 12;
-  return Math.round(facilitySize * monthlyRate * facility.term_months);
+/** Compute monthly project costs (ex-funding) for drawdown engine */
+function getMonthlyProjectCosts(
+  state: FeasibilityState,
+  context: ResolveContext
+): number[] {
+  const totalMonths = state.scenario.project_length_months || 24;
+  const costs = new Array(totalMonths).fill(0) as number[];
+
+  // Land costs by deposit/settlement month
+  for (const lot of state.landLots) {
+    const depMonth = Math.max(0, (lot.deposit_month || 1) - 1);
+    const setMonth = Math.max(0, (lot.settlement_month || 1) - 1);
+    const deposit = lot.deposit_amount || 0;
+    const balance = (lot.purchase_price || 0) - deposit;
+    if (depMonth < totalMonths) costs[depMonth] += deposit;
+    if (setMonth < totalMonths) costs[setMonth] += balance;
+  }
+
+  // Line items (non-funding sections only)
+  for (const item of state.lineItems) {
+    if (
+      item.section === "facility_fees" ||
+      item.section === "loan_fees" ||
+      item.section === "equity_fees"
+    )
+      continue;
+
+    const amount = resolveLineItemAmount(item, context);
+    const startMonth = Math.max(0, (item.cashflow_start_month ?? 1) - 1);
+    const span = Math.max(1, item.cashflow_span_months || 1);
+    const perMonth = Math.round(amount / span);
+    for (let m = startMonth; m < startMonth + span && m < totalMonths; m++) {
+      costs[m] += perMonth;
+    }
+  }
+
+  return costs;
 }
 
 /** Get total land size across all lots */
@@ -307,16 +337,37 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     contingencyCosts,
   };
 
-  // Resolve each facility's size and interest (auto or manual)
-  const resolvedFacilities = state.debtFacilities.map((f) => {
-    const size = resolveAutoFacilitySize(f, facilityCtx);
-    const interest = resolveAutoInterest(f, size);
-    return { size, interest };
-  });
+  // Resolve facility sizes
+  const resolvedFacilities = state.debtFacilities.map((f) => ({
+    facility: f,
+    size: resolveAutoFacilitySize(f, facilityCtx),
+  }));
 
-  // Debt interest from facilities and loans
+  // Compute drawdown-based interest for auto facilities
+  const autoFacilities = resolvedFacilities.filter(
+    (r) => r.facility.calculation_type === "auto"
+  );
+  const monthlyCosts = getMonthlyProjectCosts(state, pass3Context);
+  const autoResolved: ResolvedFacility[] = autoFacilities.map((r) => ({
+    id: r.facility.id,
+    name: r.facility.name,
+    size: r.size,
+    interestRate: r.facility.interest_rate,
+    landLoanType: r.facility.land_loan_type,
+    priority: r.facility.priority,
+    sortOrder: r.facility.sort_order,
+  }));
+  const drawdowns = computeDrawdowns(autoResolved, monthlyCosts);
+
+  // Debt interest: drawdown-computed for auto, flat provision for manual, plus loans
   const totalDebtInterest =
-    resolvedFacilities.reduce((sum, r) => sum + r.interest, 0) +
+    state.debtFacilities.reduce((sum, f) => {
+      if (f.calculation_type === "auto") {
+        const dd = drawdowns.find((d) => d.facilityId === f.id);
+        return sum + (dd?.totalInterest ?? 0);
+      }
+      return sum + (f.interest_provision || 0);
+    }, 0) +
     state.debtLoans.reduce((sum, l) => {
       const monthlyRate = (l.interest_rate || 0) / 100 / 12;
       return (
@@ -332,10 +383,7 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     .filter((e) => e.is_developer_equity)
     .reduce((sum, e) => sum + (e.equity_amount || 0), 0);
   const totalEquity = totalPreferredEquity + totalDeveloperEquity;
-  const totalDebt = resolvedFacilities.reduce(
-    (sum, r) => sum + r.size,
-    0
-  );
+  const totalDebt = resolvedFacilities.reduce((sum, r) => sum + r.size, 0);
 
   // Totals
   const totalCostsExFunding = partialTotalCostsExFunding;

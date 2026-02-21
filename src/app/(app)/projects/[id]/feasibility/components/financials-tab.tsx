@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Calendar, Settings, TrendingUp, Users } from "lucide-react";
+import { Calendar, Landmark, Settings, TrendingUp, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,6 +17,8 @@ import type {
 } from "@/lib/feasibility/types";
 import { generateCashflow } from "@/lib/feasibility/cashflow";
 import { calculateGst } from "@/lib/feasibility/gst";
+import { resolveAutoFacilitySize } from "@/lib/feasibility/calculations";
+import { computeDrawdowns } from "@/lib/feasibility/drawdown";
 import { formatCurrency } from "./currency-helpers";
 
 interface FinancialsTabProps {
@@ -128,6 +130,49 @@ export function FinancialsTab({
       };
     });
   }, [state.equityPartners, summary.profitAfterTax]);
+
+  // Drawdown schedule
+  const drawdowns = useMemo(() => {
+    if (state.debtFacilities.length === 0 || cashflow.length === 0) return [];
+
+    const facilityCtx = {
+      totalRevenueExGst: summary.totalRevenueExGst,
+      totalRevenue: summary.totalRevenue,
+      totalCostsExFunding: summary.totalCostsExFunding,
+      constructionCosts: summary.constructionCosts,
+      contingencyCosts: summary.contingencyCosts,
+    };
+
+    const resolved = state.debtFacilities.map((f) => ({
+      id: f.id,
+      name: f.name,
+      size: resolveAutoFacilitySize(f, facilityCtx),
+      interestRate: f.interest_rate,
+      landLoanType: f.land_loan_type,
+      priority: f.priority,
+      sortOrder: f.sort_order,
+    }));
+
+    const monthlyCosts = cashflow.map(
+      (m) =>
+        m.landCost +
+        m.acquisitionCosts +
+        m.professionalFees +
+        m.constructionCosts +
+        m.devFees +
+        m.landHoldingCosts +
+        m.contingencyCosts +
+        m.marketingCosts +
+        m.agentFees +
+        m.legalFees
+    );
+
+    return computeDrawdowns(
+      resolved,
+      monthlyCosts,
+      cashflow.map((m) => m.label)
+    );
+  }, [state.debtFacilities, cashflow, summary]);
 
   return (
     <div className="space-y-6">
@@ -383,6 +428,109 @@ export function FinancialsTab({
                       >
                         {p.roi.toFixed(1)}%
                       </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Drawdown Schedule */}
+      {drawdowns.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Landmark className="size-4 text-lime-500" />
+              Drawdown Schedule
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Summary table */}
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-muted-foreground">
+                  <th className="pb-2 pr-4 font-medium">Facility</th>
+                  <th className="pb-2 pr-4 text-right font-medium">Limit</th>
+                  <th className="pb-2 pr-4 text-right font-medium">Peak Drawn</th>
+                  <th className="pb-2 pr-4 text-right font-medium">Utilisation</th>
+                  <th className="pb-2 pr-4 text-right font-medium">Interest</th>
+                  <th className="pb-2 text-right font-medium">Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {drawdowns.map((dd) => {
+                  const util =
+                    dd.facilitySize > 0
+                      ? (dd.peakDrawn / dd.facilitySize) * 100
+                      : 0;
+                  return (
+                    <tr key={dd.facilityId} className="border-b border-border/50">
+                      <td className="py-1.5 pr-4">{dd.facilityName}</td>
+                      <td className="py-1.5 pr-4 text-right">
+                        {formatCurrency(dd.facilitySize)}
+                      </td>
+                      <td className="py-1.5 pr-4 text-right">
+                        {formatCurrency(dd.peakDrawn)}
+                      </td>
+                      <td
+                        className={`py-1.5 pr-4 text-right font-medium ${util > 90 ? "text-red-600" : util > 75 ? "text-amber-600" : "text-emerald-600"}`}
+                      >
+                        {util.toFixed(1)}%
+                      </td>
+                      <td className="py-1.5 pr-4 text-right">
+                        {formatCurrency(dd.totalInterest)}
+                      </td>
+                      <td className="py-1.5 text-right text-xs text-muted-foreground">
+                        {dd.landLoanType === "provisioned" ? "Provisioned" : "Serviced"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Month-by-month drawn balance */}
+            <div className="overflow-x-auto">
+              <table className="text-xs">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="sticky left-0 bg-background pb-2 pr-4 font-medium">
+                      Facility
+                    </th>
+                    {drawdowns[0]?.months.map((m) => (
+                      <th
+                        key={m.month}
+                        className="min-w-[80px] pb-2 pr-2 text-right font-medium"
+                      >
+                        {m.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {drawdowns.map((dd) => (
+                    <tr key={dd.facilityId} className="border-b border-border/50">
+                      <td className="sticky left-0 bg-background py-1 pr-4">
+                        {dd.facilityName}
+                      </td>
+                      {dd.months.map((m) => {
+                        const util =
+                          dd.facilitySize > 0
+                            ? (m.cumulativeDrawn / dd.facilitySize) * 100
+                            : 0;
+                        return (
+                          <td
+                            key={m.month}
+                            className={`py-1 pr-2 text-right ${util > 90 ? "text-red-600" : util > 75 ? "text-amber-600" : ""}`}
+                          >
+                            {m.cumulativeDrawn > 0
+                              ? formatCurrency(m.cumulativeDrawn)
+                              : "-"}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
