@@ -163,6 +163,8 @@ export interface ScenarioFields {
   profit: number | null;
   profit_on_cost: number | null;
   target_margin_pct: number;
+  tax_rate: number;
+  discount_rate: number;
   notes: string | null;
 }
 
@@ -237,6 +239,16 @@ export interface FeasibilitySummary {
   totalDebt: number;
   totalPreferredEquity: number;
   totalDeveloperEquity: number;
+
+  // After-tax P&L
+  ebit: number;                     // Revenue - Costs ex Funding
+  profitBeforeTax: number;          // = profit (Revenue - all costs incl funding)
+  taxAmount: number;
+  profitAfterTax: number;
+
+  // NPV / IRR
+  npv: number;
+  irr: number;
 
   // Land
   totalLandSize: number;

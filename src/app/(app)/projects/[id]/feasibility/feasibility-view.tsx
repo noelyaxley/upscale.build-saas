@@ -178,6 +178,10 @@ function scenarioToFields(
     state: (s as Record<string, unknown>).state as string ?? "NSW",
     target_margin_pct:
       (s as Record<string, unknown>).target_margin_pct as number ?? 20,
+    tax_rate:
+      (s as Record<string, unknown>).tax_rate as number ?? 30,
+    discount_rate:
+      (s as Record<string, unknown>).discount_rate as number ?? 10,
     site_area: s.site_area,
     fsr: s.fsr,
     max_height: s.max_height,
@@ -369,6 +373,8 @@ function buildInitialState(
     start_date: null,
     state: "NSW",
     target_margin_pct: 20,
+    tax_rate: 30,
+    discount_rate: 10,
     site_area: null,
     fsr: null,
     max_height: null,
@@ -460,6 +466,8 @@ export function FeasibilityView({
           start_date: state.scenario.start_date,
           state: state.scenario.state,
           target_margin_pct: state.scenario.target_margin_pct,
+          tax_rate: state.scenario.tax_rate,
+          discount_rate: state.scenario.discount_rate,
           // Update legacy cache fields from summary
           total_revenue: summary.totalRevenue,
           site_cost: summary.landCost,

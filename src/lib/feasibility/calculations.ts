@@ -404,6 +404,18 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
   const residualLandValueAtTarget =
     totalRevenueExGst * (1 - targetMargin / 100) - (totalCosts - landCost);
 
+  // After-tax P&L
+  const ebit = totalRevenueExGst - totalCostsExFunding;
+  const profitBeforeTax = profit; // = totalRevenueExGst - totalCosts
+  const taxRate = state.scenario.tax_rate ?? 30;
+  const taxAmount = profitBeforeTax > 0 ? Math.round(profitBeforeTax * taxRate / 100) : 0;
+  const profitAfterTax = profitBeforeTax - taxAmount;
+
+  // NPV / IRR using monthly cashflow
+  const discountRate = state.scenario.discount_rate ?? 10;
+  const npv = computeNpv(state, discountRate);
+  const irr = computeIrr(state);
+
   return {
     totalRevenue,
     totalRevenueExGst,
@@ -448,9 +460,106 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     totalDebt,
     totalPreferredEquity,
     totalDeveloperEquity,
+    ebit,
+    profitBeforeTax,
+    taxAmount,
+    profitAfterTax,
+    npv,
+    irr,
     totalLandSize,
     lotCount,
     residualLandValue,
     residualLandValueAtTarget,
   };
+}
+
+// ---------- NPV / IRR ----------
+
+function getNetCashflows(state: FeasibilityState): number[] {
+  // Use the cashflow engine for monthly net cashflows
+  // Import would be circular, so compute a simple version here
+  const totalMonths = state.scenario.project_length_months || 24;
+  const flows = new Array(totalMonths).fill(0);
+
+  // Land costs by deposit/settlement month
+  for (const lot of state.landLots) {
+    const depMonth = Math.max(0, (lot.deposit_month || 1) - 1);
+    const setMonth = Math.max(0, (lot.settlement_month || 1) - 1);
+    const deposit = lot.deposit_amount || 0;
+    const balance = (lot.purchase_price || 0) - deposit;
+    if (depMonth < totalMonths) flows[depMonth] -= deposit;
+    if (setMonth < totalMonths) flows[setMonth] -= balance;
+  }
+
+  // Revenue by settlement month
+  for (const unit of state.salesUnits) {
+    const rev = normalizeToExGst(unit.sale_price || 0, unit.gst_status);
+    const monthIdx = unit.settlement_month
+      ? Math.max(0, unit.settlement_month - 1)
+      : totalMonths - 1;
+    if (monthIdx < totalMonths) flows[monthIdx] += rev;
+  }
+
+  // Line item costs spread across months
+  const totalLandSize = state.landLots.reduce((s, l) => s + (l.land_size_m2 || 0), 0);
+  const lotCount = state.landLots.length || 1;
+  const totalRevenue = state.salesUnits.reduce((s, u) => s + (u.sale_price || 0), 0);
+  const ctx: ResolveContext = {
+    totalLandSize,
+    lotCount,
+    constructionTotal: 0, // simplified
+    grvTotal: totalRevenue,
+    projectCostsTotal: 0,
+    projectLengthMonths: totalMonths,
+  };
+
+  for (const item of state.lineItems) {
+    const amount = resolveLineItemAmount(item, ctx);
+    const startMonth = Math.max(0, (item.cashflow_start_month ?? 1) - 1);
+    const span = Math.max(1, item.cashflow_span_months || 1);
+    const perMonth = Math.round(amount / span);
+    for (let m = startMonth; m < startMonth + span && m < totalMonths; m++) {
+      flows[m] -= perMonth;
+    }
+  }
+
+  return flows;
+}
+
+function computeNpv(state: FeasibilityState, annualRate: number): number {
+  const flows = getNetCashflows(state);
+  if (flows.length === 0) return 0;
+  const monthlyRate = annualRate / 100 / 12;
+  let npv = 0;
+  for (let i = 0; i < flows.length; i++) {
+    npv += flows[i] / Math.pow(1 + monthlyRate, i + 1);
+  }
+  return Math.round(npv);
+}
+
+function computeIrr(state: FeasibilityState): number {
+  const flows = getNetCashflows(state);
+  if (flows.length === 0) return 0;
+
+  // Newton's method to find monthly IRR
+  let rate = 0.01; // initial guess: 1% per month
+  for (let iter = 0; iter < 100; iter++) {
+    let npv = 0;
+    let dnpv = 0;
+    for (let i = 0; i < flows.length; i++) {
+      const t = i + 1;
+      const disc = Math.pow(1 + rate, t);
+      npv += flows[i] / disc;
+      dnpv -= (t * flows[i]) / (disc * (1 + rate));
+    }
+    if (Math.abs(npv) < 1) break; // close enough (within $1)
+    if (dnpv === 0) break;
+    rate -= npv / dnpv;
+    // Clamp to reasonable range
+    if (rate < -0.5) rate = -0.5;
+    if (rate > 10) rate = 10;
+  }
+
+  // Convert monthly rate to annual
+  return (Math.pow(1 + rate, 12) - 1) * 100;
 }
