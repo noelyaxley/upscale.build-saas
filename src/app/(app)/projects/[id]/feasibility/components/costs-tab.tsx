@@ -152,6 +152,7 @@ export function CostsTab({ state, dispatch, summary }: CostsTabProps) {
                     tabName={tab}
                     scenarioId={state.scenario.id}
                     summary={summary}
+                    debtFacilities={state.debtFacilities}
                     onAdd={(item) =>
                       dispatch({ type: "ADD_LINE_ITEM", payload: item })
                     }

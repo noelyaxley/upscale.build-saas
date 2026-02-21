@@ -70,6 +70,7 @@ export interface LineItem {
   frequency: HoldingFrequency;
   cashflow_start_month: number | null;
   cashflow_span_months: number;
+  funding_facility_id: string | null;
   sort_order: number;
 }
 

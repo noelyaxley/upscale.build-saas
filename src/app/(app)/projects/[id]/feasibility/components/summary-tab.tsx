@@ -10,6 +10,13 @@ import {
 import type { FeasibilitySummary } from "@/lib/feasibility/types";
 import { formatCurrency, formatPct } from "./currency-helpers";
 
+/** RAG colour class based on value and thresholds */
+function ragColor(value: number, amber: number, red: number): string {
+  if (value >= red) return "text-red-600";
+  if (value >= amber) return "text-amber-600";
+  return "text-emerald-600";
+}
+
 interface SummaryTabProps {
   summary: FeasibilitySummary;
 }
@@ -313,19 +320,19 @@ export function SummaryTab({ summary }: SummaryTabProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Debt</span>
-                <span className="font-medium">
+                <span className={`font-medium ${ragColor(summary.debtLeveragePct, 65, 80)}`}>
                   {formatPct(summary.debtLeveragePct)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">LTC Ratio</span>
-                <span className="font-medium">
+                <span className={`font-medium ${ragColor(summary.debtToCostRatio, 65, 75)}`}>
                   {formatPct(summary.debtToCostRatio)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">LVR</span>
-                <span className="font-medium">
+                <span className={`font-medium ${ragColor(summary.debtToGrvRatio, 60, 70)}`}>
                   {formatPct(summary.debtToGrvRatio)}
                 </span>
               </div>

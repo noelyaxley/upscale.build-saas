@@ -45,16 +45,19 @@ const PRIORITY_ORDER: Record<string, number> = {
 /**
  * Compute month-by-month drawdown schedule for each facility.
  *
- * Facilities draw sequentially by priority (senior first).
- * Each month's project costs are allocated to facilities until their limit is reached.
+ * Items with a funding_facility_id draw directly from their assigned facility.
+ * Unassigned costs draw sequentially by priority (senior first).
  * Interest accrues on the drawn balance at the end of each month.
  * Provisioned facilities capitalise interest (added to drawn balance).
  * Serviced facilities accrue interest separately (not added to balance).
+ *
+ * @param assignedCosts - Map of facility ID → monthly cost array for explicitly assigned items
  */
 export function computeDrawdowns(
   facilities: ResolvedFacility[],
   monthlyCosts: number[],
-  monthLabels?: string[]
+  monthLabels?: string[],
+  assignedCosts?: Map<string, number[]>
 ): FacilityDrawdown[] {
   if (facilities.length === 0 || monthlyCosts.length === 0) return [];
 
@@ -64,7 +67,20 @@ export function computeDrawdowns(
     return pa - pb || a.sortOrder - b.sortOrder;
   });
 
+  // Unassigned costs = total costs minus all assigned costs
   const remaining = [...monthlyCosts];
+  if (assignedCosts) {
+    for (const costs of assignedCosts.values()) {
+      for (let i = 0; i < remaining.length && i < costs.length; i++) {
+        remaining[i] -= costs[i];
+      }
+    }
+    // Floor at zero — assigned costs shouldn't exceed total
+    for (let i = 0; i < remaining.length; i++) {
+      remaining[i] = Math.max(0, remaining[i]);
+    }
+  }
+
   const results: FacilityDrawdown[] = [];
 
   for (const f of sorted) {
@@ -75,10 +91,22 @@ export function computeDrawdowns(
     let peak = 0;
     const months: DrawdownMonth[] = [];
 
+    // Get assigned costs for this facility (if any)
+    const facilityAssigned = assignedCosts?.get(f.id);
+
     for (let i = 0; i < monthlyCosts.length; i++) {
       const avail = Math.max(0, f.size - cumDrawn);
-      const drawn = Math.min(Math.max(0, remaining[i]), avail);
-      remaining[i] -= drawn;
+
+      // Assigned costs for this facility this month + unassigned overflow
+      const assigned = facilityAssigned?.[i] ?? 0;
+      const fromAssigned = Math.min(assigned, avail);
+      const availAfterAssigned = Math.max(0, avail - fromAssigned);
+
+      // Draw from unassigned pool (only if this facility has room)
+      const fromUnassigned = Math.min(Math.max(0, remaining[i]), availAfterAssigned);
+      remaining[i] -= fromUnassigned;
+
+      const drawn = fromAssigned + fromUnassigned;
       cumDrawn += drawn;
 
       // Interest on balance after this month's draw

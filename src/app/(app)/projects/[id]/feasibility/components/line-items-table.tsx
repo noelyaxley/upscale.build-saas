@@ -9,6 +9,7 @@ import type {
   RateType,
   GstStatus,
   HoldingFrequency,
+  DebtFacility,
   FeasibilitySummary,
 } from "@/lib/feasibility/types";
 import {
@@ -34,6 +35,7 @@ interface LineItemsTableProps {
   onRemove: (id: string) => void;
   landLotId?: string | null;
   projectLengthMonths?: number;
+  debtFacilities?: DebtFacility[];
 }
 
 export function LineItemsTable({
@@ -47,6 +49,7 @@ export function LineItemsTable({
   onRemove,
   landLotId,
   projectLengthMonths = 24,
+  debtFacilities = [],
 }: LineItemsTableProps) {
   const showFrequency = section === "land_holding";
   const filtered = items.filter(
@@ -87,6 +90,7 @@ export function LineItemsTable({
       frequency: showFrequency ? "monthly" : "once",
       cashflow_start_month: null,
       cashflow_span_months: 1,
+      funding_facility_id: null,
       sort_order: filtered.length,
     });
   };
@@ -107,6 +111,9 @@ export function LineItemsTable({
               )}
               <th className="w-20 pb-2 pr-2 font-medium">Start Mth</th>
               <th className="w-20 pb-2 pr-2 font-medium">Span</th>
+              {debtFacilities.length > 0 && (
+                <th className="w-32 pb-2 pr-2 font-medium">Funded By</th>
+              )}
               <th className="w-28 pb-2 pr-2 text-right font-medium">
                 Amount Ex GST
               </th>
@@ -222,6 +229,30 @@ export function LineItemsTable({
                       min={1}
                     />
                   </td>
+                  {debtFacilities.length > 0 && (
+                    <td className="py-1 pr-2">
+                      <Select
+                        value={item.funding_facility_id ?? "__none__"}
+                        onValueChange={(v) =>
+                          onUpdate(item.id, {
+                            funding_facility_id: v === "__none__" ? null : v,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="h-8 border-none bg-transparent shadow-none text-xs">
+                          <SelectValue placeholder="Auto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Auto</SelectItem>
+                          {debtFacilities.map((f) => (
+                            <SelectItem key={f.id} value={f.id}>
+                              {f.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  )}
                   <td className="py-1 pr-2 text-right font-medium">
                     {formatCurrency(resolved)}
                   </td>
@@ -242,7 +273,7 @@ export function LineItemsTable({
           {filtered.length > 0 && (
             <tfoot>
               <tr className="border-t font-medium">
-                <td colSpan={showFrequency ? 8 : 7} className="py-2 pr-2 text-right text-xs">
+                <td colSpan={(showFrequency ? 8 : 7) + (debtFacilities.length > 0 ? 1 : 0)} className="py-2 pr-2 text-right text-xs">
                   Total
                 </td>
                 <td className="py-2 pr-2 text-right">{formatCurrency(total)}</td>

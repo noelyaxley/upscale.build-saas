@@ -17,7 +17,7 @@ import type {
 } from "@/lib/feasibility/types";
 import { generateCashflow } from "@/lib/feasibility/cashflow";
 import { calculateGst, normalizeToExGst } from "@/lib/feasibility/gst";
-import { resolveAutoFacilitySize } from "@/lib/feasibility/calculations";
+import { resolveAutoFacilitySize, resolveLineItemAmount } from "@/lib/feasibility/calculations";
 import { computeDrawdowns } from "@/lib/feasibility/drawdown";
 import { formatCurrency } from "./currency-helpers";
 
@@ -167,12 +167,49 @@ export function FinancialsTab({
         m.legalFees
     );
 
+    // Build assigned costs for items with explicit funding_facility_id
+    const totalMonths = cashflow.length;
+    const assignedItems = state.lineItems.filter(
+      (i) =>
+        i.funding_facility_id != null &&
+        i.section !== "facility_fees" &&
+        i.section !== "loan_fees" &&
+        i.section !== "equity_fees"
+    );
+    let assignedCosts: Map<string, number[]> | undefined;
+    if (assignedItems.length > 0) {
+      assignedCosts = new Map();
+      const ctx = {
+        totalLandSize: summary.totalLandSize,
+        lotCount: summary.lotCount,
+        constructionTotal: summary.constructionCosts,
+        grvTotal: summary.totalRevenue,
+        projectCostsTotal: summary.projectCostsToFund,
+        projectLengthMonths: totalMonths,
+      };
+      for (const item of assignedItems) {
+        const fid = item.funding_facility_id!;
+        if (!assignedCosts.has(fid)) {
+          assignedCosts.set(fid, new Array(totalMonths).fill(0));
+        }
+        const arr = assignedCosts.get(fid)!;
+        const amount = resolveLineItemAmount(item, ctx);
+        const startMonth = Math.max(0, (item.cashflow_start_month ?? 1) - 1);
+        const span = Math.max(1, item.cashflow_span_months || 1);
+        const perMonth = Math.round(amount / span);
+        for (let m = startMonth; m < startMonth + span && m < totalMonths; m++) {
+          arr[m] += perMonth;
+        }
+      }
+    }
+
     return computeDrawdowns(
       resolved,
       monthlyCosts,
-      cashflow.map((m) => m.label)
+      cashflow.map((m) => m.label),
+      assignedCosts
     );
-  }, [state.debtFacilities, cashflow, summary]);
+  }, [state.debtFacilities, state.lineItems, cashflow, summary]);
 
   // Revenue Plan: per-unit monthly allocation
   const revenuePlan = useMemo(() => {

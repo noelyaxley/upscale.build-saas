@@ -183,6 +183,39 @@ function getMonthlyProjectCosts(
   return costs;
 }
 
+/** Build per-facility monthly cost arrays for items with explicit funding_facility_id */
+function buildAssignedCosts(
+  state: FeasibilityState,
+  context: ResolveContext
+): Map<string, number[]> | undefined {
+  const totalMonths = state.scenario.project_length_months || 24;
+  const assignedItems = state.lineItems.filter(
+    (i) =>
+      i.funding_facility_id != null &&
+      i.section !== "facility_fees" &&
+      i.section !== "loan_fees" &&
+      i.section !== "equity_fees"
+  );
+  if (assignedItems.length === 0) return undefined;
+
+  const map = new Map<string, number[]>();
+  for (const item of assignedItems) {
+    const fid = item.funding_facility_id!;
+    if (!map.has(fid)) {
+      map.set(fid, new Array(totalMonths).fill(0));
+    }
+    const arr = map.get(fid)!;
+    const amount = resolveLineItemAmount(item, context);
+    const startMonth = Math.max(0, (item.cashflow_start_month ?? 1) - 1);
+    const span = Math.max(1, item.cashflow_span_months || 1);
+    const perMonth = Math.round(amount / span);
+    for (let m = startMonth; m < startMonth + span && m < totalMonths; m++) {
+      arr[m] += perMonth;
+    }
+  }
+  return map;
+}
+
 /** Get total land size across all lots */
 export function getTotalLandSize(state: FeasibilityState): number {
   return state.landLots.reduce((sum, lot) => sum + (lot.land_size_m2 || 0), 0);
@@ -357,7 +390,10 @@ export function computeSummary(state: FeasibilityState): FeasibilitySummary {
     priority: r.facility.priority,
     sortOrder: r.facility.sort_order,
   }));
-  const drawdowns = computeDrawdowns(autoResolved, monthlyCosts);
+
+  // Build assigned costs map for items with explicit funding_facility_id
+  const assignedCosts = buildAssignedCosts(state, pass3Context);
+  const drawdowns = computeDrawdowns(autoResolved, monthlyCosts, undefined, assignedCosts);
 
   // Debt interest: drawdown-computed for auto, flat provision for manual, plus loans
   const totalDebtInterest =

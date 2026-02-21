@@ -88,6 +88,7 @@ function mapLineItem(row: Record<string, unknown>): LineItem {
     frequency: (row.frequency as HoldingFrequency) ?? "once",
     cashflow_start_month: row.cashflow_start_month as number | null,
     cashflow_span_months: (row.cashflow_span_months as number) ?? 1,
+    funding_facility_id: (row.funding_facility_id as string) ?? null,
     sort_order: (row.sort_order as number) ?? 0,
   };
 }
@@ -546,6 +547,7 @@ export function FeasibilityView({
               frequency: item.frequency,
               cashflow_start_month: item.cashflow_start_month,
               cashflow_span_months: item.cashflow_span_months,
+              funding_facility_id: item.funding_facility_id,
               sort_order: i,
             }))
           ).then()
